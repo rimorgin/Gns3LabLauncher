@@ -5,8 +5,9 @@ exports.getIndex = (req, res, next) => {
         return res.render('home')
     }
 
-    res.render('index', {
-        user: req.user,
+    res.render('dashboard', {
+        user: req.user.username,
+        role: req.user.role,
         csrfToken: req.csrfToken()
     });
 };
@@ -14,16 +15,7 @@ exports.getIndex = (req, res, next) => {
 
 // Routes
 exports.getDashboard = (req, res) => {
-    const projects = [
-      {
-        title: 'Theme development',
-        description: 'Preparing framework of block-based WordPress Theme.',
-        progress: 25,
-        priority: 'High',
-        team: ['avatar1.png', 'avatar2.png', 'avatar3.png'],
-      },
-      // Add more projects...
-    ];
+
     if (!req.isAuthenticated()) {
         return res.render('home')
     }

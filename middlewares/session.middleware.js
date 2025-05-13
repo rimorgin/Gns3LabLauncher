@@ -1,5 +1,5 @@
 const session = require('express-session');
-const sessionConfig = require('../config/session.config');
+const sessionConfig = require('../configs/session.config');
 
 module.exports = session({
   name: sessionConfig.sessionCookieName,

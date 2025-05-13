@@ -1,217 +1,161 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('partials/head') %>
+    <link rel="stylesheet" href="/css/dashboard.css" />
+    
+  </head>
+  <body>
+    <div class="container">
+    <% console.log('user: ', user) %>
+      <!-- Sidebar -->
+      <%- include('partials/components/_sidebar') %>
 
-<head>
-    <%- include('./partials/head'); %>
-    <link rel="stylesheet" href="/css/dashboard.css">
-</head>
+      <!-- Header -->
+      <%- include('partials/components/_header', {
+        data: { username: 'John Dela Cruz', role: 'Administrator' }
+      }) %>
 
-<body>
-    <header>
-        <div class="logosec">
-            <div class="logo">GeeksForGeeks</div>
-            <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210182541/Untitled-design-(30).png"
-                class="icn menuicn" id="menuicn" alt="menu-icon" />
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="page-title">
+          <div class="title">Dashboard</div>
+          <div class="action-buttons">
+            <button class="btn btn-outline">
+              <i class="fas fa-download"></i>
+              Export
+            </button>
+            <button class="btn btn-primary">
+              <i class="fas fa-plus"></i>
+              Add New
+            </button>
+          </div>
         </div>
-        <div class="searchbar">
-            <input type="text" placeholder="Search" />
-            <div class="searchbtn">
-                <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210180758/Untitled-design-(28).png"
-                    class="icn srchicn" alt="search-icon" />
-            </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <%- include('partials/components/_cards', {
+                data: { value: "1,504", label: "Total Users", icon: "fa-users", change: { type: 'up', percent: 12.5 }, color: "purple" }
+            }) %>
+      
+            <%- include('partials/components/_cards', {
+                data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "blue" }
+            }) %>
+
+            <%- include('partials/components/_cards', {
+                data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "green" }
+            }) %>
+            
+            <%- include('partials/components/_cards', {
+                data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "orange" }
+            }) %>
+
         </div>
 
-        <div class="message">
-            <div class="circle"></div>
-            <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183322/8.png" class="icn" alt="" />
-            <div class="dp">
-                <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210180014/profile-removebg-preview.png"
-                    class="dpicn" alt="dp" />
-            </div>
+        <!-- Recent Orders -->
+        <div class="table-card">
+          <div class="card-title">
+            <h3><i class="fas fa-shopping-bag"></i> Recent Orders</h3>
+            <button class="btn btn-outline btn-sm">
+              <i class="fas fa-eye"></i> View All
+            </button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#ORD-001</td>
+                <td>John Smith</td>
+                <td>15 Mar 2025</td>
+                <td>$125.00</td>
+                <td>
+                  <span class="status active"
+                    ><i class="fas fa-check-circle"></i> Completed</span
+                  >
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>#ORD-002</td>
+                <td>Emma Johnson</td>
+                <td>14 Mar 2025</td>
+                <td>$245.99</td>
+                <td>
+                  <span class="status pending"
+                    ><i class="fas fa-clock"></i> Pending</span
+                  >
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>#ORD-003</td>
+                <td>Michael Brown</td>
+                <td>13 Mar 2025</td>
+                <td>$79.50</td>
+                <td>
+                  <span class="status active"
+                    ><i class="fas fa-check-circle"></i> Completed</span
+                  >
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>#ORD-004</td>
+                <td>Sarah Davis</td>
+                <td>12 Mar 2025</td>
+                <td>$350.00</td>
+                <td>
+                  <span class="status cancelled"
+                    ><i class="fas fa-times-circle"></i> Cancelled</span
+                  >
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>#ORD-005</td>
+                <td>David Wilson</td>
+                <td>11 Mar 2025</td>
+                <td>$185.25</td>
+                <td>
+                  <span class="status active"
+                    ><i class="fas fa-check-circle"></i> Completed</span
+                  >
+                </td>
+                <td>
+                  <button class="btn btn-outline btn-sm">
+                    <i class="fas fa-eye"></i> View
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-    </header>
-
-    <div class="main-container">
-        <div class="navcontainer">
-            <nav class="nav">
-                <div class="nav-upper-options">
-                    <div class="nav-option option1">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210182148/Untitled-design-(29).png"
-                            class="nav-img" alt="dashboard" />
-                        <h3>Dashboard</h3>
-                    </div>
-
-                    <div class="option2 nav-option">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183322/9.png"
-                            class="nav-img" alt="articles" />
-                        <h3>Articles</h3>
-                    </div>
-
-                    <div class="nav-option option3">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183320/5.png"
-                            class="nav-img" alt="report" />
-                        <h3>Report</h3>
-                    </div>
-
-                    <div class="nav-option option4">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183321/6.png"
-                            class="nav-img" alt="institution" />
-                        <h3>Institution</h3>
-                    </div>
-
-                    <div class="nav-option option5">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183323/10.png"
-                            class="nav-img" alt="blog" />
-                        <h3>Profile</h3>
-                    </div>
-
-                    <div class="nav-option option6">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183320/4.png"
-                            class="nav-img" alt="settings" />
-                        <h3>Settings</h3>
-                    </div>
-
-                    <div class="nav-option logout">
-                        <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210183321/7.png"
-                            class="nav-img" alt="logout" />
-                        <h3>Logout</h3>
-                    </div>
-                </div>
-            </nav>
-        </div>
-        <div class="main">
-            <div class="searchbar2">
-                <input type="text" name="" id="" placeholder="Search" />
-                <div class="searchbtn">
-                    <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210180758/Untitled-design-(28).png"
-                        class="icn srchicn" alt="search-button" />
-                </div>
-            </div>
-
-            <div class="box-container">
-                <div class="box box1">
-                    <div class="text">
-                        <h2 class="topic-heading">60.5k</h2>
-                        <h2 class="topic">Article Views</h2>
-                    </div>
-
-                    <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210184645/Untitled-design-(31).png"
-                        alt="Views" />
-                </div>
-
-                <div class="box box2">
-                    <div class="text">
-                        <h2 class="topic-heading">150</h2>
-                        <h2 class="topic">Likes</h2>
-                    </div>
-
-                    <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210185030/14.png" alt="likes" />
-                </div>
-
-                <div class="box box3">
-                    <div class="text">
-                        <h2 class="topic-heading">320</h2>
-                        <h2 class="topic">Comments</h2>
-                    </div>
-
-                    <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210184645/Untitled-design-(32).png"
-                        alt="comments" />
-                </div>
-
-                <div class="box box4">
-                    <div class="text">
-                        <h2 class="topic-heading">70</h2>
-                        <h2 class="topic">Published</h2>
-                    </div>
-
-                    <img src="https://media.geeksforgeeks.org/wp-content/uploads/20221210185029/13.png"
-                        alt="published" />
-                </div>
-            </div>
-
-            <div class="report-container">
-                <div class="report-header">
-                    <h1 class="recent-Articles">Recent Articles</h1>
-                    <button class="view">View All</button>
-                </div>
-
-                <div class="report-body">
-                    <div class="report-topic-heading">
-                        <h3 class="t-op">Article</h3>
-                        <h3 class="t-op">Views</h3>
-                        <h3 class="t-op">Comments</h3>
-                        <h3 class="t-op">Status</h3>
-                    </div>
-
-                    <div class="items">
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 73</h3>
-                            <h3 class="t-op-nextlvl">2.9k</h3>
-                            <h3 class="t-op-nextlvl">210</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 72</h3>
-                            <h3 class="t-op-nextlvl">1.5k</h3>
-                            <h3 class="t-op-nextlvl">360</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 71</h3>
-                            <h3 class="t-op-nextlvl">1.1k</h3>
-                            <h3 class="t-op-nextlvl">150</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 70</h3>
-                            <h3 class="t-op-nextlvl">1.2k</h3>
-                            <h3 class="t-op-nextlvl">420</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 69</h3>
-                            <h3 class="t-op-nextlvl">2.6k</h3>
-                            <h3 class="t-op-nextlvl">190</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 68</h3>
-                            <h3 class="t-op-nextlvl">1.9k</h3>
-                            <h3 class="t-op-nextlvl">390</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 67</h3>
-                            <h3 class="t-op-nextlvl">1.2k</h3>
-                            <h3 class="t-op-nextlvl">580</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 66</h3>
-                            <h3 class="t-op-nextlvl">3.6k</h3>
-                            <h3 class="t-op-nextlvl">160</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-
-                        <div class="item1">
-                            <h3 class="t-op-nextlvl">Article 65</h3>
-                            <h3 class="t-op-nextlvl">1.3k</h3>
-                            <h3 class="t-op-nextlvl">220</h3>
-                            <h3 class="t-op-nextlvl label-tag">Published</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
-
-    <script src="/js/dashboard.js"></script>
-</body>
-
+  </body>
 </html>

@@ -1,0 +1,31 @@
+{
+  "roles": [
+    {
+      "name": "admin",
+      "permissions": [
+        "create_tasks", "read_tasks", "update_tasks", "delete_tasks",
+        "create_teams", "read_teams", "update_teams", "delete_teams",
+        "create_projects", "read_projects", "update_projects", "delete_projects",
+        "create_users", "read_users", "update_users", "delete_users",
+        "create_comments", "read_comments", "update_comments", "delete_comments"
+      ]
+    },
+    {
+      "name": "manager",
+      "permissions": [
+        "create_tasks", "read_tasks", "update_tasks",
+        "create_projects", "read_projects", "update_projects",
+        "create_teams", "read_teams", "update_teams",
+        "create_comments", "read_comments", "update_comments"
+      ]
+    },
+    {
+      "name": "users",
+      "permissions": [
+        "create_tasks", "read_tasks", "update_tasks",
+        "create_projects", "read_projects", "update_projects",
+        "create_comments", "read_comments", "update_comments"
+      ]
+    }
+  ]
+}
