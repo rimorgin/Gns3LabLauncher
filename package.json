@@ -1,0 +1,44 @@
+{
+  "name": "gns3lablauncher",
+  "version": "1.0.0",
+  "description": "what does this launcher do? the launcher provides automated gns3 sessions and can be accessed via web gui.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node ./scripts/run-server.script.js",
+    "post-start": "nodemon ./bin/www"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "body-parser": "^2.2.0",
+    "connect-ensure-login": "^0.1.1",
+    "connect-flash": "^0.1.1",
+    "connect-redis": "^8.0.2",
+    "cookie-parser": "^1.4.7",
+    "crypto": "^1.0.1",
+    "csurf": "^1.2.2",
+    "debug": "^4.4.0",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "hbs": "^4.2.0",
+    "http-errors": "^2.0.0",
+    "install": "^0.13.0",
+    "mkdirp": "^3.0.1",
+    "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "pluralize": "^8.0.0",
+    "redis": "^4.7.0",
+    "sqlite3": "^5.1.7",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "dotenv": "^16.5.0",
+    "nodemon": "^3.1.10"
+  }
+}
