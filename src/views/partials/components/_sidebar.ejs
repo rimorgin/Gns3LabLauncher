@@ -1,63 +1,68 @@
 <div class="sidebar">
-    <div class="logo">
-      <h1>Admin<span>Panel</span></h1>
+  <div class="logo">
+    <h1>GNS3<span>NetSecLab</span></h1>
+  </div>
+  <div class="nav-menu">
+
+    <div class="menu-heading">Main</div>
+    <div class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>" data-page="dashboard">
+      <i class="fas fa-chart-pie"></i>
+      <span>Dashboard</span>
     </div>
-    <div class="nav-menu">
-      <div class="menu-heading">Main</div>
-      <div class="nav-item active">
-        <i class="fas fa-chart-pie"></i>
-        <span>Dashboard</span>
-      </div>
-      <div class="nav-item">
-        <i class="fas fa-users"></i>
-        <span>Users</span>
-      </div>
-      <div class="nav-item">
-        <i class="fas fa-box"></i>
-        <span>Products</span>
-      </div>
-      <div class="nav-item">
-        <i class="fas fa-shopping-cart"></i>
-        <span>Orders</span>
-      </div>
-
-      <div class="menu-heading">Reports</div>
-      <div class="nav-item">
-        <i class="fas fa-chart-line"></i>
-        <span>Analytics</span>
-      </div>
-      <div class="nav-item">
-        <i class="fas fa-coins"></i>
-        <span>Sales</span>
-      </div>
-
-      <div class="menu-heading">Admin</div>
-      <div class="nav-item">
-        <i class="fas fa-cog"></i>
-        <span>Settings</span>
-      </div>
-      <div class="nav-item" >
-        <i class="fas fa-bell"></i>
-        <span>Notifications</span>
-      </div>
-
-      <div class="nav-item">
-        <i class="fas fa-shield-alt"></i>
-        <span>Security</span>
-      </div>
-      <div class="nav-item" id="logout-link">
-        <i class="fas fa-sign-out-alt"></i>
-        <span>Logout</span>
-      </div>
-      
-      <form id="logout-form" action="/api/v1/logout" method="post" style="display: none;">
-        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      </form>
+    <div class="nav-item <%= activePage === 'users' ? 'active' : '' %>" data-page="users">
+      <i class="fas fa-users"></i>
+      <span>Users</span>
     </div>
+    <div class="nav-item <%= activePage === 'products' ? 'active' : '' %>" data-page="products">
+      <i class="fas fa-diagram-project"></i>
+      <span>Products</span>
+    </div>
+    <div class="nav-item <%= activePage === 'orders' ? 'active' : '' %>" data-page="orders">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Orders</span>
+    </div>
+
+    <div class="menu-heading">Reports</div>
+    <div class="nav-item <%= activePage === 'analytics' ? 'active' : '' %>" data-page="analytics">
+      <i class="fas fa-chart-line"></i>
+      <span>Analytics</span>
+    </div>
+    <div class="nav-item <%= activePage === 'sales' ? 'active' : '' %>" data-page="sales">
+      <i class="fas fa-coins"></i>
+      <span>Sales</span>
+    </div>
+
+    <div class="menu-heading">Admin</div>
+    <div class="nav-item <%= activePage === 'settings' ? 'active' : '' %>" data-page="settings">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </div>
+    <div class="nav-item <%= activePage === 'notifications' ? 'active' : '' %>" data-page="notifications">
+      <i class="fas fa-bell"></i>
+      <span>Notifications</span>
+    </div>
+    <div class="nav-item <%= activePage === 'security' ? 'active' : '' %>" data-page="security">
+      <i class="fas fa-shield-alt"></i>
+      <span>Security</span>
+    </div>
+
+    <div class="nav-item" id="logout-link">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </div>
+
+    <form id="logout-form" action="/api/v1/logout" method="post" style="display: none;">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    </form>
+  </div>
 </div>
+
+<!-- JavaScript for Handling Clicks -->
 <script>
-    document.getElementById('logout-link').addEventListener('click', function(e) {
-      e.preventDefault();
-      document.getElementById('logout-form').submit();
-    });
+
+  // Logout handler
+  document.getElementById('logout-link').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('logout-form').submit();
+  });
 </script>

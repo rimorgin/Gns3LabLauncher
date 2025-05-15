@@ -15,10 +15,6 @@
 				<% }); %>
 			</section>
 			<% } %>
-			<% if (user) {
-				// If the user is already logged in, redirect them to the dashboard
-				res.redirect('/dashboard');
-			} %>
 			<form action="/api/v1/login/password" method="post">
 				<section>
 					<label for="username">Username</label>

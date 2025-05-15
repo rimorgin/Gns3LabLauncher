@@ -29,5 +29,5 @@ const redisStore = new RedisStore({
   prefix: 'gns3netlab:session:', // Optional prefix for session keys
 });
 
-module.exports = redisStore;
+module.exports = { redisStore, redisClient };
 

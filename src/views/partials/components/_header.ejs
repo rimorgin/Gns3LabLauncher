@@ -1,9 +1,6 @@
-<% const { username, role } = data; %>
+<% const { username, initials, role } = data; %>
 <div class="header">
-    <div class="search-bar">
-      <i class="fas fa-search"></i>
-      <input type="text" placeholder="Search..." />
-    </div>
+    <div class="title">Dashboard</div>
     <div class="header-actions">
       <div class="notification">
         <i class="fas fa-bell"></i>
@@ -14,7 +11,7 @@
         <div class="badge">5</div>
       </div>
       <div class="user-profile">
-        <div class="profile-img">JD</div>
+        <div class="profile-img"><%= initials %></div>
         <div class="user-info">
           <div class="user-name"><%= username %></div>
           <div class="user-role"><%= role%></div>

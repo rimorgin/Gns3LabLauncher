@@ -9,7 +9,15 @@
 			<h3>todos</h3>
 			<h1>Sign up</h1>
 			<form action="/api/v1/signup" method="post">
-				<section>
+        <section>
+					<label for="name">name</label>
+					<input id="name" name="name" type="text" autocomplete="name" required>
+				</section>
+        <section>
+					<label for="email">email</label>
+					<input id="email" name="email" type="text" autocomplete="email" required>
+				</section>
+        <section>
 					<label for="username">Username</label>
 					<input id="username" name="username" type="text" autocomplete="username" required>
 				</section>

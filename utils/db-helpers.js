@@ -1,34 +1,22 @@
-const crypto = require('crypto');
-const db = require('../database/sqlite3.database');
-const uuidv4 = require('../utils/uuidv4');
+const bcrypt = require('bcrypt');
+const User = require('../models/user.model')
 
 
-const createUser = async(username, password, role) => {
-  const salt = crypto.randomBytes(16);
-  const uuid = uuidv4();
-
-  crypto.pbkdf2(password, salt, 310000, 32, 'sha256', async (err, hashedPassword) => {
-    if (err) return next(err);
-
-    try {
-      await db.runAsync('INSERT INTO users_roles (user_id, role_id) VALUES (?, ?)', [uuid, role]);
-      await db.runAsync(
-        'INSERT INTO users (id, username, hashed_password, salt) VALUES (?, ?, ?, ?)',
-        [uuid, username, hashedPassword, salt]
-      );
-
-      const user = {
-        id: uuid,
-        username: username,
-        role: role
-      };
-
-      return user
-    } catch (dbError) {
-      return next(dbError);
-    }
-  })
-}
+const createUser = async (name, email, username, password, role) => {
+  try {
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const user = await User.create({
+      name,
+      email,
+      username,
+      password: hashedPassword,
+      role
+    });
+    return user;
+  } catch (err) {
+    throw err;
+  }
+};
 
 module.exports = { 
   createUser 

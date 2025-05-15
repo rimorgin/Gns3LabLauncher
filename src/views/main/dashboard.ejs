@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <%- include('partials/head') %>
+    <%- include('../partials/head') %>
     <link rel="stylesheet" href="/css/dashboard.css" />
     
   </head>
   <body>
     <div class="container">
-    <% console.log('user: ', user) %>
+      <% console.log('user: ', user) %>
       <!-- Sidebar -->
-      <%- include('partials/components/_sidebar') %>
+      <%- include('../partials/components/_sidebar', { activePage: 'dashboard' }) %>
 
       <!-- Header -->
-      <%- include('partials/components/_header', {
-        data: { username: 'John Dela Cruz', role: 'Administrator' }
+      <% const initials = user?.name.split(' ').map(word => word[0].toUpperCase()).join(''); %>
+      <%- include('../partials/components/_header', {
+        data: { username: user?.username, initials: initials, role: user?.role.toUpperCase() }
       }) %>
 
       <!-- Main Content -->
@@ -34,19 +35,19 @@
 
         <!-- Stats Cards -->
         <div class="stats-cards">
-            <%- include('partials/components/_cards', {
+            <%- include('../partials/components/_cards', {
                 data: { value: "1,504", label: "Total Users", icon: "fa-users", change: { type: 'up', percent: 12.5 }, color: "purple" }
             }) %>
       
-            <%- include('partials/components/_cards', {
+            <%- include('../partials/components/_cards', {
                 data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "blue" }
             }) %>
 
-            <%- include('partials/components/_cards', {
+            <%- include('../partials/components/_cards', {
                 data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "green" }
             }) %>
             
-            <%- include('partials/components/_cards', {
+            <%- include('../partials/components/_cards', {
                 data: { value: "$12,750", label: "Total Revenue", icon: "fa-dollar-sign", change: { type: 'up', percent: 8.2 }, color: "orange" }
             }) %>
 

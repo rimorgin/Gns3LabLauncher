@@ -1,3 +1,5 @@
+const roles = require('../configs/roles.config.json');
+
 class Permissions {
   constructor() {
     this.permissions = [];

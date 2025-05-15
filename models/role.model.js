@@ -1,5 +1,5 @@
 
-const roles = require('../configs/roles.json');
+const roles = require('../configs/roles.config.json');
 
 class Role {
   constructor() {

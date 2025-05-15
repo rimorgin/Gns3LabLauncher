@@ -1,16 +1,11 @@
 // controllers/auth.controller.js
-const { createUser } = require('../utils/db-helpers');
-
+const { createUser } = require('../utils/db-helpers')
 
 // Specifically for the login route. views/auth/login
 exports.getLogin = (req, res) => {
-  res.render('auth/login', {user: req.user, role: req.role});
+  res.render('auth/login');
 };
 
-exports.postLogin = (req, res, next) => {
-  // Handled by passport.authenticate middleware
-  // This function is just a placeholder for route definition
-};
 
 exports.postLogout = (req, res, next) => {
   req.logout(function(err) {
@@ -24,12 +19,14 @@ exports.getSignup = (req, res) => {
 };
 
 exports.postSignup = async (req, res, next) => {
+  const { name, email, username, password, role } = req.body
   try {
-    const user = await createUser(req.body.username, req.body.password, req.body.role);
+    const user = await createUser(name, email, username, password, role);
 
     req.login(user, (err) => {
       if (err) return next(err);
-      res.redirect('/');
+      const { password, ...userWithoutPassword } = user
+      res.render('/');
     })
   } catch (error) {
     return next(error);
@@ -37,7 +34,11 @@ exports.postSignup = async (req, res, next) => {
 };
 
 exports.getSession = (req, res) => {
+  const sessionData = { ...req.session };
+  if (sessionData.passport?.user) {
+    delete sessionData.passport.user.password;
+  }
   res.json({
-    session: req.session,
+    session: sessionData,
   });
 };

@@ -1,7 +1,7 @@
 {
   "roles": [
     {
-      "name": "admin",
+      "name": "administrator",
       "permissions": [
         "create_tasks", "read_tasks", "update_tasks", "delete_tasks",
         "create_teams", "read_teams", "update_teams", "delete_teams",

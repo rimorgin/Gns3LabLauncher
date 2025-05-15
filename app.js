@@ -9,7 +9,11 @@ const indexRouter = require('./routes/index.routes');
 const app = express();
 
 const viewsMiddleware = require('./middlewares/views.middleware');
+const ConnectMongoDB = require('./database/mongo.database');
+
 viewsMiddleware(app);
+// Initialize mongodb 
+ConnectMongoDB();
 
 app.locals.pluralize = require('pluralize');
 
@@ -21,13 +25,13 @@ app.use(express.static(path.join(__dirname, '/src/public')));
 
 // Custom middlewares
 app.use(require('./middlewares/session.middleware'));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+//app.use(passport.authenticate('session'));
+
 app.use(require('./middlewares/flash.middleware'));
-
-//app.use(passport.initialize());
-//app.use(passport.session());
-
-app.use(passport.authenticate('session'));
-
 
 // Flash messages
 app.use((req, res, next) => {
