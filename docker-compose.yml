@@ -1,0 +1,60 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./var/mongodb:/data/db
+    networks:
+      - gns3netlab-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh \"mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/\" --quiet | grep -q 1 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:8.0-rc1
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - gns3netlab-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  openvpn:
+    image: rimorgin/openvpn
+    container_name: openvpn
+    restart: unless-stopped
+    ports:
+      - "1194:1194/udp"
+    cap_add:
+      - NET_ADMIN
+      - MKNOD
+    environment:
+      - OPENVPN_SERVER_IP=10.15.20.36
+    volumes:
+      - ./data/docker/openvpn:/data
+    networks:
+      - gns3netlab-network
+    privileged: true
+    healthcheck:
+      test: ["CMD", "pgrep", "openvpn"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+networks:
+  gns3netlab-network:
+    driver: bridge

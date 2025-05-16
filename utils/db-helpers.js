@@ -4,9 +4,11 @@ const User = require('../models/user.model')
 
 const createUser = async (name, email, username, password, role) => {
   try {
+    const capitalizedName = name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    console.log(capitalizedName)
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await User.create({
-      name,
+      name: capitalizedName,
       email,
       username,
       password: hashedPassword,

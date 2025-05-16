@@ -38,14 +38,7 @@ function normalizePort(val) {
 
   if (isNaN(port)) {
     // named pipe
-    return val;const start_openvpn = exec(`docker run --rm \
-      --privileged --name openvpn \
-      -p 1194:1194/udp \
-      --cap-add=NET_ADMIN \
-      --cap-add=MKNOD \
-      -v ${process.cwd()}/data/docker/openvpn/:/data \
-      -e OPENVPN_SERVER_IP=${SERVER_IP} \
-      rimorgin/openvpn`)
+    return val;
 
   }
 

@@ -1,32 +1,43 @@
 const mongoose = require('mongoose');
 const User = require('../models/user.model')
 const bcrypt = require('bcrypt');
+const { envMongoDBUsername, envMongoDBPassword, envMongoDBHost, envMongoDBPort, envMongoDBDbname } = require('../configs/env.config');
+const Classroom = require('../models/classroom.model');
+const Projects = require('../models/projects.model');
 
 const ConnectMongoDB = async () => {
-  
+  const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
   try {
     mongoose.set('strictQuery', false);
-    mongoose.connect('mongodb://localhost:27017/gns3netlab');
+    mongoose.connect(uri);
     console.log(`MongoDB connected`);
 
     // create default admin credentials if not exists
-    const defaultUser = await User.findOne({ username: 'gns3admin' });
+    const defaultUser = await User.findOne({ username: 'gns3labadmin' });
 
     if (!defaultUser) {
       const saltRounds = 12;
 
-      const hashedPassword = await bcrypt.hash('gns3admin', saltRounds);
+      const hashedPassword = await bcrypt.hash('gns3labadmin', saltRounds);
 
       defaultUserCredentials = {
-        name: 'gns3 lab admin',
-        email: 'gns3admin@admin.net',
-        username: 'gns3admin',
+        name: 'Gns3 Lab Admin',
+        email: 'gns3labadmin@labadmin.net',
+        username: 'gns3labadmin',
         password: hashedPassword,
         role: 'administrator' 
       }
       
       await User.create(defaultUserCredentials);
-      console.log('Default admin credential created: ', { email: defaultUserCredentials.email, password: 'gns3admin' });
+
+      // initiate collections    
+      await Classroom.find({}).limit(1);
+      await Projects.find({}).limit(1);
+      console.log('Default admin credential created: ', { 
+        username: defaultUserCredentials.username,
+        email: defaultUserCredentials.email, 
+        password: 'gns3labadmin' 
+      });
     }
     // sync indexes for performance
     await User.syncIndexes();

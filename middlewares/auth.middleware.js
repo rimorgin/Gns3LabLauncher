@@ -1,12 +1,13 @@
-const Permissions = require('../models/permissions.model');
+const roles = require('../configs/roles.config.json');
 
-exports.redirectIfAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-      return res.redirect('/');
+exports.checkAuthentication = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+      return res.redirect('/auth/login');
   }
-  return res.render('home')
+  next();
 };
 
+/*
 // Check if the user has the required permission for a route
 exports.checkPermission = (permission) => {
   return (req, res, next) => {
@@ -19,5 +20,16 @@ exports.checkPermission = (permission) => {
       req.session.messages = ['Forbidden: You do not have permission to access this resource.'];
       return res.redirect('/');
     }
+  };
+};
+*/
+
+exports.checkPermission = (requiredPermissions)=>{
+  return (req, res, next) => {
+    const userRole = req.user.role;
+    if (!roles[userRole] || !requiredPermissions.every(perm => roles[userRole].includes(perm))) {
+      return req.session.messages = ['Forbidden: You do not have permission to access this resource.'];
+    }
+    next();
   };
 };

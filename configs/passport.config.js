@@ -29,8 +29,7 @@ passport.use(new LocalStrategy(async function verify(username, password, done) {
   try {
     const user = await User.findOne({ username }).lean();
     if (!user) return done(null, false, { message: 'Credentials not found' });
-
-    const isMatch = user.password && await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
 
     return done(null, user);

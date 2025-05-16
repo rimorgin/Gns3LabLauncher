@@ -11,7 +11,7 @@ const {
   getSession
 } = require('../controllers/auth.controller');
 
-const { redirectIfAuthenticated } = require('../middlewares/auth.middleware');
+const { checkAuthentication } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 

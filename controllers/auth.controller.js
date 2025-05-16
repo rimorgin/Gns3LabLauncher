@@ -26,7 +26,7 @@ exports.postSignup = async (req, res, next) => {
     req.login(user, (err) => {
       if (err) return next(err);
       const { password, ...userWithoutPassword } = user
-      res.render('/');
+      res.redirect('/');
     })
   } catch (error) {
     return next(error);

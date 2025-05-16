@@ -1,4 +1,4 @@
-@import '../global.css';
+@import './global.css';
 
   /* Layout */
   .container {
@@ -69,6 +69,11 @@
     font-weight: 500;
   }
   
+  .nav-link {
+    text-decoration: none;
+    color: inherit;
+  }
+
   .nav-item {
     padding: 12px 25px;
     display: flex;
@@ -134,9 +139,15 @@
     justify-content: space-between;
     padding: 0 30px;
     /* box-shadow: var(--shadow-sm); */
+    transition: background-color 0.3s ease;
     z-index: 100;
     position: sticky;
     top: 0;
+  }
+
+  .header.scrolled {
+    background-color: #f5f5f5; /* or any color you want */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .search-bar {
@@ -177,10 +188,10 @@
   
   .notification {
     position: relative;
-    margin: 0 15px;
+    margin: 0 8px;
     cursor: pointer;
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -205,14 +216,14 @@
   
   .notification .badge {
     position: absolute;
-    top: 3px;
-    right: 3px;
+    top: 7px;
+    right: 7px;
     background-color: var(--danger);
     color: white;
     border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
+    width: 23px;
+    height: 23px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -236,8 +247,8 @@
   }
   
   .profile-img {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--secondary), var(--primary));
     display: flex;
@@ -257,27 +268,81 @@
   
   .user-name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: 15px;
   }
   
   .user-role {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-light);
   }
-  
+
+  .user-menu {
+    position: absolute;
+    top: calc(100% + 8px); /* Adds spacing below profile */
+    right: 0;
+    background-color: white;
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    min-width: 200px;
+    padding: 4px 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+  }
+
+  .user-menu.active {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .user-menu-item {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: var(--text);
+    background-color: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .user-menu-item:hover,
+  .user-menu-item:focus {
+    background-color: rgba(67, 97, 238, 0.1);
+    outline: none;
+  }
+
+
+  .user-menu-item i {
+    margin-right: 10px;
+    font-size: 16px;
+    color: var(--primary);
+  }
+
   /* Main Content */
   .main-content {
     grid-column: 2;
-    padding: 25px 30px;
+    padding: 0px 30px 25px 30px;
     overflow-y: auto;
   }
   
   .page-title {
     margin-bottom: 30px;
+    padding: 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    animation: fadeIn 0.5s ease;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    background-color: white;
+    animation: fadeInUp 0.6s ease;
   }
   
   .title {
@@ -298,6 +363,14 @@
     background: linear-gradient(90deg, var(--primary), var(--primary-light));
     border-radius: 10px;
   }
+
+  .welcome-title {
+    font-size:  16px;
+    font-weight: 400;
+    color: var(--text-light);
+    position: relative;
+    padding-bottom: 10px;
+  }
   
   .action-buttons .btn {
     margin-left: 12px;
@@ -309,8 +382,17 @@
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
     margin-bottom: 30px;
-    animation: fadeInUp 0.6s ease;
   }
+
+  .stats-cards > * {
+    animation: fadeInUp 0.6s ease forwards;
+    opacity: 0;
+  }
+
+  .stats-cards > *:nth-child(1) { animation-delay: 0.1s; }
+  .stats-cards > *:nth-child(2) { animation-delay: 0.2s; }
+  .stats-cards > *:nth-child(3) { animation-delay: 0.3s; }
+  .stats-cards > *:nth-child(4) { animation-delay: 0.4s; }
   
   .stat-card {
     background-color: white;

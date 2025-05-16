@@ -1,11 +1,12 @@
 //index.js
 
 const router = require('express').Router();
-const { getIndex, getDashboard } = require('../controllers/index.controller');
-const { redirectIfAuthenticated } = require('../middlewares/auth.middleware');
+const { getIndex, getDashboard, getUsers } = require('../controllers/index.controller');
+const { checkAuthentication, checkPermission } = require('../middlewares/auth.middleware');
 const { runDockerContainer } = require('../utils/docker-run');
 
-router.get('/', getIndex)
+router.get('/', checkAuthentication, getIndex)
+router.get('/users', checkAuthentication, getUsers)
 
 
 router.post('/run-docker', async function(req, res, next) {

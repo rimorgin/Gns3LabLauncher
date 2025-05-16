@@ -1,6 +1,22 @@
-<% const { username, initials, role } = data; %>
-<div class="header">
-    <div class="title">Dashboard</div>
+<% const { name, username, initials, role } = data; %>
+<% let greeting;
+function isAfternoon() {
+  const now = new Date();
+  const hours = now.getHours();
+  return hours >= 12 && hours < 18;
+}
+
+const currentHour = new Date().getHours();
+
+if (isAfternoon()) {
+  greeting = "Good afternoon";
+} else if (currentHour < 12) {
+  greeting = "Good morning";
+} else {
+  greeting = "Good evening";
+} %>
+<div class="header" id="header">
+    <div class="welcome-title"><%= greeting %>, <%= name %>!</div>
     <div class="header-actions">
       <div class="notification">
         <i class="fas fa-bell"></i>
@@ -10,12 +26,43 @@
         <i class="fas fa-envelope"></i>
         <div class="badge">5</div>
       </div>
-      <div class="user-profile">
+      <div class="user-profile" id="userProfile">
         <div class="profile-img"><%= initials %></div>
         <div class="user-info">
           <div class="user-name"><%= username %></div>
           <div class="user-role"><%= role%></div>
         </div>
       </div>
+      <div class="user-menu" id="userMenu" role="menu" aria-hidden="true">
+        <button class="user-menu-item" role="menuitem">Profile</button>
+        <button class="user-menu-item" role="menuitem">Settings</button>
+        <button class="user-menu-item" role="menuitem">Logout</button>
+      </div>
+
     </div>
 </div>
+
+<script>
+  const header = document.getElementById('header');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 0) {
+      header.classList.add('scrolled');
+    } else {
+      header.classList.remove('scrolled');
+    }
+  });
+</script>
+<script>
+  const userProfile = document.getElementById("userProfile");
+  const userMenu = document.getElementById("userMenu");
+
+  userProfile.addEventListener("click", function (e) {
+    e.stopPropagation(); // Prevent bubbling to document
+    userMenu.classList.toggle("active");
+  });
+
+  // Hide menu when clicking outside
+  document.addEventListener("click", function () {
+    userMenu.classList.remove("active");
+  });
+</script>

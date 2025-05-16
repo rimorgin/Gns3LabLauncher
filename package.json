@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./scripts/run-server.script.js",
-    "post-start": "nodemon ./bin/www"
+    "post-start": "nodemon ./bin/www",
+    "mongo-gui": "mongo-gui"
   },
   "keywords": [],
   "author": "",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "dotenv": "^16.5.0",
+    "mongo-gui": "^0.0.21",
     "nodemon": "^3.1.10"
   }
 }

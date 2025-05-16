@@ -8,6 +8,13 @@ exports.getIndex = (req, res, next) => {
     });
 };
 
+exports.getUsers = (req, res, next) => {
+  console.log(req.user)
+    res.render('main/users', {
+      user: req.user,
+      csrfToken: req.csrfToken()
+    });
+};
 
 // Routes
 exports.getDashboard = (req, res) => {

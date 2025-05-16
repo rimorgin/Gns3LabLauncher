@@ -7,14 +7,13 @@
   </head>
   <body>
     <div class="container">
-      <% console.log('user: ', user) %>
       <!-- Sidebar -->
-      <%- include('../partials/components/_sidebar', { activePage: 'dashboard' }) %>
+      <%- include('../partials/components/_sidebar', { role: user.role, activePage: 'dashboard' }) %>
 
       <!-- Header -->
       <% const initials = user?.name.split(' ').map(word => word[0].toUpperCase()).join(''); %>
       <%- include('../partials/components/_header', {
-        data: { username: user?.username, initials: initials, role: user?.role.toUpperCase() }
+        data: { name: user.name, username: user?.username, initials: initials, role: user?.role.toUpperCase() }
       }) %>
 
       <!-- Main Content -->
