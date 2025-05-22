@@ -42,9 +42,9 @@ services:
       - NET_ADMIN
       - MKNOD
     environment:
-      - OPENVPN_SERVER_IP=10.15.20.36
+      - OPENVPN_SERVER_IP=10.15.20.40
     volumes:
-      - ./data/docker/openvpn:/data
+      - ./var/openvpn:/data
     networks:
       - gns3netlab-network
     privileged: true
@@ -53,6 +53,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+  mongo-gui:
+    image: mongo-express
+    container_name: mongo-gui
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=gns3mongodb@admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admindb
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017
+      - ME_CONFIG_SITE_GRIDFS_ENABLED=true
+    depends_on:
+      - mongodb
+    networks:
+      - gns3netlab-network
+    command: /bin/sh -c 'until nc -z mongodb 27017; do echo "Waiting for MongoDB..."; sleep 2; done; node app.js'
+
 
 
 networks:

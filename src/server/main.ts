@@ -1,6 +1,6 @@
 import ViteExpress from "vite-express";
 
-import express, { Request, Response, NextFunction } from 'express';
+import express from 'express';
 import http from 'http'
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -12,10 +12,11 @@ import indexRouter from '@srvr/routes/index.routes.js';
 
 //import viewsMiddleware from '@srvr/middlewares/views.middleware.js';
 import ConnectMongoDB from '@srvr/database/mongo.database.js';
+import GridFileStorage from "./database/gridfs.database.js";
 
 import loggerMiddleware from '@srvr/middlewares/logger.middleware.js';
 import sessionMiddleware from '@srvr/middlewares/session.middleware.js';
-import csrfMiddleware, { verifyCsrfToken } from '@srvr/middlewares/csrf.middleware.js';
+import csrfMiddleware from '@srvr/middlewares/csrf.middleware.js';
 import { envServerPort } from "@srvr/configs/env.config.js";
 import { notFoundHandler, errorHandler } from '@srvr/middlewares/error.middleware.js';
 
@@ -25,6 +26,7 @@ const app = express();
 
 // Connect MongoDB
 ConnectMongoDB();
+GridFileStorage();
 
 // app.locals setup
 app.locals.pluralize = pluralize;

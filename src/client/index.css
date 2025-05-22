@@ -36,6 +36,9 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
+  --success: oklch(78.24% 0.121 222.46);
+  --warning: oklch(75.88% 0.165 63.50);
+  --error: oklch(0.58 0.22 27);
 }
 
 .dark {
@@ -72,7 +75,9 @@
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
+
 @theme inline {
+  --header-height: 4rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

@@ -3,15 +3,17 @@ import { Button } from "@clnt/components/ui/button"
 import { Card, CardContent } from "@clnt/components/ui/card"
 import { Input } from "@clnt/components/ui/input"
 import { Label } from "@clnt/components/ui/label"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
+import { useUserStore } from "@clnt/store/user.store"
+import axios from "@clnt/lib/axios"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [csrfToken, setCsrfToken] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
+  const { addUser } = useUserStore();
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -20,34 +22,34 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    const res = await fetch("/api/v1/auth/login", {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        'x-csrf-token': csrfToken,
-      },
-      body: JSON.stringify(form),
-    });
+    setLoading(true); // Set loading to true immediately
 
-    const data = await res.json();
+    try {
+      const res = await axios.post("/auth/login", form);
+      const data = res.data;
 
-    if (res.ok) {
-      toast.success(data.message || "Login successful");
-      // Redirect or set session user if needed
-      //window.location.href = "/";
-    } else {
-      toast.error(data.message || "Login failed");
+      console.log(data?.user);
+
+      if (res.status === 200) {
+        addUser(data?.user);
+        toast.success(data.message || "Login successful");
+      } else {
+        // Axios generally throws for non-2xx status codes when validateStatus is not overridden,
+        // but explicitly checking res.status here handles cases where the server
+        // might return a 2xx but indicate an error in the payload.
+        toast.error(data.message || "Login failed");
+      }
+    } catch (error) {
+      // This block will catch any errors during the axios.post request,
+      // e.g., network errors, server errors (4xx, 5xx), or if the promise rejects.
+      console.error("Login error:", error)
+    } finally {
+      // This block will always execute, regardless of whether an error occurred or not.
+      // It's ideal for cleaning up, like setting loading state back to false.
+      setLoading(false);
+      
     }
-
-    setLoading(false);
   };
-
-  useEffect(() => {
-    fetch("/api/v1/csrf-token")
-      .then((res) => res.json())
-      .then((data) => setCsrfToken(data.csrfToken));
-  }, []);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

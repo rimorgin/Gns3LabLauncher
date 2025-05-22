@@ -2,15 +2,14 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
 import { Document, Types } from 'mongoose'
-import axios from 'axios';
+import axios from '@clnt/lib/axios';
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
   email: string;
   username: string;
-  password: string;
-  role: 'instructor' | 'student';
+  role: 'administrator' | 'instructor' | 'student';
   classes?: Types.ObjectId[];
   is_online?: boolean;
   last_active_at?: Date | null;
@@ -26,20 +25,19 @@ interface UserState {
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       addUser: (user) => set({ user }),
       getUser: async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/v1/auth/user', {
-            withCredentials: true,
-          });
+          const response = await axios.get('/auth/user');
+          console.log(response)
           if (response.data) {
             set({ user: response.data });
-            console.log('✅ User fetched:', response.data);
+            //console.log('✅ User fetched:', response.data);
           }
-        } catch (error) {
-          console.error('❌ Failed to fetch user:', error);
+        } catch {
+          //console.error('❌ Failed to fetch user:', error);
           set({ user: null });
         }
       },

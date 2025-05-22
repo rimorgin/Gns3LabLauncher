@@ -1,36 +1,36 @@
 import { useEffect, useState } from "react";
-import { Button } from "@clnt/components/ui/button";
+import { Routes, Route, useNavigate } from "react-router";
+import HomePage from "@clnt/pages/main/home";
+import { useUserStore } from "@clnt/store/user.store";
 import LoginPage from "./pages/auth/login";
-import { Router, Route, Switch } from "wouter";
-import axios from 'axios'
-import { useUserStore } from "./store/user.store";
 
 function App() {
-  const [count, setCount] = useState(0);
   const { user, getUser } = useUserStore();
+  const navigate = useNavigate()
 
-  //const user = getUser()
-  //console.log(user)
   useEffect(() => {
-    getUser()
-  },[])
+    const fetchUser = async () => {
+      await getUser();
+    };
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      navigate('/')
+    } else navigate('/signin')
+  },[user])
 
   return (
-    <Router>
-      <Switch>
-        {/* If user is NOT logged in, always redirect to /login */}
-        {!user ? (
-          <>
-            <Route path="/login" component={LoginPage} />
-          </>
-        ) : (
-          <>
-            <Route path="/" component={HomePage} />
-            {/* Add other authenticated routes here */}
-          </>
-        )}
-      </Switch>
-    </Router>
+    <Routes>
+      {!user ? (
+        <>
+          <Route path="/signin" element={<LoginPage />} />
+        </>
+      ) : (
+        <Route path="/" element={<HomePage/>} />
+      )}
+    </Routes>
   );
 }
 

@@ -1,5 +1,4 @@
 import {
-  IconCreditCard,
   IconDotsVertical,
   IconLogout,
   IconNotification,
@@ -26,17 +25,35 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@clnt/components/ui/sidebar"
+import { IUser, useUserStore } from "@clnt/store/user.store";
+import axios from '@clnt/lib/axios'
+import { toast } from "sonner";
+
 
 export function NavUser({
   user,
 }: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
+  user?: IUser & { avatar?: string } | null; // Optional avatar override
 }) {
-  const { isMobile } = useSidebar()
+  const { removeUser } = useUserStore();
+  const { isMobile } = useSidebar();
+
+  const initials = user?.name
+    ? user?.name
+        .split(" ")
+        .map((word) => word[0]?.toUpperCase())
+        .join("")
+    : "";
+
+  const handleLogout = async() => {
+    const res = await axios.post('/auth/logout')
+    //console.log(res)
+    if (res.statusText !== 'OK') {
+      return toast.error('Logout unsuccessful')
+    }
+    removeUser()
+    return toast.error("Logout successful");
+  }
 
   return (
     <SidebarMenu>
@@ -48,13 +65,15 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarImage src={user?.avatar} alt={user?.name} />
+                <AvatarFallback className="rounded-lg">
+                  {initials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{user?.name}</span>
                 <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
+                  {user?.email}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -69,13 +88,13 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">{user?.name}</span>
                   <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
+                    {user?.email}
                   </span>
                 </div>
               </div>
@@ -87,16 +106,12 @@ export function NavUser({
                 Account
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
                 <IconNotification />
                 Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
@@ -104,5 +119,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }
