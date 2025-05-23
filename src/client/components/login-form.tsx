@@ -4,17 +4,16 @@ import { Card, CardContent } from "@clnt/components/ui/card"
 import { Input } from "@clnt/components/ui/input"
 import { Label } from "@clnt/components/ui/label"
 import { useState } from "react"
-import { toast } from "sonner"
-import { useUserStore } from "@clnt/store/user.store"
-import axios from "@clnt/lib/axios"
+import { LoginFormValues, useUserStore } from "@clnt/store/user.store"
+import { useLoading } from "@clnt/hooks/use-loading"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const { addUser } = useUserStore();
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState<LoginFormValues>({ email: "", password: "" });
+  const { loginUser } = useUserStore();
+  const { isLoading, startLoading, stopLoading } = useLoading();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,31 +21,14 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true immediately
+    startLoading();
 
     try {
-      const res = await axios.post("/auth/login", form);
-      const data = res.data;
-
-      console.log(data?.user);
-
-      if (res.status === 200) {
-        addUser(data?.user);
-        toast.success(data.message || "Login successful");
-      } else {
-        // Axios generally throws for non-2xx status codes when validateStatus is not overridden,
-        // but explicitly checking res.status here handles cases where the server
-        // might return a 2xx but indicate an error in the payload.
-        toast.error(data.message || "Login failed");
-      }
+      await loginUser(form)
     } catch (error) {
-      // This block will catch any errors during the axios.post request,
-      // e.g., network errors, server errors (4xx, 5xx), or if the promise rejects.
       console.error("Login error:", error)
     } finally {
-      // This block will always execute, regardless of whether an error occurred or not.
-      // It's ideal for cleaning up, like setting loading state back to false.
-      setLoading(false);
+      stopLoading();
       
     }
   };
@@ -95,8 +77,8 @@ export function LoginForm({
                   required
                 />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
+              <Button className="w-full" type="submit" disabled={isLoading}>
+                {isLoading ? "Logging in..." : "Login"}
               </Button>
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">

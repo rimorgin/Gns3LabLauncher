@@ -15,7 +15,6 @@ const mongoURI = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMon
 // NOT TYPESAFE
 const storage: any = new GridFsStorage({
   url: mongoURI,
-  options: { useNewUrlParser: true, useUnifiedTopology: true },
   file: (req, file) => {
     return {
       filename: file.originalname,

@@ -16,25 +16,4 @@ export default function csrfMiddleware(req: Request, res: Response, next: NextFu
   next();
 }
 
-export function verifyCsrfToken(
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
-  const csrfFromBody = req.body._csrf || req.headers['x-csrf-token'];
-
-  if (!req.csrfToken || req.csrfToken() !== csrfFromBody) {
-    res.status(403).json({ 
-      message: 'Invalid CSRF token', 
-      anomaly: {
-        expected: req.csrfToken?.(),
-        received: csrfFromBody,
-      } 
-    });
-    return;
-  }
-
-
-  next();
-}
 

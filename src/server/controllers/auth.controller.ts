@@ -5,16 +5,20 @@ import passport from '@srvr/configs/passport.config.js';
 import { IUser } from '@srvr/types/usermodel.auth.js';
 import User from '@srvr/models/user.model.js';
 
-export const getUser = async (req: Request, res: Response) => {
+export const getUser = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
   if (!userSessionId) {
-    return res.status(401).json({ message: "You are not logged in" });
+    res.status(401).json({ message: "You are not logged in" });
+    return
   }
-  const user = await User.findOne({ userSessionId })
+  const user = await User.findById(userSessionId)
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    res.status(404).json({ message: "User not found" });
+    return
   }
-  return res.json({ user });
+
+  res.json({ user, expiresAt: req.session?.cookie.maxAge });
+  return
 };
 
 export const postLogin = (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +35,8 @@ export const postLogin = (req: Request, res: Response, next: NextFunction) => {
         toast: true,
         type: 'success',
         message: 'Login successful',
-        user: user
+        user: user,
+        expiresAt: req.session.cookie.maxAge
       });
     });
   })(req, res, next);

@@ -26,7 +26,6 @@ import {
   useSidebar,
 } from "@clnt/components/ui/sidebar"
 import { IUser, useUserStore } from "@clnt/store/user.store";
-import axios from '@clnt/lib/axios'
 import { toast } from "sonner";
 
 
@@ -35,7 +34,7 @@ export function NavUser({
 }: {
   user?: IUser & { avatar?: string } | null; // Optional avatar override
 }) {
-  const { removeUser } = useUserStore();
+  const { logoutUser } = useUserStore();
   const { isMobile } = useSidebar();
 
   const initials = user?.name
@@ -45,13 +44,12 @@ export function NavUser({
         .join("")
     : "";
 
-  const handleLogout = async() => {
-    const res = await axios.post('/auth/logout')
-    //console.log(res)
-    if (res.statusText !== 'OK') {
-      return toast.error('Logout unsuccessful')
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+    } catch {
+      return
     }
-    removeUser()
     return toast.error("Logout successful");
   }
 

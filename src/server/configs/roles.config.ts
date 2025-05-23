@@ -1,4 +1,6 @@
-const roles = {
+import { RolesCollection } from "@srvr/types/auth.type.js"
+
+const roles: RolesCollection = {
   roles: [
     {
       name: "administrator",

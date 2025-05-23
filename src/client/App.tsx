@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router";
 import HomePage from "@clnt/pages/main/home";
 import { useUserStore } from "@clnt/store/user.store";
 import LoginPage from "./pages/auth/login";
 
 function App() {
-  const { user, getUser } = useUserStore();
+  const { user, validateSession } = useUserStore();
   const navigate = useNavigate()
 
   useEffect(() => {
-    const fetchUser = async () => {
-      await getUser();
+    const session = async () => {
+      await validateSession();
     };
-    fetchUser();
+    session();
   }, []);
 
   useEffect(() => {
