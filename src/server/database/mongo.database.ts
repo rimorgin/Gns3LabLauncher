@@ -1,3 +1,4 @@
+import { exec } from 'child_process';
 import mongoose from 'mongoose';
 import User from '@srvr/models/user.model.js';
 import bcrypt from 'bcrypt';
@@ -6,13 +7,39 @@ import Classroom from '@srvr/models/classroom.model.js';
 
 import Projects from '@srvr/models/projects.model.js'
 
-const ConnectMongoDB = async () => {
-  const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
+const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
+
+const checkMongoHealth = () =>
+  new Promise((resolve) => {
+    exec(
+      "docker exec mongodb mongosh --eval 'db.runCommand({ ping: 1 })' --quiet",
+      (error, stdout, stderr) => {
+        if (error || stderr) {
+          return resolve(false);
+        }
+        resolve(stdout.includes('ok'));
+      }
+    );
+});
+
+const MongoDB = async () => {  
+  let isMongoDBHealthy: boolean = false;
+  while (!isMongoDBHealthy) {
+    const healthy = await checkMongoHealth();
+    if (healthy) {
+      console.log('✅ MongoDB is healthy');
+      isMongoDBHealthy = true;
+    } else {
+      console.log('⏳ Waiting for MongoDB...');
+      await new Promise((res) => setTimeout(res, 2000));
+    }
+  }
+
+  
   try {
     mongoose.set('strictQuery', false);
     mongoose.connect(uri);
-    console.log(`MongoDB connected`);
-
+    console.log(`✅ MongoDB connected`);
     // create default admin credentials if not exists
     const defaultUser = await User.findOne({ username: 'gns3labadmin' });
 
@@ -42,12 +69,12 @@ const ConnectMongoDB = async () => {
     }
     // sync indexes for performance
     await User.syncIndexes();
-    console.log('MongoDB indexes synced');
+    console.log('✅ MongoDB indexes synced');
   } catch (error) {
-    console.log(error);
+    console.log("❌", error);
     process.exit(1)
   }
 
 }
 
-export default ConnectMongoDB;
+export default MongoDB;

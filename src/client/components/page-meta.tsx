@@ -8,7 +8,9 @@ const PageMeta = ({
   description?: string;
 }) => (
   <Helmet>
-    <title>{title} • Gns3LabLauncher</title>
+    <title>
+      {title} • {import.meta.env.VITE_APP_TITLE}
+    </title>
     <meta name="description" content={description} />
   </Helmet>
 );

@@ -1,7 +1,7 @@
 //index.js
 
 import { Router } from 'express';
-import { getIndex, getUsers } from '@srvr/controllers/index.controller.js';
+import { getIndex, getUserPermissions } from '@srvr/controllers/index.controller.js';
 import { checkAuthentication, checkPermission } from '@srvr/middlewares/auth.middleware.js';
 
 const router: Router = Router();
@@ -17,12 +17,14 @@ const router: Router = Router();
 router.get('/', checkAuthentication, checkPermission(['read_dashboard']), getIndex)
 
 /**
- * @route   GET /users
- * @desc    A protected route for users maangement
- * @access  Admin/Instructor
+ * @route   GET /permissions
+ * @desc    A protected route for getting current logged in user's correct permissions
+ * @access  Admin/Instructor/Student
  */
 
-router.get('/users', checkAuthentication, checkPermission(['read_users']), getUsers)
+router.get('/permissions', checkAuthentication, getUserPermissions)
+
+
 
 
 /*

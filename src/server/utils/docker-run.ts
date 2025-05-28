@@ -1,7 +1,7 @@
-const { exec } = require("child_process");
-const { promisify } = require("util");
-const execAsync = promisify(exec);
+import { exec } from "child_process";
+import { promisify } from "util";
 
+const execAsync = promisify(exec);
 /*
  * Runs a Docker container with the specified image and container name.
  * * @param {string} imageName - The name of the Docker image to run.
@@ -91,4 +91,4 @@ async function checkContainerHealth(containerId) {
 }
 
 
-module.exports = {runDockerContainer, checkContainerHealth};
+export {runDockerContainer, checkContainerHealth}

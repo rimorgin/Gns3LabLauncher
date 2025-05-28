@@ -11,7 +11,7 @@ import {
 } from "@clnt/components/ui/sidebar";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 
-export function NavMain({
+export function NavSystem({
   items,
 }: {
   items: {
@@ -19,11 +19,11 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
-  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore()
+  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore();
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Main</SidebarGroupLabel>
+      <SidebarGroupLabel>System</SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => {

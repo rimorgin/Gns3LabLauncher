@@ -25,8 +25,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@clnt/components/ui/sidebar"
-import { IUser, useUserStore } from "@clnt/store/user.store";
+import { IUser, useUserStore } from "@clnt/lib/store/user-store";
 import { toast } from "sonner";
+import { Skeleton } from "./ui/skeleton";
+import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 
 
 export function NavUser({
@@ -36,6 +38,7 @@ export function NavUser({
 }) {
   const { logoutUser } = useUserStore();
   const { isMobile } = useSidebar();
+  const { isAppLoading } = useAppStateStore();
 
   const initials = user?.name
     ? user?.name
@@ -57,22 +60,36 @@ export function NavUser({
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled={isAppLoading}>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback className="rounded-lg">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
+              {isAppLoading ? (
+                <Skeleton className="h-8 w-8 rounded-sm" />
+              ) : (
+                <Avatar className="h-8 w-8 rounded-lg grayscale">
+                  <AvatarImage src={user?.avatar} alt={user?.name} />
+                  <AvatarFallback className="rounded-lg">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user?.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user?.email}
-                </span>
+                {isAppLoading ? (
+                  <>
+                    <Skeleton className="h-4 w-2/3 rounded-lg my-1" />{" "}
+                    <Skeleton className="h-4 w-auto rounded-lg my-1" />{" "}
+                  </>
+                ) : (
+                  <>
+                    <span className="truncate font-medium">{user?.name}</span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {user?.email}
+                    </span>
+                  </>
+                )}
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -87,7 +104,9 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user?.name}</span>

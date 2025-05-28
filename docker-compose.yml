@@ -1,15 +1,16 @@
+name: Gns3LabLauncer
 services:
   mongodb:
     image: mongo:latest
     container_name: mongodb
     restart: unless-stopped
     ports:
-      - "27017:27017"
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
-      - ./var/mongodb:/data/db
+      - ./src/server/var/mongodb:/data/db
     networks:
       - gns3netlab-network
     healthcheck:
@@ -42,9 +43,9 @@ services:
       - NET_ADMIN
       - MKNOD
     environment:
-      - OPENVPN_SERVER_IP=10.15.20.40
+      - OPENVPN_SERVER_IP=10.15.20.26
     volumes:
-      - ./var/openvpn:/data
+      - ./src/server/var/openvpn:/data
     networks:
       - gns3netlab-network
     privileged: true
@@ -59,10 +60,15 @@ services:
     ports:
       - 8081:8081
     environment:
-      - ME_CONFIG_BASICAUTH_USERNAME=gns3mongodb@admin
-      - ME_CONFIG_BASICAUTH_PASSWORD=admindb
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:27017
+      - ME_CONFIG_BASICAUTH_USERNAME=${VITE_MONGOWEB_ADMIN_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${VITE_MONGOWEB_ADMIN_PASSWORD}
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:${MONGODB_PORT}
       - ME_CONFIG_SITE_GRIDFS_ENABLED=true
+      - ME_CONFIG_SITE_SSL_ENABLED=${ME_CONFIG_SITE_SSL_ENABLED}
+      - ME_CONFIG_SITE_SSL_CRT_PATH=/certs/mongo-gui.cert.pem
+      - ME_CONFIG_SITE_SSL_KEY_PATH=/certs/mongo-gui.key.pem
+    volumes:
+      - ./cert:/certs:ro
     depends_on:
       - mongodb
     networks:

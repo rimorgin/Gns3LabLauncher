@@ -37,15 +37,11 @@ const GridFileStorage = () => {
       bucket = new mongoose.mongo.GridFSBucket(db, {
         bucketName: "Gns3Bucket"
       });
-      console.log("Bucket created:", bucket);
+      console.log("✅ MongoDB Bucket created");
     } else {
       console.error("Database connection is undefined");
     }
   });
-
-  mongoose.connection.on('open', () => {
-
-  })
 };
 
 export default GridFileStorage;

@@ -201,7 +201,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "target",
-    header: () => <div className="w-full text-right">Target</div>,
+    header: () => <div className="w-full text-center">Target</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {
@@ -226,7 +226,7 @@ const columns: ColumnDef<z.infer<typeof schema>>[] = [
   },
   {
     accessorKey: "limit",
-    header: () => <div className="w-full text-right">Limit</div>,
+    header: () => <div className="w-full text-center">Limit</div>,
     cell: ({ row }) => (
       <form
         onSubmit={(e) => {

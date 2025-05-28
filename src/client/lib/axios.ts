@@ -1,7 +1,8 @@
+import { apiBaseUrl } from "@clnt/constants/api";
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: apiBaseUrl,
   withCredentials: true
 });
 
@@ -9,7 +10,7 @@ const axiosInstance = axios.create({
 let csrfToken: string | null = null;
 
 async function getCsrfToken() {
-  const res = await axios.get("/api/v1/csrf-token");
+  const res = await axiosInstance.get("/csrf-token");
   csrfToken = res.data?.csrfToken;
   return csrfToken;
 }

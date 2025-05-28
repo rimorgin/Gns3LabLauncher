@@ -1,71 +1,122 @@
-import { exec } from 'child_process';
-import { networkInterfaces } from 'os';
+import { exec, execSync } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs';
+import path from 'path';
 
-function startContainers() {
+const MODE = process.env.NODE_ENV;
 
-  const nets = networkInterfaces();
-    let SERVER_IP = '';
+console.log('Environment mode:', MODE);
 
-    for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-            // Check for IPv4 and non-internal addresses
-            if (net.family === 'IPv4' && !net.internal) {
-                SERVER_IP = net.address;
-                break;
-            }
-        }
-        if (SERVER_IP) break;
-    }
+let runScript: string;
+let runEnvFile: string;
 
-    if (!SERVER_IP) {
-        throw new Error('Unable to determine the local machine IP address.');
-    }
+if (MODE === 'production') {
+  runScript = 'yarn run prod';
+  runEnvFile = './.env.production';
+} else {
+  runScript = 'yarn run dev';
+  runEnvFile = './.env.development';
+}
 
+const execAsync = promisify(exec);
 
-  return new Promise<void>((resolve, reject) => {
-    const start_containers = exec(
-      `docker compose -f docker-compose.yml --env-file ./.env up `
-    );
-    // Stream stdout
-    start_containers.stdout.on('data', function onData(data) {
-      console.log(`${data}`);
-      // Check if MongoDB is ready
-      if (data.includes('Waiting for connections')) {
-        start_containers.stdout.off('data', onData); // Remove listener after resolve
-        resolve();
+// Create certs if in production
+function createCertsIfNeeded(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (MODE !== 'production') return resolve();
+
+    const certDir = path.resolve('./cert');
+    const services = ['vite-express', 'mongo-gui'];
+
+    try {
+      if (!fs.existsSync(certDir)) {
+        fs.mkdirSync(certDir, { recursive: true });
       }
-    });
 
-    // Stream stderr
-    start_containers.stderr.on('data', (data) => {
-        console.error(`${data}`);
-    });
+      for (const service of services) {
+        const keyPath = path.join(certDir, `${service}.key.pem`);
+        const certPath = path.join(certDir, `${service}.cert.pem`);
 
-    // Handle process exit
-    start_containers.on('close', (code) => {
-        if (code !== 0) {
-            reject(new Error(`Process exited with code ${code}`));
+        const keyExists = fs.existsSync(keyPath);
+        const certExists = fs.existsSync(certPath);
+
+        if (!keyExists || !certExists) {
+          console.log(`🔐 Generating self-signed HTTPS certs for ${service}...`);
+
+          execSync(
+            `openssl req -x509 -newkey rsa:2048 -nodes -keyout ${keyPath} -out ${certPath} -days 365 -subj "/CN=localhost"`
+          );
+
+          console.log(`✅ HTTPS certs generated for ${service}`);
         }
-    });
+      }
 
-     // Handle graceful shutdown
-     const shutdown = () => {
-      console.log('\nShutting down services gracefully...');
-
-          // Optionally stop containers via Docker CLI too
-          exec('docker compose down', (err) => {
-              if (err) console.warn('Error stopping containers:', err.message);
-              else console.log('Containers stopped.');
-              process.exit(0);
-          });
-      };
-
-      // Listen for termination signals
-      process.on('SIGINT', shutdown);
-      process.on('SIGTERM', shutdown);
-      process.on('SIGQUIT', shutdown);
-
+      resolve();
+    } catch (err: any) {
+      console.error('❌ Failed to generate certificates:', err.message);
+      reject(err);
+    }
   });
 }
 
-startContainers();
+
+
+// Starts Docker containers
+async function startContainers(): Promise<void> {
+  console.log('🐳 Starting Docker containers...');
+  try {
+    const { stdout, stderr } = await execAsync(
+      `docker compose -f docker-compose.yml --env-file ${runEnvFile} up -d`
+    );
+    if (stdout) console.log(stdout);
+    if (stderr) console.error(stderr);
+  } catch (error: any) {
+    console.error('❌ Failed to start containers:', error.stderr || error.message);
+    throw error;
+  }
+}
+
+// Starts the application
+async function startViteExpress(): Promise<void> {
+  createCertsIfNeeded();
+  await startContainers();
+
+  const appProcess = exec(runScript);
+
+  appProcess.stdout?.on('data', (data) => {
+    console.log(`[APP LOG]: ${data}`);
+  });
+
+  appProcess.stderr?.on('data', (data) => {
+    console.error(`[APP ERROR]: ${data}`);
+  });
+
+  const shutdown = () => {
+    console.log('\n🛑 Shutting down services gracefully...');
+    exec('rm -rf /home/rimor/Documents/VSCodes/Gns3LabLauncher/cert', err => {
+      if (err) {
+        console.warn('⚠️ Error removing dir: ', err.message);
+      } else {
+        console.log('✅ cert directory removed');
+      }
+    })
+    exec(`docker compose -f docker-compose.yml --env-file ${runEnvFile} down`, (err) => {
+      if (err) {
+        console.warn('⚠️ Error stopping containers:', err.message);
+      } else {
+        console.log('✅ All containers stopped.');
+      }
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+  process.on('SIGQUIT', shutdown);
+  process.on('uncaughtException', (err) => {
+    console.error('❌ Uncaught exception:', err);
+    shutdown();
+  });
+}
+
+startViteExpress();

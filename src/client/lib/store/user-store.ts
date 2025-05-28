@@ -1,16 +1,17 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-import { Document, Types } from 'mongoose'
+import { Types } from 'mongoose'
 import axios from '@clnt/lib/axios';
 import { toast } from 'sonner';
 
-export interface IUser extends Document {
+export interface IUser {
   _id: Types.ObjectId;
   name: string;
   email: string;
   username: string;
   role: 'administrator' | 'instructor' | 'student';
+  permissions: string[]
   classes?: Types.ObjectId[];
   is_online?: boolean;
   last_active_at?: Date | null;
@@ -25,8 +26,9 @@ export interface LoginFormValues {
 interface UserState {
   user: IUser | null;
   expiresAt: number;
-  loginUser: (form: LoginFormValues) => Promise<void>;
+  loginUser: (form: LoginFormValues, strategy?: 'local' | 'microsoft') => Promise<void>;
   logoutUser: () => Promise<void>;
+  fetchPermissions: () => Promise<void>;
   validateSession: () => Promise<void>;
 }
 
@@ -35,9 +37,15 @@ export const useUserStore = create<UserState>()(
     (set, get) => ({
       user: null,
       expiresAt: 0,
-      loginUser: async (form) => {
+      loginUser: async (form, strategy = 'local') => {
+        let url: string;
+        if (strategy === 'local') {
+          url = '/auth/login-local';
+        } else {
+          url = '/auth/login-microsoft'
+        }
         try {
-          const res = await axios.post("/auth/login", form);
+          const res = await axios.post(url, form);
           const data = res.data;
           
           if (res.status !== 200) {
@@ -62,7 +70,23 @@ export const useUserStore = create<UserState>()(
         }
         set({ user: null, expiresAt: 0 });
       },
-
+      fetchPermissions: async () => {
+        try {
+          const res = await axios.get('/permissions')
+          const { permissions } = res.data
+          const currentUser = get().user
+          if (currentUser) {
+            set({
+              user: {
+                ...currentUser,
+                permissions: permissions as string[],
+              },
+            })
+          }
+        } catch (error) {
+          console.error('Error fetching permissions:', error)
+        }
+      },
       validateSession: async () => {
         const { expiresAt } = get();
         if (Date.now() >= expiresAt) {

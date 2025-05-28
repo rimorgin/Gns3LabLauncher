@@ -1,7 +1,16 @@
 import * as dotenv from 'dotenv';
 import path from 'path'
 
-dotenv.config({ path: path.join(process.cwd(), '.env') });
+const MODE = process.env.NODE_ENV
+
+
+let runEnvFile: string;
+
+if (MODE !== 'production') runEnvFile = '.env.development'
+else runEnvFile = '.env.development'
+
+
+dotenv.config({ path: path.join(process.cwd(), runEnvFile) });
 
 const SESSION_SECRET = process.env.SESSION_COOKIE_SECRET;
 
