@@ -2,8 +2,10 @@
 import { createUser } from '@srvr/utils/db-helpers.js';
 import { Request, Response, NextFunction } from 'express';
 import passport from '@srvr/configs/passport.config.js';
-import { IUser } from '@srvr/types/usermodel.auth.js';
+import { IUser } from '@srvr/types/usermodel.type.js';
 import User from '@srvr/models/user.model.js';
+import { redisClient } from '@srvr/database/redis.database.js';
+import { isAuthenticatedRequest } from '@srvr/types/auth.type.js';
 
 export const getUser = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
@@ -22,16 +24,23 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const postLoginLocal = (req: Request, res: Response, next: NextFunction) => {
-  passport.authenticate('local', (err: any, user: IUser, info: any) => {
+  passport.authenticate('local', async (err: any, user: IUser, info: any) => {
     if (err) return next(err);
     if (!user) {
       return res.status(401).json({ type: 'error', message: info?.message || 'Unauthorized' });
-    }
-
+    }    
+    //const userKey = `gns3labuser:session:${String(user._id)}`;
     //strip unnecessary details on user
-    req.login(user, (err) => {
-      if (err) return next(err);
+    req.login(user, async (err) => {
+      if (err) return next(err);/* 
       //console.log('success login')
+      const activeSessionId = req.sessionID;
+      const oldSessionId = await redisClient.get(userKey);
+      if (activeSessionId !== oldSessionId) {
+        await redisClient.del(userKey); 
+      } else {
+        await redisClient.set(userKey, activeSessionId)
+      } */
       res.json({
         toast: true,
         type: 'success',
@@ -62,13 +71,24 @@ export const postLoginMicrosoftCallback = () => {
 
 
 export const postLogout = (req: Request, res: Response, next: NextFunction) => {
+  const authReq = req as isAuthenticatedRequest;
+  const user = authReq.user;
+  console.log("🚀 ~ postLogout ~ user:", user)
+  const userId = authReq.user?._id;
+
+  console.log("🚀 ~ req.logout ~ userId:", String(userId))
   req.logout(function(err: Error | null) {
     if (err) return next(err);
-    res.json({
-      toast: true,
-      type: 'success',
-      message: 'Logout successful'
+    req.session.destroy(async () => {
+      if (userId) await redisClient.del(`user:${String(userId)}:session`);
+      console.log('req.logout session destroyed')
+      res.json({
+        toast: true,
+        type: 'success',
+        message: 'Logout successful'
+      });
     });
+    
   });
 };
 
@@ -85,5 +105,14 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
   } catch (error) {
     return next(error);
   }
+};
+
+export const checkSession = (req: Request, res: Response) => {
+  if (!req.isAuthenticated?.()) {
+    res.status(401).json({ session: 'invalid' });
+    return
+  }
+  res.sendStatus(200);
+  return
 };
 

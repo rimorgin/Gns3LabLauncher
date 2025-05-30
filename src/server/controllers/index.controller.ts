@@ -1,7 +1,7 @@
 import roles from '@srvr/configs/roles.config.js';
 import { isAuthenticatedRequest } from '@srvr/types/auth.type.js';
 import { getRolePermissions } from '@srvr/utils/user-helpers.utils.js';
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { Request, Response, RequestHandler } from 'express';
 
 export const getUserPermissions: RequestHandler = (req, res) => {
   const user = (req as isAuthenticatedRequest).user;

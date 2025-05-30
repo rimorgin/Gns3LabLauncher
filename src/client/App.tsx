@@ -1,63 +1,91 @@
 import { useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router";
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router";
 import HomePage from "@clnt/pages/main/home";
 import LoginPage from "@clnt/pages/auth/login";
 import { useUserStore } from "@clnt/lib/store/user-store";
-import { useAppStateStore } from "./lib/store/app-state-store";
+import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import axios from "./lib/axios";
+import { SessionExpiredAlert } from "./components/session-expired-alert";
+import { useModal } from "./hooks/use-modal";
 
 function App() {
-  const { user, validateSession, fetchPermissions } = useUserStore();
+  const { user, fetchPermissions } = useUserStore();
   const { setIsAppLoading } = useAppStateStore();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isOpen, openModal, closeModal } = useModal(false);
 
-  console.log('running in ',import.meta.env.MODE)
-  useEffect(() => {
-    const session = async () => {
-      await validateSession();
-    };
-    session();
-  }, []);
+  console.log("running in ", import.meta.env.MODE);
 
   useEffect(() => {
+    let interval: any;
     if (user) {
-      navigate('/')
-    } else navigate('/signin')
-  },[user])
+      interval = setInterval(async () => {
+        await axios.get("/auth/session/check")
+        .catch((err) => {
+          if (err.response.data.session === 'invalid') {
+            openModal()
+          }
+        })
+      }, 10000); // every 10 seconds
+    }
+    if (isOpen) return () => clearInterval(interval);
+  }, [user?._id]);
 
   useEffect(() => {
-    const delay = () =>
-      new Promise((resolve) => setTimeout(resolve, 2000));
+    const delay = () => new Promise((resolve) => setTimeout(resolve, 2000));
 
     const permissions = async () => {
       await fetchPermissions();
-      await delay()
-      setIsAppLoading(false)
-      /* toast.promise(delay, {
-        loading: "fetching permissions...",
-        success: () => {
-          setIsAppLoading(false);
-          return "fetched permissions";
-        },
-        error: "Error",
-      }); */
-      //toast.dismiss()
+      await delay();
+      setIsAppLoading(false);
     };
 
-    // fetch only if there is no permission
     if (user && !user?.permissions) {
-      setIsAppLoading(true)
+      setIsAppLoading(true);
       permissions();
     }
   }, [user]);
 
+  // Redirect logic based on auth state
+  useEffect(() => {
+    if (!user && location.pathname !== "/signin") {
+      navigate("/signin");
+    } else if (user && location.pathname === "/signin") {
+      navigate("/");
+    }
+  }, [user, location.pathname]);
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      closeModal(); // updates the hook's state
+      navigate("/signin"); // redirect to sign-in page
+    }
+  };
+
   return (
-    <Routes>
-      {!user ? (
-          <Route path="/signin" element={<LoginPage />} />
-      ) : (
-          <Route path="/" element={<HomePage />} />
-      )}
-    </Routes>
+    <>
+      <SessionExpiredAlert 
+        isOpen={isOpen} 
+        onOpenChange={handleOpenChange}
+      />
+      <Routes>
+        <Route
+          path="/signin"
+          element={!user ? <LoginPage /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/"
+          element={user ? <HomePage /> : <Navigate to="/signin" />}
+        />
+      </Routes>
+    </>
   );
 }
 

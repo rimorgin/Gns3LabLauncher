@@ -44,11 +44,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.nav.main} />
         {/* <NavDocuments items={data.nav.documents} /> */}
-        <RBACWrapper 
-          requiredRoles={["instructor", "student"]}
-        >
-          <NavReports items={data.nav.reports} />
-        </RBACWrapper>
+        
+        <NavReports items={data.nav.reports} />
         <RBACWrapper 
           requiredRoles="administrator"
           requiredPermissions={["read_data_library", "read_system_health", " read_system_logs"]}

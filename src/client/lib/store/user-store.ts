@@ -30,6 +30,7 @@ interface UserState {
   logoutUser: () => Promise<void>;
   fetchPermissions: () => Promise<void>;
   validateSession: () => Promise<void>;
+  invalidateUser: () => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -95,7 +96,10 @@ export const useUserStore = create<UserState>()(
           return;
         }
         console.log('skipped validate')
-      }
+      },
+      invalidateUser: () => {
+        set({user: null})
+      },
     }),
     {
       name: 'user-storage',

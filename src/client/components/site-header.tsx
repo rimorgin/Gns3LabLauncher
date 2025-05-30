@@ -26,6 +26,7 @@ export function SiteHeader(){
 
         <div className="ml-auto flex items-center gap-2">
           <RBACWrapper
+            requiredPermissions={['create_users', 'create_classrooms']}
             requiredRoles={['administrator', 'instructor']}
           >
             {isAppLoading ? (

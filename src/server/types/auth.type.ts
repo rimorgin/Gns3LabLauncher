@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { IUser } from "./usermodel.auth.js";
+import { IUser } from "./usermodel.type.js";
 
 // === Role Name Type ===
 export type RoleName = 'administrator' | 'instructor' | 'student';
@@ -47,12 +47,4 @@ export interface authenticatedRoleRequest extends Request {
 }
 export interface rolesRequest {
   roles: { name: string; permissions: string[]; }[];
-}
-
-declare module 'express-session' {
-  interface SessionData {
-    passport?: {
-      user: string | Record<string, any>;
-    };
-  }
 }

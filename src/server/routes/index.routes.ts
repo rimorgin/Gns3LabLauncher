@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { getIndex, getUserPermissions } from '@srvr/controllers/index.controller.js';
 import { checkAuthentication, checkPermission } from '@srvr/middlewares/auth.middleware.js';
+import { redisCache } from '@srvr/middlewares/redis-cache.middleware.js';
 
 const router: Router = Router();
 //const { runDockerContainer } = require('../utils/docker-run');
@@ -22,7 +23,7 @@ router.get('/', checkAuthentication, checkPermission(['read_dashboard']), getInd
  * @access  Admin/Instructor/Student
  */
 
-router.get('/permissions', checkAuthentication, getUserPermissions)
+router.get('/permissions', checkAuthentication, redisCache(), getUserPermissions)
 
 
 

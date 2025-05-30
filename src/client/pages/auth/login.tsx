@@ -2,6 +2,7 @@ import PageMeta from "@clnt/components/page-meta";
 import { LoginForm } from "@clnt/components/login-form";
 import logo from '@clnt/assets/favicon.ico'
 import gif from '@clnt/assets/login-image.gif'
+import ModeToggle from "@clnt/components/theme-toggle";
 
 export default function LoginPage() {
   return (
@@ -15,10 +16,13 @@ export default function LoginPage() {
           <div className="flex justify-center gap-2 md:justify-start">
             <a href="#" className="flex items-center gap-2 font-medium">
               <div className="flex h-12 w-12 bg-transparent">
-                <img src={logo} alt="gns3logo"/>
+                <img src={logo} alt="gns3logo" />
               </div>
               Gns3 Lab Launcher
             </a>
+            <div className="ml-auto flex items-center gap-2">
+              <ModeToggle />
+            </div>
           </div>
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-xs">

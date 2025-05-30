@@ -88,7 +88,7 @@ async function startViteExpress(): Promise<void> {
   });
 
   appProcess.stderr?.on('data', (data) => {
-    console.error(`[APP ERROR]: ${data}`);
+    console.error(`[APP ERR]: ${data}`);
   });
 
   const shutdown = () => {

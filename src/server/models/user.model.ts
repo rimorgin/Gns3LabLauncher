@@ -1,4 +1,4 @@
-import { IUser } from '@srvr/types/usermodel.auth.js';
+import { IUser } from '@srvr/types/usermodel.type.js';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema<IUser>({
