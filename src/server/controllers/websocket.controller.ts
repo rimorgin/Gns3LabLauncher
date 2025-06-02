@@ -1,39 +1,20 @@
-/**
- * @fileoverview WebSocket handler module for managing real-time connections with session validation,
- *              user presence tracking, and preventing multiple concurrent sessions per user.
- *
- * @description This module:
- * - Integrates Socket.IO with Express session middleware to share session data between HTTP and WebSocket layers.
- * - Ensures only one active session per user using Redis as the session store.
- * - Disconnects older connections when a user logs in from a new device/location.
- * - Stores and updates current socket and session IDs in Redis for real-time tracking.
- *
- * @module webSocketHandlers
- */
-
 import { redisClient } from "@srvr/database/redis.database.ts";
-import { io } from "@srvr/main.ts";
-import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
-import { forceLogoutUserBySessionID, getSocket, wrapExpressMiddlewareForSocket } from "@srvr/utils/session-ws.utils.ts";
-import passport from "passport";
+import { forceLogoutUserBySessionID, getSocket } from "@srvr/utils/session-ws.utils.ts";
+import { Socket } from "socket.io";
 
 /**
- * Initializes WebSocket event handlers and session management logic.
+ * Handles a new Socket.IO connection.
  *
- * @function webSocketHandlers
+ * This function ensures that:
+ * - The user is authenticated via session.
+ * - Only one active session/socket per user is allowed.
+ * - If the user logs in from another device/location, the old session is disconnected.
+ * - User joins in the sockets group
+ *
+ * @param {Socket} socket - The newly connected Socket.IO client instance.
  */
-export default function webSocketHandlers() {
-  // Use Express-compatible session and Passport middleware for WebSocket (Socket.IO) connections
-  io.engine.use(wrapExpressMiddlewareForSocket(sessionMiddleware));
-  io.engine.use(wrapExpressMiddlewareForSocket(passport.session()));
-
-  /**
-   * Event listener for new WebSocket connections.
-   *
-   * @param {Socket} socket - The connected client socket.
-   */
-  io.on("connection", async (socket) => {
-    const userId = socket.request.session?.passport?.user;
+export const onSocketConnection = async (socket: Socket) => {
+  const userId = socket.request.session?.passport?.user;
     const currentSocketId = socket.id;
     const currentSessionId = socket.request.sessionID;
 
@@ -75,5 +56,4 @@ export default function webSocketHandlers() {
 
     // Join a room specific to this user for targeted messaging
     socket.join(`active_user:${userId}`);
-  });
 }
