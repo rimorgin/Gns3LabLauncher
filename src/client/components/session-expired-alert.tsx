@@ -23,9 +23,9 @@ export function SessionExpiredAlert({
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Session Expired</AlertDialogTitle>
+          <AlertDialogTitle>Oops! Something went wrong...</AlertDialogTitle>
           <AlertDialogDescription>
-            Your session has expired. Please sign in again to continue.
+            Your session has expired because you have logged in to another device.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -33,7 +33,7 @@ export function SessionExpiredAlert({
             invalidateUser()
             onOpenChange(!isOpen)
             }}>
-            Sign In
+            Continue
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

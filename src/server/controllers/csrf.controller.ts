@@ -7,13 +7,8 @@
  * @module csrf.controller
  */
 
-import { csrfSync } from "csrf-sync";
+import { getTokenFromState } from "@srvr/configs/csrf.config.ts";
 import { Request, Response } from "express";
-
-// Initialize CSRF utilities
-const {
-  getTokenFromState
-} = csrfSync();
 
 /**
  * Express middleware that generates and sends a CSRF token in the response.
@@ -30,7 +25,21 @@ const {
  * @returns {void} Sends a JSON response containing the CSRF token:
  *  - 200 OK with `{ csrfToken: string }`
  */
-export const getCsrf = ((req: Request, res: Response) => {
-  const csrfToken = getTokenFromState(req);
-  res.json({ csrfToken });
-});
+export const getCsrf = (req: Request, res: Response) => {
+  try {
+    const csrfToken = getTokenFromState(req);
+    
+    if (!csrfToken) {
+      return res.status(500).json({ 
+        error: 'Failed to generate CSRF token. Session may not be initialized.' 
+      });
+    }
+    
+    res.json({ csrfToken });
+  } catch (error) {
+    console.error('CSRF token generation error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error while generating CSRF token' 
+    });
+  }
+};

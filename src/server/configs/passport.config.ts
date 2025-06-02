@@ -13,7 +13,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await User.findById(id).select('username email role name');
+    const user = await User.findById(id).select('username email role name classes is_online last_active_at');
     if (!user) return done(null, false);
     
     const userIdentity= {

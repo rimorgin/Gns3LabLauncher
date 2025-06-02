@@ -10,19 +10,21 @@ import passport from 'passport';
 
 import Redis from "@srvr/database/redis.database.ts";
 import MongoDB from "@srvr/database/mongo.database.ts";
-import GridFileStorage from "./database/gridfs.database.ts";
+//import gridFileStorage from "@srvr/database/gridfs.database.ts";
 
 import authRouter from "@srvr/routes/auth.routes.ts";
 import csrfRouter from "@srvr/routes/csrf.route.ts"
 import indexRouter from "@srvr/routes/index.routes.ts";
 
-import webSocketHandlers from "./controllers/websocket.controller.ts";
+import webSocketHandlers from "@srvr/controllers/websocket.controller.ts";
 
 import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
 import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
-import csrfMiddleware from "@srvr/middlewares/csrf.middleware.ts";
-import { envServerPort } from "@srvr/configs/env.config.ts";
+import csrfTokenMiddleware from "@srvr/middlewares/csrf.middleware.ts";
 import {  errorHandler, notFoundHandler } from "@srvr/middlewares/error.middleware.ts";
+
+import { envServerPort } from "@srvr/configs/env.config.ts";
+import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
 
 const app = express();
 let server;
@@ -36,12 +38,12 @@ app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 //app.use(enforceSingleSessionOnly);
-app.use(csrfMiddleware);
+app.use(csrfTokenMiddleware);
+app.use(csrfSynchronisedProtection)
 
 // Initialize Data Storage
 Redis()
 MongoDB();
-GridFileStorage();
 
 // Routes
 app.use('/api/v1/auth', authRouter);
@@ -53,7 +55,7 @@ app.use('/api/v1', indexRouter);
 app.use('/api/v1', notFoundHandler );
 app.use('/api/v1', errorHandler as ErrorRequestHandler);
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging') {
   const key = fs.readFileSync(path.resolve('./cert/vite-express.key.pem'), 'utf8');
   const cert = fs.readFileSync(path.resolve('./cert/vite-express.cert.pem'), 'utf8');
 

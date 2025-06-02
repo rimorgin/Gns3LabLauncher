@@ -3,7 +3,7 @@ import { IUser } from "./usermodel.type.ts";
 
 declare module 'express-session' {
   interface SessionData {
-    csrfSecret?: string;
+    csrfSecret?: string | null;
     passport?: {
       user: string;
     };

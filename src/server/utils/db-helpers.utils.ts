@@ -11,6 +11,7 @@ import { IUser } from '@srvr/types/usermodel.type.ts';
  * @param {string} props.username - The username chosen by the user.
  * @param {string} props.password - The raw password which will be hashed before saving.
  * @param {RoleName} props.role - The role assigned to the user (e.g., 'admin', 'student').
+ * @param {ObjectId} props.classes - The class assign to the user.
  *
  * @returns {Promise<typeof User>} A promise that resolves to the newly created user instance.
  *
@@ -25,7 +26,8 @@ export const createUser = async (props: IUser) => {
       email: props.email,
       username: props.username,
       password: hashedPassword,
-      role: props.role
+      role: props.role,
+      classes: props.classes
     });
     return user;
 };
