@@ -10,6 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "allowJs": false,
     "isolatedModules": true,
@@ -19,5 +20,6 @@
       "@srvr/*": ["./src/server/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

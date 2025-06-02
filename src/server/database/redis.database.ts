@@ -1,56 +1,75 @@
 
+import { envRedisHost, envRedisPassword, envRedisPort } from "@srvr/configs/env.config.ts";
 import { exec } from "child_process";
 import { RedisStore } from "connect-redis";
-import redis from 'redis';
+import { createClient } from 'redis';
 
 // Create Redis client
-const redisClient = redis.createClient({
+const redisClient = createClient({
   socket: {
-    host: '127.0.0.1',//'100.122.242.48',
-    port: 6379
-  }
+    host: envRedisHost,
+    port: envRedisPort ? parseInt(envRedisPort) : 6379, //fallback to default
+  },
+  password: envRedisPassword
 });
+
+
 
 const checkRedisHealth = () =>
   new Promise((resolve) => {
     exec(
-      "docker exec redis redis-cli ping",
+      `docker exec redis redis-cli --pass ${envRedisPassword} ping`,
       (error, stdout, stderr) => {
-        if (error || stderr || !stdout.includes("PONG")) {
+        stdout = stdout.trim();
+        stderr = stderr.trim();
+        //console.log("stdout:", cleanStdout);
+        //console.log("stderr:", cleanStderr);
+
+        const harmlessWarning = "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.";
+
+        if (error || (stderr && stderr !== harmlessWarning)) {
           return resolve(false);
         }
-        resolve(true);
+
+        resolve(stdout === "PONG");
       }
     );
   });
 
-// Use an async function to initialize Redis properly
-const initializeRedis = async () => {
-  let isRedisHealthy: boolean = false;
 
-  while(!isRedisHealthy) {
+
+// Use an async function to initialize Redis properly
+export default async function Redis() {
+  let isRedisHealthy = false;
+
+  while (!isRedisHealthy) {
     try {
       const healthy = await checkRedisHealth();
       if (healthy) {
-        console.log("✅ Redis is healthy")
-        isRedisHealthy = true
+        console.log("✅ Redis is healthy");
+        isRedisHealthy = true;
+        break;
       }
-    } catch {
-      console.log('⏳ Waiting for Redis...');
-      await new Promise((res) => setTimeout(res, 2000));
+    } catch (err) {
+      console.log('❌ Error checking Redis health:', err);
     }
+
+    console.log('⏳ Waiting for Redis...');
+    await new Promise((res) => setTimeout(res, 2000));
   }
+
   try {
-    await redisClient.connect(); // Make sure to connect asynchronously
+    await redisClient.connect(); // This will now run after health is confirmed
     console.log("✅ Redis connected");
   } catch (err) {
     console.error("❌ Error connecting to Redis:", err);
-    process.exit(1); // Exit if Redis connection fails
+    process.exit(1);
   }
 };
 
+
 // Initialize Redis client before starting the server
-initializeRedis();
+//initializeRedis();
 
 // Create RedisStore instance
 const redisStore = new RedisStore({

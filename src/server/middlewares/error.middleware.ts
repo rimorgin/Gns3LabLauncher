@@ -1,13 +1,20 @@
-import createError from 'http-errors';
-import { Request, Response, NextFunction } from 'express';
+// error.middleware
+import { NextFunction, Request, Response } from 'express';
 
-// Catch 404 and forward to error handler
-export const notFoundHandler = function (req: Request, res: Response, next: NextFunction) {
-  next(createError(404, 'Page not found'));
+export const notFoundHandler = function (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const error = new Error("Not Found");
+  res.status(404).json({ error: error.message });
 };
 
-export const errorHandler = function (err: any, req: Request, res: Response) {
-  console.log(err)
-  res.status(500).send({ 'error': err })
+export const errorHandler = function (
+  err: Error,
+  req: Request,
+  res: Response,
+) {
+  console.error(err);
+  res.status(500).json({ error: err.message });
 };
-

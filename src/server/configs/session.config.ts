@@ -1,5 +1,5 @@
-import { redisStore } from '@srvr/database/redis.database.js';
-import { envSessionCookieSecret } from './env.config.js';
+import { redisStore } from '@srvr/database/redis.database';
+import { envSessionCookieSecret } from './env.config';
 
 const sessionConfig = {
     sessionCookieSecret: envSessionCookieSecret,

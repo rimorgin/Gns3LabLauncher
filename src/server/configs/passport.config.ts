@@ -1,12 +1,13 @@
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft'
-import User from '@srvr/models/user.model.js';
+import User from "@srvr/models/user.model.ts";
 import bcrypt from 'bcrypt';
 import { NextFunction } from 'express';
-import { IUser } from '@clnt/lib/store/user-store.js';
+import { IUser } from "@clnt/lib/store/user-store.ts";
 
 passport.serializeUser((user, done) => {
+  //@ts-expect-error no user._id on interface IUser but it is present in the response
   done(null, user._id);
 });
 

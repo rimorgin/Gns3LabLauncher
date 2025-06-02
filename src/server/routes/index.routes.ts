@@ -1,9 +1,7 @@
-//index.js
-
 import { Router } from 'express';
-import { getIndex, getUserPermissions } from '@srvr/controllers/index.controller.js';
-import { checkAuthentication, checkPermission } from '@srvr/middlewares/auth.middleware.js';
-import { redisCache } from '@srvr/middlewares/redis-cache.middleware.js';
+import { getIndex, getUserPermissions } from '@srvr/controllers/index.controller.ts';
+import { checkAuthentication, checkPermission } from '@srvr/middlewares/auth.middleware.ts';
+import { redisCache } from '@srvr/middlewares/redis-cache.middleware.ts';
 
 const router: Router = Router();
 //const { runDockerContainer } = require('../utils/docker-run');

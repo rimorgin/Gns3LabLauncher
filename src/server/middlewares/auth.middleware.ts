@@ -1,16 +1,13 @@
 import { NextFunction, Response, Request } from 'express';
-import roles from '@srvr/configs/roles.config.js';
-import { authenticatedRoleRequest, isAuthenticatedRequest, Permission } from '@srvr/types/auth.type.js';
-import { getRolePermissions } from '@srvr/utils/user-helpers.utils.js';
-import { redisClient, redisStore } from '@srvr/database/redis.database.js';
-import { IUser } from '@srvr/types/usermodel.type.js';
+import roles from '@srvr/configs/roles.config.ts';
+import { Permission } from '@srvr/types/auth.type.ts';
+import { getRolePermissions } from '@srvr/utils/user-helpers.utils.ts';
+import { redisClient, redisStore } from '@srvr/database/redis.database.ts';
 
 export const checkAuthentication = (
   req: Request, res: Response, next: NextFunction
 ): void => {
-  const authReq = req as isAuthenticatedRequest;
-
-  if (!authReq.isAuthenticated()) {
+  if (!req.isAuthenticated()) {
     return res.redirect('/signin');
   }
   console.log('authenticated')
@@ -19,8 +16,7 @@ export const checkAuthentication = (
 
 export const checkPermission = (requiredPermissions: Permission[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
-    const authReq = req as authenticatedRoleRequest
-    const userRole = authReq.user?.role || 'student';
+    const userRole = req.user?.role || 'student';
     const perms = getRolePermissions(roles, userRole);
     const hasPermissions = requiredPermissions.every(p => perms.includes(p));
 
@@ -39,42 +35,34 @@ export default async function enforceSingleSessionOnly(
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> {
-  const userId = (req.user as IUser)?._id;
+) {
+  const userId = req.session?.passport?.user;
   if (!userId) return next();
 
-  const userKey = `gns3labuser:session:${String(userId)}`;
-  const currentSessionId = req.sessionID; // Or req.session.id depending on config
+  const userKey = `gns3labuser:session:${userId}`;
+  const currentSessionId = req.sessionID;
+  console.log("🚀 ~ userKey:", userKey)
   const oldSessionId = await redisClient.get(userKey);
 
-  // First-time login
+  // No existing session → just set current
   if (!oldSessionId) {
     await redisClient.set(userKey, currentSessionId);
     return next();
   }
 
-  // Same session — allow
-  if (currentSessionId === oldSessionId) {
-    return next();
-  }
-
-  // Revoke previous session
-  try {
-    redisStore.destroy(oldSessionId, (err) => {
-      if (err) {
-        console.error("Failed to destroy old session", err);
-      } else {
-        console.log(`✅ Old session (${oldSessionId}) destroyed`);
-      }
+  // Existing session is different → destroy it
+  if (oldSessionId !== currentSessionId) {
+    console.log("🚀 ~ oldSessionId !== currentSessionId:", oldSessionId !== currentSessionId)
+    await new Promise<void>((resolve) => {
+      redisStore.destroy(oldSessionId, (err) => {
+        if (err) console.error("❌ Failed to destroy old session:", err);
+        else console.log(`✅ Old session (${oldSessionId}) destroyed`);
+        resolve();
+      });
     });
 
-    // Update Redis with new session ID
     await redisClient.set(userKey, currentSessionId);
-
-    return next();
-  } catch (error) {
-    console.error("Error enforcing single session", error);
-    res.status(500).json({ message: "Internal server error" });
-    return
   }
+
+  return next();
 }

@@ -31,6 +31,7 @@ export function SessionExpiredAlert({
         <AlertDialogFooter>
           <AlertDialogAction onClick={() => {
             invalidateUser()
+            onOpenChange(!isOpen)
             }}>
             Sign In
           </AlertDialogAction>

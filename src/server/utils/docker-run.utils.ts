@@ -10,40 +10,18 @@ const execAsync = promisify(exec);
  * * @returns {void}
 */
 
-async function runDockerContainer(containerName, imageName, portNumber) {
-  if (!containerName || !imageName) {
+async function runDockerContainer(containerName: string) {
+  if (!containerName) {
     throw new Error("Container name and image name are required");
   }
-  switch (imageName) {
-    case "openvpn":
-      imageName = "rimorgin/openvpn";
-      break;
-    case "gns3":
-      imageName = "rimorgin/gns3server";
-      break;
-    default:
-      throw new Error("Unsupported image name");
-  }
 
-  let command = `docker run -d --name ${containerName} --restart unless-stopped --privileged`;
-
-  if (imageName === "rimorgin/openvpn") {
-    command += ` \
-    --cap-add=NET_ADMIN \
+  const command = `docker run -d --name ${containerName} --restart unless-stopped --privileged \
+  --cap-add=NET_ADMIN \
     -p 1194:1194/udp \
     -e OPENVPN_SERVER_IP=10.15.20.34 \
     --device /dev/net/tun:/dev/net/tun \
-    -v ${process.cwd().replace(/\\/g, "/")}/data/docker/openvpn:/data`;
-  } else if (imageName === "rimorgin/gns3server") {
-    if (!portNumber) throw new Error("port number for gns3 is required");
-    command += ` \
-    --cap-add=NET_ADMIN \
-    -p ${portNumber}:3080 \
-    -e BRIDGE_ADDRESS=172.21.1.1/24 \
-    -v ${process.cwd().replace(/\\/g, "/")}/data/docker/gns3:/data`;
-  }
-
-  command += ` ${imageName}`;
+    -v ${process.cwd().replace(/\\/g, "/")}/src/server/var:/data \
+    rimorgin/gns3server`
 
   try {
     const { stdout, stderr } = await execAsync(command);
@@ -51,12 +29,12 @@ async function runDockerContainer(containerName, imageName, portNumber) {
     //console.log(`Docker stdout: ${stdout}`);
     return stdout.trim(); // container ID
   } catch (error) {
-    console.error(`Docker error: ${error.message}`);
+    console.error(`Docker error: ${error}`);
     throw error;
   }
 }
 
-async function checkContainerHealth(containerId) {
+async function checkContainerHealth(containerId: string) {
   const startPeriod = 10 * 1000; // ms
   const interval = 10 * 1000; // ms
   const timeout = 5 * 1000; // ms
@@ -77,7 +55,7 @@ async function checkContainerHealth(containerId) {
         return true;
       }
     } catch (error) {
-      console.warn(`Health check failed on attempt ${i + 1}: ${error.message}`);
+      console.warn(`Health check failed on attempt ${i + 1}: ${error}`);
     }
 
     if (i < retries - 1) {

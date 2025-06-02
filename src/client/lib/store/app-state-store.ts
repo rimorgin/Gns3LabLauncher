@@ -10,6 +10,9 @@ interface AppState {
   toggleSideBar: () => void;
   activeNavName: string;
   setActiveNavName: (navName: string) => void;
+  activeSession: boolean;
+  activateSession: () => void;
+  deactivateSession: () => void;
 }
 
 export const useAppStateStore = create<AppState>()(
@@ -31,6 +34,13 @@ export const useAppStateStore = create<AppState>()(
       activeNavName: "Dashboard",
       setActiveNavName(navName) {
           set({activeNavName: navName})
+      },
+      activeSession: false,
+      activateSession: () => {
+        set({ activeSession: true })
+      },
+      deactivateSession() {
+        set({ activeSession: false })
       },
     }),
     {

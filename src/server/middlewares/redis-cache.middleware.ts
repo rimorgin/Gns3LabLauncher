@@ -1,13 +1,14 @@
-import { redisClient } from '@srvr/database/redis.database.js';
-import { isAuthenticatedRequest } from '@srvr/types/auth.type.js';
+import { redisClient } from '@srvr/database/redis.database.ts';
 import { Request, Response, NextFunction } from 'express';
 
-export const redisCache = (ttl = 60) => {
+/* 
+  Middleware to cache frequently used api routes with maximum expiry of 3hours
+  @param {ttl} specify a custom expiry of cache
+*/
+export const redisCache = (ttl = 10800) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.method !== 'GET') return next();
-    const authReq = req as isAuthenticatedRequest;
-
-    const key = `gns3labroutes:cache:${req.originalUrl}@${authReq.user?._id}`;
+    const key = `gns3labroutes:cache:${req.originalUrl}@${req.user?._id}`;
 
     try {
       const cached = await redisClient.get(key);

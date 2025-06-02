@@ -10,33 +10,18 @@ import HomePage from "@clnt/pages/main/home";
 import LoginPage from "@clnt/pages/auth/login";
 import { useUserStore } from "@clnt/lib/store/user-store";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import axios from "./lib/axios";
-import { SessionExpiredAlert } from "./components/session-expired-alert";
-import { useModal } from "./hooks/use-modal";
+import socket from "@clnt/lib/socket";
+import { useModal } from "@clnt/hooks/use-modal";
+import { SessionExpiredAlert } from "@clnt/components/session-expired-alert";
 
 function App() {
   const { user, fetchPermissions } = useUserStore();
   const { setIsAppLoading } = useAppStateStore();
+  const { isOpen, openModal, closeModal } = useModal();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isOpen, openModal, closeModal } = useModal(false);
 
   console.log("running in ", import.meta.env.MODE);
-
-  useEffect(() => {
-    let interval: any;
-    if (user) {
-      interval = setInterval(async () => {
-        await axios.get("/auth/session/check")
-        .catch((err) => {
-          if (err.response.data.session === 'invalid') {
-            openModal()
-          }
-        })
-      }, 10000); // every 10 seconds
-    }
-    if (isOpen) return () => clearInterval(interval);
-  }, [user?._id]);
 
   useEffect(() => {
     const delay = () => new Promise((resolve) => setTimeout(resolve, 2000));
@@ -62,18 +47,41 @@ function App() {
     }
   }, [user, location.pathname]);
 
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      closeModal(); // updates the hook's state
-      navigate("/signin"); // redirect to sign-in page
+  useEffect(() => {
+    if (!user) return;
+
+    // Connect on mount
+    socket.connect();
+
+    const onConnect = () => {
+      console.log("🟢 Connected to server via WebSocket", socket.id);
+    };
+
+    const onDisconnect = () => {
+      console.log("🔴 Disconnected from server");
+    };
+
+    const onSessionKicked = () => {
+      openModal();
+      console.log("🔴 Kicked from server");
     }
-  };
+
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("session-kicked", onSessionKicked)
+
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.disconnect();
+    };
+  }, [user]);
 
   return (
     <>
       <SessionExpiredAlert 
-        isOpen={isOpen} 
-        onOpenChange={handleOpenChange}
+        isOpen={isOpen}
+        onOpenChange={closeModal} 
       />
       <Routes>
         <Route

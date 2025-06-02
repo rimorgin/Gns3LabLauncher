@@ -1,4 +1,4 @@
-import { IUser } from '@srvr/types/usermodel.type.js';
+import { IUser } from '@srvr/types/usermodel.type.ts';
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -69,6 +69,6 @@ userSchema.methods.toJSON = function () {
   return user;
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<IUser>('User', userSchema);
 
 export default User;

@@ -1,11 +1,11 @@
 import { exec } from 'child_process';
 import mongoose from 'mongoose';
-import User from '@srvr/models/user.model.js';
+import User from '@srvr/models/user.model.ts';
 import bcrypt from 'bcrypt';
-import { envMongoDBUsername, envMongoDBPassword, envMongoDBHost, envMongoDBPort, envMongoDBDbname } from '@srvr/configs/env.config.js';
-import Classroom from '@srvr/models/classroom.model.js';
+import { envMongoDBUsername, envMongoDBPassword, envMongoDBHost, envMongoDBPort, envMongoDBDbname } from '@srvr/configs/env.config.ts';
+import Classroom from '@srvr/models/classroom.model.ts';
 
-import Projects from '@srvr/models/projects.model.js'
+import Projects from '@srvr/models/projects.model.ts'
 
 const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
 
@@ -26,13 +26,18 @@ const MongoDB = async () => {
   let isMongoDBHealthy: boolean = false;
   while (!isMongoDBHealthy) {
     const healthy = await checkMongoHealth();
-    if (healthy) {
-      console.log('✅ MongoDB is healthy');
-      isMongoDBHealthy = true;
-    } else {
-      console.log('⏳ Waiting for MongoDB...');
-      await new Promise((res) => setTimeout(res, 2000));
+    try {
+      if (healthy) {
+        console.log('✅ MongoDB is healthy');
+        isMongoDBHealthy = true;
+        break
+      }
+    } catch (err) {
+      console.log('❌ Error checking MongoDB health:', err);
     }
+
+    console.log('⏳ Waiting for MongoDB...');
+    await new Promise((res) => setTimeout(res, 2000));
   }
 
   

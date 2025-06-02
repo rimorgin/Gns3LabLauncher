@@ -1,4 +1,4 @@
-import { RolesCollection } from "@srvr/types/auth.type.js"
+import { RolesCollection } from "@srvr/types/auth.type.ts"
 
 const roles: RolesCollection = {
   roles: [

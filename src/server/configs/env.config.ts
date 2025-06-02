@@ -20,6 +20,11 @@ if (!SESSION_SECRET) {
 
 export const envServerPort = process.env.PORT;
 export const envSessionCookieSecret = SESSION_SECRET;
+
+export const envRedisHost = process.env.REDIS_HOST;
+export const envRedisPort = process.env.REDIS_PORT;
+export const envRedisPassword = process.env.REDIS_PASSWORD
+
 export const envMongoDBUsername = process.env.MONGO_INITDB_ROOT_USERNAME;
 export const envMongoDBPassword = process.env.MONGO_INITDB_ROOT_PASSWORD;
 export const envMongoDBHost = process.env.MONGODB_HOST;

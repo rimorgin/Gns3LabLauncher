@@ -1,6 +1,3 @@
-import { Request } from "express";
-import { IUser } from "./usermodel.type.js";
-
 // === Role Name Type ===
 export type RoleName = 'administrator' | 'instructor' | 'student';
 
@@ -36,15 +33,3 @@ export interface RolesCollection {
   roles: Role[];
 }
 
-export interface isAuthenticatedRequest {
-  user?: IUser
-  isAuthenticated: () => boolean;
-}
-
-
-export interface authenticatedRoleRequest extends Request {
-  user?: IUser;
-}
-export interface rolesRequest {
-  roles: { name: string; permissions: string[]; }[];
-}

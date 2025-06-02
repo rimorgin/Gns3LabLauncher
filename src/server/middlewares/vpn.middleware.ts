@@ -1,4 +1,4 @@
-// vpn.middleware.ts
+// vpn.middleware
 import { Request, Response, NextFunction } from "express";
 import ip from "ip";
 

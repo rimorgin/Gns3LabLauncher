@@ -1,5 +1,6 @@
-const { exec } = require("child_process");
-const { promisify } = require("util");
+import { exec } from "child_process";
+import { promisify } from "util";
+
 const execAsync = promisify(exec);
 
 /*
@@ -9,17 +10,16 @@ const execAsync = promisify(exec);
  * * @returns {void}
 */
 
-async function runGns3ServerDockerContainer(containerName) {
+async function runGns3ServerDockerContainer(containerName: string) {
   if (!containerName ) {
     throw new Error("Container name is required");
   }
 
-  let command = `docker run -d --name ${containerName} \
+  const command = `docker run -d --name ${containerName} \
                 --restart unless-stopped \
                 -h gns3vm --privileged \
                 --network host \
                 --cap-add=NET_ADMIN \   
-                
                 -e GNS3_USERNAME=${containerName} \
                 -e SSL=true -e OPENVPN=true\
                 -v ${process.cwd()}/src/server/var/:/data \
@@ -31,12 +31,12 @@ async function runGns3ServerDockerContainer(containerName) {
     //console.log(`Docker stdout: ${stdout}`);
     return stdout.trim(); // container ID
   } catch (error) {
-    console.error(`Docker error: ${error.message}`);
+    console.error(`Docker error: ${error}`);
     throw error;
   }
 }
 
-async function checkContainerHealth(containerId) {
+async function checkContainerHealth(containerId: string) {
   const startPeriod = 10 * 1000; // ms
   const interval = 10 * 1000; // ms
   const timeout = 5 * 1000; // ms
@@ -57,7 +57,7 @@ async function checkContainerHealth(containerId) {
         return true;
       }
     } catch (error) {
-      console.warn(`Health check failed on attempt ${i + 1}: ${error.message}`);
+      console.warn(`Health check failed on attempt ${i + 1}: ${error}`);
     }
 
     if (i < retries - 1) {

@@ -1,25 +1,28 @@
 import ViteExpress from "vite-express";
-import express from 'express';
+import express, { ErrorRequestHandler } from 'express';
 import http from 'http';
 import https from 'https';
+import { Server as SocketIOServer } from 'socket.io'
 import path from 'path';
 import fs from 'fs'
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 
-import authRouter from '@srvr/routes/auth.routes.js';
-import csrfRouter from '@srvr/routes/csrf.route.js'
-import indexRouter from '@srvr/routes/index.routes.js';
+import Redis from "@srvr/database/redis.database.ts";
+import MongoDB from "@srvr/database/mongo.database.ts";
+import GridFileStorage from "./database/gridfs.database.ts";
 
-import MongoDB from '@srvr/database/mongo.database.js';
-import GridFileStorage from "./database/gridfs.database.js";
+import authRouter from "@srvr/routes/auth.routes.ts";
+import csrfRouter from "@srvr/routes/csrf.route.ts"
+import indexRouter from "@srvr/routes/index.routes.ts";
 
-import loggerMiddleware from '@srvr/middlewares/logger.middleware.js';
-import sessionMiddleware from '@srvr/middlewares/session.middleware.js';
-import csrfMiddleware from '@srvr/middlewares/csrf.middleware.js';
-import { envServerPort } from "@srvr/configs/env.config.js";
-import {  errorHandler } from '@srvr/middlewares/error.middleware.js';
-import enforceSingleSessionOnly from "./middlewares/auth.middleware.js";
+import webSocketHandlers from "./controllers/websocket.controller.ts";
+
+import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
+import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
+import csrfMiddleware from "@srvr/middlewares/csrf.middleware.ts";
+import { envServerPort } from "@srvr/configs/env.config.ts";
+import {  errorHandler, notFoundHandler } from "@srvr/middlewares/error.middleware.ts";
 
 const app = express();
 let server;
@@ -32,10 +35,11 @@ app.use(cookieParser());
 app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(enforceSingleSessionOnly);
+//app.use(enforceSingleSessionOnly);
 app.use(csrfMiddleware);
 
 // Initialize Data Storage
+Redis()
 MongoDB();
 GridFileStorage();
 
@@ -46,8 +50,8 @@ app.use('/api/v1', indexRouter);
 
 
 // Catch-all for unmatched /api/v1 routes
-//app.use('/api/v1', notFoundHandler);
-app.use('/api/v1', errorHandler);
+app.use('/api/v1', notFoundHandler );
+app.use('/api/v1', errorHandler as ErrorRequestHandler);
 
 if (process.env.NODE_ENV === 'production') {
   const key = fs.readFileSync(path.resolve('./cert/vite-express.key.pem'), 'utf8');
@@ -60,9 +64,15 @@ if (process.env.NODE_ENV === 'production') {
   console.log('🌐 HTTP server running (non-production)');
 }
 
+export const io = new SocketIOServer(server)
+// initialize websocket connection handlers
+webSocketHandlers()
+
+
 server.listen(envServerPort, () => {
   console.log(`🚀 Server is listening on port ${envServerPort}`);
 });
+
 
 ViteExpress.bind(app, server);
 

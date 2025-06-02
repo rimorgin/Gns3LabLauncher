@@ -5,13 +5,13 @@ import {
   envMongoDBPort,
   envMongoDBHost,
   envMongoDBDbname
-} from '@srvr/configs/env.config.js';
-import { GridFsStorage } from 'multer-gridfs-storage';
+} from '@srvr/configs/env.config.ts';
+//import { GridFsStorage } from 'multer-gridfs-storage';
 import multer from 'multer';
 
 const mongoURI = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
 
-// Create GridFS storage engine
+/* // Create GridFS storage engine
 // NOT TYPESAFE
 const storage: any = new GridFsStorage({
   url: mongoURI,
@@ -24,7 +24,7 @@ const storage: any = new GridFsStorage({
 });
 
 export const upload = multer({ storage });
-
+ */
 
 
 const GridFileStorage = () => {
