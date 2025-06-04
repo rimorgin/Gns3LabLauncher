@@ -1,7 +1,7 @@
 import "@clnt/index.css";
 import ReactDOM from "react-dom/client";
 import App from "@clnt/App";
-import { BrowserRouter } from 'react-router'
+import { BrowserRouter } from "react-router";
 import { ThemeProvider } from "@clnt/components/theme-provider";
 import { AppWrapper } from "@clnt/components/page-meta";
 import { Toaster } from "@clnt/components/ui/sonner";
@@ -13,7 +13,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <TooltipProvider>
           <App />
-          <Toaster  />
+          <Toaster />
         </TooltipProvider>
       </ThemeProvider>
     </BrowserRouter>

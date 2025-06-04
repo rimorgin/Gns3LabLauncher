@@ -1,8 +1,8 @@
-import * as React from "react"
+import * as React from "react";
 //import { NavDocuments } from "@clnt/components/nav-documents"
-import { NavMain } from "@clnt/components/nav-main"
-import { NavSecondary } from "@clnt/components/nav-secondary"
-import { NavUser } from "@clnt/components/nav-user"
+import { NavMain } from "@clnt/components/nav-main";
+import { NavSecondary } from "@clnt/components/nav-secondary";
+import { NavUser } from "@clnt/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -11,12 +11,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@clnt/components/ui/sidebar"
-import { data } from "@clnt/constants/data"
-import { useUserStore } from "@clnt/lib/store/user-store"
-import { NavSystem } from "./nav-system"
-import { NavReports } from "./nav-reports"
-import RBACWrapper from "./rbac-wrapper"
+} from "@clnt/components/ui/sidebar";
+import { data } from "@clnt/constants/data";
+import { useUserStore } from "@clnt/lib/store/user-store";
+import { NavSystem } from "./nav-system";
+import { NavReports } from "./nav-reports";
+import RBACWrapper from "./rbac-wrapper";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUserStore();
@@ -44,11 +44,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={data.nav.main} />
         {/* <NavDocuments items={data.nav.documents} /> */}
-        
+
         <NavReports items={data.nav.reports} />
-        <RBACWrapper 
+        <RBACWrapper
           requiredRoles="administrator"
-          requiredPermissions={["read_data_library", "read_system_health", " read_system_logs"]}
+          requiredPermissions={[
+            "read_data_library",
+            "read_system_health",
+            " read_system_logs",
+          ]}
         >
           <NavSystem items={data.nav.system} />
         </RBACWrapper>

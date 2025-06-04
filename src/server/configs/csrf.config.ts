@@ -4,7 +4,7 @@ export const {
   generateToken,
   storeTokenInState,
   getTokenFromState,
-  csrfSynchronisedProtection
+  csrfSynchronisedProtection,
 } = csrfSync({
-  ignoredMethods: ["GET", "HEAD", "OPTIONS"]
+  ignoredMethods: ["GET", "HEAD", "OPTIONS"],
 });

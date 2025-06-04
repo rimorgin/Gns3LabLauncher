@@ -17,7 +17,7 @@ export default function HomePage() {
         <AppSidebar variant="inset" />
         <SidebarInset>
           <SiteHeader />
-          <DynamicContent/>
+          <DynamicContent />
         </SidebarInset>
       </SidebarProvider>
     </>

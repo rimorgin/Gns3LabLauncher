@@ -1,9 +1,9 @@
-import { createUser } from '@srvr/utils/db-helpers.utils.ts';
-import { Request, Response, NextFunction, RequestHandler } from 'express';
-import passport from '@srvr/configs/passport.config.ts';
-import { IUser } from '@srvr/types/usermodel.type.ts';
-import User from '@srvr/models/user.model.ts';
-import { redisClient } from '@srvr/database/redis.database.ts';
+import { createUser } from "@srvr/utils/db-helpers.utils.ts";
+import { Request, Response, NextFunction, RequestHandler } from "express";
+import passport from "@srvr/configs/passport.config.ts";
+import { IUser } from "@srvr/types/usermodel.type.ts";
+import User from "@srvr/models/user.model.ts";
+import { redisClient } from "@srvr/database/redis.database.ts";
 
 /**
  * Fetches the currently authenticated user from the database using their session ID.
@@ -22,13 +22,13 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
     res.status(401).json({ message: "You are not logged in" });
     return;
   }
-  
+
   const user = await User.findById(userSessionId);
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
   }
-  
+
   res.json({ user, expiresAt: req.session?.cookie.maxAge });
 };
 
@@ -44,23 +44,29 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
  *  - 401 JSON if authentication fails
  *  - Passes error to `next()` if something goes wrong
  */
-export const postLoginLocal = (req: Request, res: Response, next: NextFunction): void => {
-  passport.authenticate('local', async (err: any, user: IUser, info: any) => {
+export const postLoginLocal = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
+  passport.authenticate("local", async (err: any, user: IUser, info: any) => {
     if (err) return next(err);
     if (!user) {
-      return res.status(401).json({ type: 'error', message: info?.message || 'Unauthorized' });
+      return res
+        .status(401)
+        .json({ type: "error", message: info?.message || "Unauthorized" });
     }
-    
+
     req.login(user, async (err) => {
       if (err) return next(err);
-      
+
       req.session.loginTime = new Date();
       res.json({
         toast: true,
-        type: 'success',
-        message: 'Login successful',
+        type: "success",
+        message: "Login successful",
         user: user,
-        expiresAt: req.session.cookie.maxAge
+        expiresAt: req.session.cookie.maxAge,
       });
     });
   })(req, res, next);
@@ -72,11 +78,10 @@ export const postLoginLocal = (req: Request, res: Response, next: NextFunction):
  * @returns {RequestHandler} Passport authenticate middleware configured for Microsoft OAuth.
  */
 export const postLoginMicrosoft = (): RequestHandler => {
-  return passport.authenticate('microsoft', {
-    prompt: 'select_account'
+  return passport.authenticate("microsoft", {
+    prompt: "select_account",
   });
 };
-
 
 /**
  * Middleware that handles Microsoft OAuth callback after successful authentication.
@@ -84,11 +89,14 @@ export const postLoginMicrosoft = (): RequestHandler => {
  * @returns {RequestHandler} Passport authenticate middleware with success/failure redirects.
  */
 export const postLoginMicrosoftCallback = (): RequestHandler => {
-  return passport.authenticate('microsoft', { failureRedirect: '/signin' },
-    function(_: Request, res: Response) {
+  return passport.authenticate(
+    "microsoft",
+    { failureRedirect: "/signin" },
+    function (_: Request, res: Response) {
       // Successful authentication, redirect home.
-      res.redirect('/');
-    });
+      res.redirect("/");
+    },
+  );
 };
 
 /**
@@ -102,19 +110,24 @@ export const postLoginMicrosoftCallback = (): RequestHandler => {
  *  - 200 JSON on successful logout
  *  - Passes error to `next()` if something goes wrong
  */
-export const postLogout = (req: Request, res: Response, next: NextFunction): void => {
+export const postLogout = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void => {
   const userSessionId = req.session?.passport?.user;
   console.log("🚀 ~ req.logout ~ userId:", userSessionId);
-  
-  req.logout(function(err: Error | null) {
+
+  req.logout(function (err: Error | null) {
     if (err) return next(err);
     req.session.destroy(async () => {
-      if (userSessionId) await redisClient.del(`gns3labuser:active_session:${userSessionId}`);
-      console.log('req.logout session destroyed');
+      if (userSessionId)
+        await redisClient.del(`gns3labuser:active_session:${userSessionId}`);
+      console.log("req.logout session destroyed");
       res.json({
         toast: true,
-        type: 'success',
-        message: 'Logout successful'
+        type: "success",
+        message: "Logout successful",
       });
     });
   });
@@ -131,12 +144,16 @@ export const postLogout = (req: Request, res: Response, next: NextFunction): voi
  *  - Redirects to home on success
  *  - Passes error to `next()` on failure
  */
-export const postSignup = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const postSignup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   try {
     const user = await createUser(req.body);
     req.login(user, (err: any) => {
       if (err) return next(err);
-      res.redirect('/');
+      res.redirect("/");
     });
   } catch (error) {
     return next(error);
@@ -155,7 +172,7 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
  */
 export const checkSession = (req: Request, res: Response): void => {
   if (!req.isAuthenticated?.()) {
-    res.status(401).json({ session: 'invalid' });
+    res.status(401).json({ session: "invalid" });
     return;
   }
   res.sendStatus(200);

@@ -1,4 +1,4 @@
-name: Gns3LabLauncer
+name: Gns3LabLauncher
 services:
   mongodb:
     image: mongo:latest
@@ -14,7 +14,11 @@ services:
     networks:
       - gns3netlab-network
     healthcheck:
-      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh \"mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/\" --quiet | grep -q 1 || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          'echo ''db.runCommand("ping").ok'' | mongosh "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/" --quiet | grep -q 1 || exit 1',
+        ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -46,7 +50,10 @@ services:
       - NET_ADMIN
       - MKNOD
     environment:
-      - OPENVPN_SERVER_IP=10.15.20.26
+      - OPENVPN_SERVER_IP=10.15.20.32
+      - ENABLE_DNS=true
+      - STATIC_HOST_MAPPINGS=10.0.0.1 gns3lablauncher.mapua.netlab
+      - DOMAIN=mapua.netlab
     volumes:
       - ./src/server/var/openvpn:/data
     networks:
@@ -63,8 +70,8 @@ services:
     ports:
       - 8081:8081
     environment:
-      - ME_CONFIG_BASICAUTH_USERNAME=${VITE_MONGOWEB_ADMIN_USERNAME}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${VITE_MONGOWEB_ADMIN_PASSWORD}
+      - ME_CONFIG_BASICAUTH_USERNAME=${VITE_MONGOWEBGUI_ADMIN_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${VITE_MONGOWEBGUI_ADMIN_PASSWORD}
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:${MONGODB_PORT}
       - ME_CONFIG_SITE_GRIDFS_ENABLED=true
       - ME_CONFIG_SITE_SSL_ENABLED=${ME_CONFIG_SITE_SSL_ENABLED}
@@ -77,8 +84,6 @@ services:
     networks:
       - gns3netlab-network
     command: /bin/sh -c 'until nc -z mongodb 27017; do echo "Waiting for MongoDB..."; sleep 2; done; node app.js'
-
-
 
 networks:
   gns3netlab-network:

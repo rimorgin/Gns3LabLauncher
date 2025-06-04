@@ -35,5 +35,5 @@ export default function webSocketListener(): void {
   io.engine.use(wrapExpressMiddlewareForSocket(passport.session()));
 
   // Register the main connection handler for each new WebSocket client
-  io.on('connection', onSocketConnection);
+  io.on("connection", onSocketConnection);
 }

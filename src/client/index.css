@@ -37,7 +37,7 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.623 0.214 259.815);
   --success: oklch(78.24% 0.121 222.46);
-  --warning: oklch(75.88% 0.165 63.50);
+  --warning: oklch(75.88% 0.165 63.5);
   --error: oklch(0.58 0.22 27);
   --info: oklch(0.4468 0.2282 304.02);
   --hover-primary: oklch(0.4228 0.118 259.815);
@@ -76,7 +76,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
-
 
 @theme inline {
   --header-height: 4rem;
@@ -125,4 +124,3 @@
     @apply bg-background text-foreground;
   }
 }
-

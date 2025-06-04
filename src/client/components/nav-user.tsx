@@ -3,13 +3,13 @@ import {
   IconLogout,
   IconNotification,
   IconUserCircle,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@clnt/components/ui/avatar"
+} from "@clnt/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,23 +18,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@clnt/components/ui/dropdown-menu"
+} from "@clnt/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@clnt/components/ui/sidebar"
+} from "@clnt/components/ui/sidebar";
 import { IUser, useUserStore } from "@clnt/lib/store/user-store";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 
-
 export function NavUser({
   user,
 }: {
-  user?: IUser & { avatar?: string } | null; // Optional avatar override
+  user?: (IUser & { avatar?: string }) | null; // Optional avatar override
 }) {
   const { logoutUser } = useUserStore();
   const { isMobile } = useSidebar();
@@ -49,12 +48,12 @@ export function NavUser({
 
   const handleLogout = async () => {
     try {
-      await logoutUser()
+      await logoutUser();
     } catch {
-      return
+      return;
     }
     return toast.error("Logout successful");
-  }
+  };
 
   return (
     <SidebarMenu>

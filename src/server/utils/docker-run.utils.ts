@@ -8,7 +8,7 @@ const execAsync = promisify(exec);
  * * @param {string} containerName - The name of the Docker container.
  * * @param {function} callback - The callback function to handle the result.
  * * @returns {void}
-*/
+ */
 
 async function runDockerContainer(containerName: string) {
   if (!containerName) {
@@ -21,7 +21,7 @@ async function runDockerContainer(containerName: string) {
     -e OPENVPN_SERVER_IP=10.15.20.34 \
     --device /dev/net/tun:/dev/net/tun \
     -v ${process.cwd().replace(/\\/g, "/")}/src/server/var:/data \
-    rimorgin/gns3server`
+    rimorgin/gns3server`;
 
   try {
     const { stdout, stderr } = await execAsync(command);
@@ -41,13 +41,13 @@ async function checkContainerHealth(containerId: string) {
   const retries = 5;
 
   console.log(`Waiting ${startPeriod / 1000}s for container to start...`);
-  await new Promise(resolve => setTimeout(resolve, startPeriod));
+  await new Promise((resolve) => setTimeout(resolve, startPeriod));
 
   for (let i = 0; i < retries; i++) {
     try {
       const { stdout } = await execAsync(
         `docker exec ${containerId} /bin/sh -c 'pgrep openvpn'`,
-        { timeout }
+        { timeout },
       );
 
       if (stdout.trim()) {
@@ -60,13 +60,12 @@ async function checkContainerHealth(containerId: string) {
 
     if (i < retries - 1) {
       console.log(`Retrying in ${interval / 1000}s...`);
-      await new Promise(resolve => setTimeout(resolve, interval));
+      await new Promise((resolve) => setTimeout(resolve, interval));
     }
   }
 
-  console.error('Container failed health checks');
+  console.error("Container failed health checks");
   return false;
 }
 
-
-export {runDockerContainer, checkContainerHealth}
+export { runDockerContainer, checkContainerHealth };

@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import { cn } from "@clnt/lib/utils"
-import { Button } from "@clnt/components/ui/button"
-import { Input } from "@clnt/components/ui/input"
-import { Label } from "@clnt/components/ui/label"
+import { useState } from "react";
+import { cn } from "@clnt/lib/utils";
+import { Button } from "@clnt/components/ui/button";
+import { Input } from "@clnt/components/ui/input";
+import { Label } from "@clnt/components/ui/label";
 import { useLoading } from "@clnt/hooks/use-loading";
 import { LoginFormValues, useUserStore } from "@clnt/lib/store/user-store";
-import { IconBrandWindowsFilled, IconEye, IconEyeClosed } from '@tabler/icons-react'
+import {
+  IconBrandWindowsFilled,
+  IconEye,
+  IconEyeClosed,
+} from "@tabler/icons-react";
 
 export function LoginForm({
   className,
@@ -17,7 +21,7 @@ export function LoginForm({
   });
   const { loginUser } = useUserStore();
   const { isLoading, startLoading, stopLoading } = useLoading();
-  const [ showPassword, setShowPassword ] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -28,7 +32,7 @@ export function LoginForm({
     startLoading();
 
     try {
-      await loginUser(form, 'local');
+      await loginUser(form, "local");
     } catch (error) {
       console.error("Login error:", error);
     } finally {

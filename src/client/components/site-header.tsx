@@ -1,14 +1,14 @@
-import { Separator } from "@clnt/components/ui/separator"
-import { SidebarTrigger } from "@clnt/components/ui/sidebar"
-import ModeToggle from "./theme-toggle"
-import { useAppStateStore } from "@clnt/lib/store/app-state-store"
+import { Separator } from "@clnt/components/ui/separator";
+import { SidebarTrigger } from "@clnt/components/ui/sidebar";
+import ModeToggle from "./theme-toggle";
+import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { IconCirclePlusFilled } from "@tabler/icons-react";
 import { Skeleton } from "@clnt/components/ui/skeleton";
 import { Button } from "./ui/button";
 import { ResponsiveDrawerDialog } from "./ui/responsive-dialog";
 import RBACWrapper from "./rbac-wrapper";
 
-export function SiteHeader(){
+export function SiteHeader() {
   const { isAppLoading, activeNavName } = useAppStateStore();
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -26,8 +26,8 @@ export function SiteHeader(){
 
         <div className="ml-auto flex items-center gap-2">
           <RBACWrapper
-            requiredPermissions={['create_users', 'create_classrooms']}
-            requiredRoles={['administrator', 'instructor']}
+            requiredPermissions={["create_users", "create_classrooms"]}
+            requiredRoles={["administrator", "instructor"]}
           >
             {isAppLoading ? (
               <Skeleton className="h-9 w-31" />

@@ -1,5 +1,5 @@
 // components/RBACWrapper.tsx
-import { usePermissions } from "@clnt/hooks/use-permissions"; 
+import { usePermissions } from "@clnt/hooks/use-permissions";
 import { IUser } from "@clnt/lib/store/user-store";
 
 interface RBACWrapperProps {
@@ -21,11 +21,11 @@ const RBACWrapper = ({
 
   const hasAnyOrAllPermission = () => {
     if (requiredPermissions && requireAllPermission) {
-      return hasAllPermissions(requiredPermissions)
+      return hasAllPermissions(requiredPermissions);
     } else if (requiredPermissions) {
-      return hasAnyPermission(requiredPermissions)
+      return hasAnyPermission(requiredPermissions);
     }
-  }
+  };
 
   const canAccess =
     (!requiredPermissions || hasAnyOrAllPermission()) &&
@@ -37,7 +37,7 @@ const RBACWrapper = ({
   }
 
   if (!canAccess) {
-    return <></>
+    return <></>;
   }
 
   //return <>{fallback}</>;

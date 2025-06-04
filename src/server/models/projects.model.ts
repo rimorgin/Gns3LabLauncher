@@ -1,20 +1,22 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const projectsSchema = new mongoose.Schema({
   projectname: {
     type: String,
-    required: true
+    required: true,
   },
-  classroom: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Classroom',
-  }],
+  classroom: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Classroom",
+    },
+  ],
   created_at: {
     type: Date,
-    default: Date.now
-  }
-})
+    default: Date.now,
+  },
+});
 
-const Projects = mongoose.model('Projects', projectsSchema);
+const Projects = mongoose.model("Projects", projectsSchema);
 
-export default Projects
+export default Projects;

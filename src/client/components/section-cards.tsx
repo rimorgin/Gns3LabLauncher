@@ -1,6 +1,6 @@
-import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react"
+import { IconTrendingDown, IconTrendingUp } from "@tabler/icons-react";
 
-import { Badge } from "@clnt/components/ui/badge"
+import { Badge } from "@clnt/components/ui/badge";
 import {
   Card,
   CardAction,
@@ -8,7 +8,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@clnt/components/ui/card"
+} from "@clnt/components/ui/card";
 
 export function SectionCards() {
   return (
@@ -98,5 +98,5 @@ export function SectionCards() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }

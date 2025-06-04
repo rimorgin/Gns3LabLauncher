@@ -6,9 +6,10 @@
   "scripts": {
     "start": "tsx src/server/scripts/run-server.script.ts",
     "dev": "nodemon -w src/ -x tsx src/server/main.ts",
+    "staging": "tsx src/server/main.ts",
     "prod": "tsx src/server/main.ts",
     "build:staging": "vite build --mode staging",
-    "build": "vite build --mode production",
+    "build:production": "vite build --mode production",
     "eslint-check-only": "npx eslint .",
     "eslint-fix": "npx eslint . --fix",
     "prettier": "npx prettier --write ."
@@ -47,9 +48,11 @@
     "clsx": "^2.1.1",
     "connect-redis": "^8.0.2",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "csrf-sync": "^4.2.1",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
+    "http-proxy-middleware": "^3.0.5",
     "lucide-react": "^0.511.0",
     "mkdirp": "^3.0.1",
     "mongodb": "^6.16.0",

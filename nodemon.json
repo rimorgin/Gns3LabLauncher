@@ -1,9 +1,4 @@
 {
   "verbose": true,
-  "ignore": [
-    "cert", 
-    "node_modules", 
-    "public",
-    "src/server/var"
-  ]
+  "ignore": ["cert", "node_modules", "public", "src/server/var"]
 }

@@ -1,8 +1,11 @@
-
-import { envRedisHost, envRedisPassword, envRedisPort } from "@srvr/configs/env.config.ts";
+import {
+  envRedisHost,
+  envRedisPassword,
+  envRedisPort,
+} from "@srvr/configs/env.config.ts";
 import { exec } from "child_process";
 import { RedisStore } from "connect-redis";
-import { createClient } from 'redis';
+import { createClient } from "redis";
 
 // Create Redis client
 const redisClient = createClient({
@@ -10,10 +13,8 @@ const redisClient = createClient({
     host: envRedisHost,
     port: envRedisPort ? parseInt(envRedisPort) : 6379, //fallback to default
   },
-  password: envRedisPassword
+  password: envRedisPassword,
 });
-
-
 
 const checkRedisHealth = () =>
   new Promise((resolve) => {
@@ -25,18 +26,17 @@ const checkRedisHealth = () =>
         //console.log("stdout:", cleanStdout);
         //console.log("stderr:", cleanStderr);
 
-        const harmlessWarning = "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.";
+        const harmlessWarning =
+          "Warning: Using a password with '-a' or '-u' option on the command line interface may not be safe.";
 
         if (error || (stderr && stderr !== harmlessWarning)) {
           return resolve(false);
         }
 
         resolve(stdout === "PONG");
-      }
+      },
     );
   });
-
-
 
 // Use an async function to initialize Redis properly
 export default async function Redis() {
@@ -51,10 +51,10 @@ export default async function Redis() {
         break;
       }
     } catch (err) {
-      console.log('❌ Error checking Redis health:', err);
+      console.log("❌ Error checking Redis health:", err);
     }
 
-    console.log('⏳ Waiting for Redis...');
+    console.log("⏳ Waiting for Redis...");
     await new Promise((res) => setTimeout(res, 2000));
   }
 
@@ -65,8 +65,7 @@ export default async function Redis() {
     console.error("❌ Error connecting to Redis:", err);
     process.exit(1);
   }
-};
-
+}
 
 // Initialize Redis client before starting the server
 //initializeRedis();
@@ -74,8 +73,7 @@ export default async function Redis() {
 // Create RedisStore instance
 const redisStore = new RedisStore({
   client: redisClient,
-  prefix: 'gns3lab:session:', // Optional prefix for session keys
+  prefix: "gns3lab:session:", // Optional prefix for session keys
 });
 
 export { redisStore, redisClient };
-

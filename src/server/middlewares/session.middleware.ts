@@ -1,5 +1,5 @@
-import session from 'express-session'
-import sessionConfig from '@srvr/configs/session.config.ts'
+import session from "express-session";
+import sessionConfig from "@srvr/configs/session.config.ts";
 
 // Configure and export the session middleware
 export default session({
@@ -19,5 +19,5 @@ export default session({
   saveUninitialized: sessionConfig.sessionSaveUninitialized,
 
   // Configuration options for the session cookie itself
-  cookie: sessionConfig.sessionCookieOptions
+  cookie: sessionConfig.sessionCookieOptions,
 });

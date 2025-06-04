@@ -9,6 +9,7 @@ The launcher provides automated GNS3 sessions and can be accessed via a web GUI 
 ---
 
 # ✨ Features
+
 - 🛠️ **Session management** for efficient control of GNS3 instances with Docker.
 - 💾 **Persistent project files** to save work seamlessly.
 - 🔒 **OpenVPN integration** for secure connectivity with **Split Tunneling configuration** to route traffic only destined to private networks, preventing congestion.
@@ -25,11 +26,13 @@ This project addresses the gap by automating the deployment of GNS3 labs and ena
 ---
 
 # 🐳 Docker Repositories
+
 - 📦 `rimorgin/docker-gns3-server`
 - 📦 `rimorgin/openvpn`
 
 ---
 
 # 🖥️ Client-Side Requirements
+
 - 🔑 `openvpn`
 - 🌐 `gns3client` application/web GUI

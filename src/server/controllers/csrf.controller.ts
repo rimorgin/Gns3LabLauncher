@@ -17,29 +17,29 @@ import { Request, Response } from "express";
  * (such as frontend apps or forms) to request a valid CSRF token before submitting data.
  *
  * @function getCsrf
- * 
+ *
  * @param {Request} req - Express request object. Used to derive CSRF token state.
  * @param {Response} res - Express response object to send back the CSRF token.
  * @param {NextFunction} [next] - Optional next middleware function (not used here).
- * 
+ *
  * @returns {void} Sends a JSON response containing the CSRF token:
  *  - 200 OK with `{ csrfToken: string }`
  */
 export const getCsrf = (req: Request, res: Response) => {
   try {
     const csrfToken = getTokenFromState(req);
-    
+
     if (!csrfToken) {
-      return res.status(500).json({ 
-        error: 'Failed to generate CSRF token. Session may not be initialized.' 
+      return res.status(500).json({
+        error: "Failed to generate CSRF token. Session may not be initialized.",
       });
     }
-    
+
     res.json({ csrfToken });
   } catch (error) {
-    console.error('CSRF token generation error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error while generating CSRF token' 
+    console.error("CSRF token generation error:", error);
+    res.status(500).json({
+      error: "Internal server error while generating CSRF token",
     });
   }
 };

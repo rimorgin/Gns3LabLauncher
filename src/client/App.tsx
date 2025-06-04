@@ -48,7 +48,7 @@ function App() {
   }, [user, location.pathname]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user?._id) return;
 
     // Connect on mount
     socket.connect();
@@ -64,25 +64,22 @@ function App() {
     const onSessionKicked = () => {
       openModal();
       console.log("🔴 Kicked from server");
-    }
+    };
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
-    socket.on("session-kicked", onSessionKicked)
+    socket.on("session-kicked", onSessionKicked);
 
     return () => {
       socket.off("connect", onConnect);
       socket.off("disconnect", onDisconnect);
       socket.disconnect();
     };
-  }, [user]);
+  }, [user?._id]);
 
   return (
     <>
-      <SessionExpiredAlert 
-        isOpen={isOpen}
-        onOpenChange={closeModal} 
-      />
+      <SessionExpiredAlert isOpen={isOpen} onOpenChange={closeModal} />
       <Routes>
         <Route
           path="/signin"

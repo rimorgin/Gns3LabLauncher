@@ -19,7 +19,7 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
-  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore()
+  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore();
 
   return (
     <SidebarGroup>

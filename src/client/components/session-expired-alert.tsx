@@ -25,14 +25,17 @@ export function SessionExpiredAlert({
         <AlertDialogHeader>
           <AlertDialogTitle>Oops! Something went wrong...</AlertDialogTitle>
           <AlertDialogDescription>
-            Your session has expired because you have logged in to another device.
+            Your session has expired because you have logged in to another
+            device.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={() => {
-            invalidateUser()
-            onOpenChange(!isOpen)
-            }}>
+          <AlertDialogAction
+            onClick={() => {
+              invalidateUser();
+              onOpenChange(!isOpen);
+            }}
+          >
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>

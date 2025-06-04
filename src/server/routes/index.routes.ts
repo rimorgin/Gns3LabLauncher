@@ -1,11 +1,16 @@
-import { Router } from 'express';
-import { getIndex, getUserPermissions } from '@srvr/controllers/index.controller.ts';
-import { checkAuthentication, checkPermission } from '@srvr/middlewares/auth.middleware.ts';
-import { redisCache } from '@srvr/middlewares/redis-cache.middleware.ts';
+import { Router } from "express";
+import {
+  getIndex,
+  getUserPermissions,
+} from "@srvr/controllers/index.controller.ts";
+import {
+  checkAuthentication,
+  checkPermission,
+} from "@srvr/middlewares/auth.middleware.ts";
+import { redisCache } from "@srvr/middlewares/redis-cache.middleware.ts";
 
 const router: Router = Router();
 //const { runDockerContainer } = require('../utils/docker-run');
-
 
 /**
  * @route   GET /
@@ -13,7 +18,12 @@ const router: Router = Router();
  * @access  Admin/Instructor/Student
  */
 
-router.get('/', checkAuthentication, checkPermission(['read_dashboard']), getIndex)
+router.get(
+  "/",
+  checkAuthentication,
+  checkPermission(["read_dashboard"]),
+  getIndex,
+);
 
 /**
  * @route   GET /permissions
@@ -21,10 +31,12 @@ router.get('/', checkAuthentication, checkPermission(['read_dashboard']), getInd
  * @access  Admin/Instructor/Student
  */
 
-router.get('/permissions', checkAuthentication, redisCache(), getUserPermissions)
-
-
-
+router.get(
+  "/permissions",
+  checkAuthentication,
+  redisCache(),
+  getUserPermissions,
+);
 
 /*
 router.post('/run-docker', async function(req, res, next) {

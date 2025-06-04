@@ -6,12 +6,11 @@ import path from "path";
 const today = new Date();
 const configDate = today.toISOString().split("T")[0]; // '2025-05-28'
 
-
 const openvpnConfigPath = path.join(
   process.cwd(),
   "/src/server/var/openvpn",
   `netlab-${configDate}`,
-  `netlab-${configDate}.ovpn`
+  `netlab-${configDate}-LINUX.ovpn`,
 );
 
 const checkOpenVPNHealth = () =>
@@ -19,17 +18,21 @@ const checkOpenVPNHealth = () =>
     exec(
       "docker exec openvpn cat /etc/openvpn/openvpn.log | grep 'Initialization Sequence Completed'",
       (error, stdout, stderr) => {
-        if (error || stderr || !stdout.includes("Initialization Sequence Completed")) {
+        if (
+          error ||
+          stderr ||
+          !stdout.includes("Initialization Sequence Completed")
+        ) {
           return resolve(false);
         }
         resolve(true);
-      }
+      },
     );
   });
 
 export const connectToOpenVPNServer = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    console.log(openvpnConfigPath)
+    //console.log(openvpnConfigPath)
     const vpnProcess = spawn("sudo", [
       "openvpn",
       "--config",
@@ -40,7 +43,7 @@ export const connectToOpenVPNServer = (): Promise<boolean> => {
 
     vpnProcess.stdout.on("data", (data) => {
       output += data.toString();
-      console.log(output)
+      //console.log(output)
       if (output.includes("Initialization Sequence Completed")) {
         console.log("✅ OpenVPN connected");
         resolve(true);
@@ -52,9 +55,10 @@ export const connectToOpenVPNServer = (): Promise<boolean> => {
     });
 
     vpnProcess.on("exit", (code, signal) => {
-      console.error(`[APP ERROR]: VPN exited with code ${code}, signal ${signal}`);
+      console.error(
+        `[APP ERROR]: VPN exited with code ${code}, signal ${signal}`,
+      );
     });
-    
 
     setTimeout(() => {
       if (!output.includes("Initialization Sequence Completed")) {
@@ -74,6 +78,7 @@ export default async function vpnConnect() {
     if (healthy) {
       console.log("✅ OpenVPN is healthy");
       isOpenVPNHealthy = true;
+      break;
     } else {
       console.log("⏳ Waiting for OpenVPN...");
       await new Promise((res) => setTimeout(res, 2000));

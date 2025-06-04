@@ -1,6 +1,6 @@
-import bcrypt from 'bcrypt';
-import User from '@srvr/models/user.model.ts';
-import { IUser } from '@srvr/types/usermodel.type.ts';
+import bcrypt from "bcrypt";
+import User from "@srvr/models/user.model.ts";
+import { IUser } from "@srvr/types/usermodel.type.ts";
 
 /**
  * Creates a new user with the provided details, capitalizes the name, and hashes the password.
@@ -18,16 +18,20 @@ import { IUser } from '@srvr/types/usermodel.type.ts';
  * @throws {Error} If hashing the password or saving the user fails.
  */
 export const createUser = async (props: IUser) => {
-    const capitalizedName = props.name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    console.log(capitalizedName);
-    const hashedPassword = await bcrypt.hash(props.password, 12);
-    const user = await User.create({
-      name: capitalizedName,
-      email: props.email,
-      username: props.username,
-      password: hashedPassword,
-      role: props.role,
-      classes: props.classes
-    });
-    return user;
+  const capitalizedName = props.name
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  console.log(capitalizedName);
+  const hashedPassword = await bcrypt.hash(props.password, 12);
+  const user = await User.create({
+    name: capitalizedName,
+    email: props.email,
+    username: props.username,
+    password: hashedPassword,
+    role: props.role,
+    classes: props.classes,
+  });
+  return user;
 };

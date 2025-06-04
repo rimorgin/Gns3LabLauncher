@@ -17,9 +17,14 @@ interface UseKeyDownOptions {
  */
 export function useKeyDown(
   options: UseKeyDownOptions,
-  callback: (event: KeyboardEvent) => void
+  callback: (event: KeyboardEvent) => void,
 ) {
-  const { key, modifiers = [], disabled = false, allowRepeated = false } = options;
+  const {
+    key,
+    modifiers = [],
+    disabled = false,
+    allowRepeated = false,
+  } = options;
 
   useEffect(() => {
     if (disabled) return;
@@ -30,8 +35,7 @@ export function useKeyDown(
       const hasShift = modifiers.includes("shift") ? event.shiftKey : true;
       const hasAlt = modifiers.includes("alt") ? event.altKey : true;
 
-      const matchesModifiers =
-        hasCtrl && hasMeta && hasShift && hasAlt;
+      const matchesModifiers = hasCtrl && hasMeta && hasShift && hasAlt;
 
       const matchesKey = event.key.toLowerCase() === key.toLowerCase();
 

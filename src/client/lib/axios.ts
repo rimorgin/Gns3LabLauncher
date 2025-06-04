@@ -1,10 +1,9 @@
 import { apiBaseUrl } from "@clnt/constants/api";
 import axios from "axios";
-import { useUserStore } from "./store/user-store";
 
 const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
-  withCredentials: true
+  withCredentials: true,
 });
 
 // Fetch token once, and cache it
@@ -40,6 +39,5 @@ axiosInstance.interceptors.request.use(async (config) => {
   }
   return config;
 });
-
 
 export default axiosInstance;

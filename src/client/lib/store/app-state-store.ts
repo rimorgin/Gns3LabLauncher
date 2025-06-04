@@ -21,31 +21,31 @@ export const useAppStateStore = create<AppState>()(
       // APP LOADING
       isAppLoading: false,
       setIsAppLoading(state) {
-          set({ isAppLoading: state })
+        set({ isAppLoading: state });
       },
       // SIDEBAR TOGGLE
       isSideBarToggled: true,
       toggleSideBar: () => {
-        const { isSideBarToggled } = get()
-        set({ isSideBarToggled: !isSideBarToggled})
+        const { isSideBarToggled } = get();
+        set({ isSideBarToggled: !isSideBarToggled });
       },
 
       // SIDEBAR ACTIVE NAV
       activeNavName: "Dashboard",
       setActiveNavName(navName) {
-          set({activeNavName: navName})
+        set({ activeNavName: navName });
       },
       activeSession: false,
       activateSession: () => {
-        set({ activeSession: true })
+        set({ activeSession: true });
       },
       deactivateSession() {
-        set({ activeSession: false })
+        set({ activeSession: false });
       },
     }),
     {
-      name: 'app-state-storage',
+      name: "app-state-storage",
       storage: createJSONStorage(() => sessionStorage),
-    }
-  )
+    },
+  ),
 );

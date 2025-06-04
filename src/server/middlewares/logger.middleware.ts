@@ -1,3 +1,3 @@
-import logger from 'morgan'
+import logger from "morgan";
 
-export default logger('dev');
+export default logger("dev");

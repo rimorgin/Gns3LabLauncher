@@ -1,7 +1,7 @@
 import PageMeta from "@clnt/components/page-meta";
 import { LoginForm } from "@clnt/components/login-form";
-import logo from '@clnt/assets/favicon.ico'
-import gif from '@clnt/assets/login-image.gif'
+import logo from "@clnt/assets/favicon.ico";
+import gif from "@clnt/assets/login-image.gif";
 import ModeToggle from "@clnt/components/theme-toggle";
 
 export default function LoginPage() {
