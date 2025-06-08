@@ -7,6 +7,7 @@ import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import Calendar from "./calendar";
 import { Skeleton } from "./ui/skeleton";
 import { mongoGuiUrl } from "@clnt/constants/api";
+console.log("🚀 ~ mongoGuiUrl:", mongoGuiUrl);
 
 export function DynamicContent() {
   const { isAppLoading, activeNavName } = useAppStateStore();

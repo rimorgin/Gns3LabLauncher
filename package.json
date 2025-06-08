@@ -52,6 +52,7 @@
     "csrf-sync": "^4.2.1",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
+    "gridfile": "^1.1.6",
     "http-proxy-middleware": "^3.0.5",
     "lucide-react": "^0.511.0",
     "mkdirp": "^3.0.1",

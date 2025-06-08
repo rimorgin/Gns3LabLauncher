@@ -2,15 +2,15 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import path from "path";
-import { MODE, runEnvFilePath, runScript } from "@srvr/configs/env.config.ts";
+import { envServerHost, MODE, runComposeFile, runEnvFile, runScript } from "@srvr/configs/env.config.ts";
 
 console.log("Environment mode:", MODE);
 
 const execAsync = promisify(exec);
 
-// Create certs if in production
+// Create self-signed certs if in staging. DONT USE SELF-SIGNED CERTS IN PRODUCTION
 async function createCertsIfNeeded(): Promise<void> {
-  if (MODE === "development") return;
+  if (MODE !== "staging") return;
 
   const certDir = path.resolve(process.cwd(), "cert");
   const services = ["vite-express", "mongo-gui"];
@@ -31,14 +31,16 @@ async function createCertsIfNeeded(): Promise<void> {
         console.log(`🔐 Generating self-signed HTTPS certs for ${service}...`);
 
         await execAsync(
-          `mkcert -key-file ${keyPath} -cert-file ${certPath} localhost 127.0.0.1 ::1`,
+          `mkcert -key-file ${keyPath} -cert-file ${certPath} ${envServerHost} localhost 127.0.0.1 ::1`,
         );
+          console.log("🚀 ~ createCertsIfNeeded ~ envServerHost:", envServerHost)
 
         console.log(`✅ HTTPS certs generated for ${service}`);
       }
     }
   } catch (err: any) {
     console.error("❌ Failed to generate certificates:", err.message);
+    process.exit(0)
   }
 }
 
@@ -47,7 +49,7 @@ async function startContainers(): Promise<void> {
   console.log("🐳 Starting Docker containers...");
   try {
     const { stdout, stderr } = await execAsync(
-      `docker compose -f docker-compose.yml --env-file ${runEnvFilePath} up -d`,
+      `docker compose -f ${runComposeFile} --env-file ${runEnvFile} up -d`,
     );
     if (stdout) console.log(stdout);
     if (stderr) console.error(stderr);
@@ -83,15 +85,8 @@ async function startViteExpress(): Promise<void> {
 
   const shutdown = () => {
     console.log("\n🛑 Shutting down services gracefully...");
-    exec("rm -rf /home/rimor/Documents/VSCodes/Gns3LabLauncher/cert", (err) => {
-      if (err) {
-        console.warn("⚠️ Error removing dir: ", err.message);
-      } else {
-        console.log("✅ cert directory removed");
-      }
-    });
     exec(
-      `docker compose -f docker-compose.yml --env-file ${runEnvFilePath} down`,
+      `docker compose --env-file ${runEnvFile} down`,
       (err) => {
         if (err) {
           console.warn("⚠️ Error stopping containers:", err.message);

@@ -6,8 +6,10 @@ import dns from "node:dns";
 
 dns.setDefaultResultOrder("verbatim");
 
+const mode = process.env.NODE_ENV;
+
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   console.log(`[VITE] Running in mode: ${mode}`);
   const outDir =
     mode === "staging"

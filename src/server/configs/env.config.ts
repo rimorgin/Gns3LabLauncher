@@ -4,13 +4,8 @@ import { ModeTypes } from "@srvr/types/global.type.ts";
 
 export const MODE = (process.env.NODE_ENV as ModeTypes) || "development";
 
-let runEnvFile: string;
-
-if (MODE === "production") runEnvFile = ".env.production";
-else if (MODE === "staging") runEnvFile = ".env.staging";
-else runEnvFile = ".env.development";
-
-export const runEnvFilePath = path.join(process.cwd(), runEnvFile);
+export const runComposeFile = MODE === "development" ? "docker-compose.dev.yml" : "docker-compose.yml";
+export const runEnvFile = `.env.${MODE}`;
 export const runScript =
   MODE === "production" || MODE === "staging"
     ? `yarn run ${MODE}`
@@ -26,7 +21,9 @@ export const envProtocol =
   MODE === "production" || MODE === "staging" ? "https" : "http";
 export const envServerHost = process.env.VITE_API_HOST;
 export const envServerPort = process.env.PORT;
-export const envSessionCookieSecret = process.env.SESSION_COOKIE_SECRET || 'nuaiwnudnj123wer41nrgjnerjsuneruknuNPAISUDNun<sodfnseeoin[AISN{OI';
+export const envSessionCookieSecret =
+  process.env.SESSION_COOKIE_SECRET ||
+  "nuaiwnudnj123wer41nrgjnerjsuneruknuNPAISUDNun<sodfnseeoin[AISN{OI";
 
 export const envRedisHost = process.env.REDIS_HOST;
 export const envRedisPort = process.env.REDIS_PORT;

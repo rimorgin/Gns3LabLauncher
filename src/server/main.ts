@@ -56,7 +56,6 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", csrfRouter);
 app.use("/api/v1", indexRouter);
 
-// Proxies
 app.use("/api/v1/proxy/mongo-gui", mongoWebGuiProxyInstance);
 
 // Catch-all for unmatched /api/v1 routes
@@ -77,19 +76,13 @@ if (MODE === "production" || MODE === "staging") {
   // enable vpn when not in development
   vpnConnect();
 
-  ViteExpress.config({
+/*   ViteExpress.config({
+    //@ts-expect-error type staging no allowed
     mode: MODE,
-    inlineViteConfig: {
-      root: process.cwd(),
-      base: "/",
-      build: {
-        outDir:
-          MODE === "staging"
-            ? "src/client/dist/staging"
-            : "src/client/dist/production",
-      },
-    },
-  });
+    inlineViteConfig({})
+  }) */
+
+  
 } else {
   server = http.createServer(app);
   console.log("🌐 HTTP server running (non-production)");
@@ -104,4 +97,7 @@ server.listen(envServerPort, () => {
 // initialize websocket connection handlers
 webSocketListener();
 
+//@ts-expect-error staging mode is not allowed
+ViteExpress.config({mode: MODE})
 ViteExpress.bind(app, server);
+

@@ -1,6 +1,7 @@
 import { exec } from "child_process";
 import { spawn } from "child_process";
 import path from "path";
+import fs from 'fs';
 
 // Get today's date in YYYY-MM-DD
 const today = new Date();
@@ -12,6 +13,10 @@ const openvpnConfigPath = path.join(
   `netlab-${configDate}`,
   `netlab-${configDate}-LINUX.ovpn`,
 );
+
+if (!fs.existsSync(openvpnConfigPath)) {
+  throw new Error (`OpenVPN config file not found at ${openvpnConfigPath}. Please ensure the file exists and is correctly named and try again.`);
+}
 
 const checkOpenVPNHealth = () =>
   new Promise<boolean>((resolve) => {
@@ -50,13 +55,13 @@ export const connectToOpenVPNServer = (): Promise<boolean> => {
       }
     });
 
-    vpnProcess.stderr.on("data", (data) => {
+    /* vpnProcess.stderr.on("data", (data) => {
       console.error("❌ VPN Error:", data.toString());
-    });
+    }); */
 
-    vpnProcess.on("exit", (code, signal) => {
+    vpnProcess.on("exit", (code) => {
       console.error(
-        `[APP ERROR]: VPN exited with code ${code}, signal ${signal}`,
+        `[APP ERROR]: VPN exited with code ${code}`,
       );
     });
 

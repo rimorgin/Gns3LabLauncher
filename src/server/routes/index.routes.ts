@@ -8,6 +8,7 @@ import {
   checkPermission,
 } from "@srvr/middlewares/auth.middleware.ts";
 import { redisCache } from "@srvr/middlewares/redis-cache.middleware.ts";
+import { mongoWebGuiProxyInstance } from "@srvr/middlewares/http-proxy.middleware.ts";
 
 const router: Router = Router();
 //const { runDockerContainer } = require('../utils/docker-run');
@@ -55,5 +56,7 @@ router.post('/run-docker', async function(req, res, next) {
   }
 });
 */
+
+router.use('/proxy/mongo-gui', mongoWebGuiProxyInstance)
 
 export default router;

@@ -2,16 +2,19 @@ import { exec } from "child_process";
 import mongoose from "mongoose";
 import User from "@srvr/models/user.model.ts";
 import bcrypt from "bcrypt";
+import fs from 'fs';
+import tls from 'tls';
 import {
   envMongoDBUsername,
   envMongoDBPassword,
   envMongoDBHost,
   envMongoDBPort,
   envMongoDBDbname,
+  MODE,
 } from "@srvr/configs/env.config.ts";
 import Classroom from "@srvr/models/classroom.model.ts";
-
 import Projects from "@srvr/models/projects.model.ts";
+import GridFileStorage from "@srvr/models/gridfs.model.ts";
 
 const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
 
@@ -48,7 +51,22 @@ const MongoDB = async () => {
 
   try {
     mongoose.set("strictQuery", false);
-    mongoose.connect(uri);
+    mongoose.connect(uri)
+    /* if (MODE === 'development') {
+      mongoose.connect(uri)
+    } else {
+      const secureContext = tls.createSecureContext({
+        ca: fs.readFileSync(`<path to CA certificate>`),
+        cert: fs.readFileSync(`<path to public client certificate>`),
+        key: fs.readFileSync(`<path to private client key>`),
+      });
+      mongoose.connect(uri, {
+        tls: true,
+        tlsAllowInvalidCertificates: true,
+        secureContext: secureContext
+      });
+    } */
+    
     console.log(`✅ MongoDB connected`);
     // create default admin credentials if not exists
     const defaultUser = await User.findOne({ username: "gns3labadmin" });
@@ -60,7 +78,7 @@ const MongoDB = async () => {
 
       const defaultUserCredentials = {
         name: "Gns3 Lab Admin",
-        email: "gns3labadmin@labadmin.net",
+        email: "gns3labadmin@admin.net",
         username: "gns3labadmin",
         password: hashedPassword,
         role: "administrator",
@@ -71,6 +89,7 @@ const MongoDB = async () => {
       // initiate collections
       await Classroom.find({}).limit(1);
       await Projects.find({}).limit(1);
+      await GridFileStorage.find({}).limit(1);
       console.log("Default admin credential created: ", {
         username: defaultUserCredentials.username,
         email: defaultUserCredentials.email,
@@ -79,7 +98,19 @@ const MongoDB = async () => {
     }
     // sync indexes for performance
     await User.syncIndexes();
+    await Classroom.syncIndexes();
+    await Projects.syncIndexes();
     console.log("✅ MongoDB indexes synced");
+
+    /* const fileStream = fs.createReadStream('README.md');
+    const file = new GridFileStorage({
+      filename: 'myfile.txt',
+      contentType: 'text/plain',
+      metadata: { owner: 'user123' }
+    })
+    
+    await file.upload(fileStream)
+    console.log('Uploaded file:', file) */
   } catch (error) {
     console.log("❌", error);
     process.exit(1);

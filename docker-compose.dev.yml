@@ -39,43 +39,22 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-  
-  openvpn:
-    image: rimorgin/openvpn
-    container_name: openvpn
-    restart: unless-stopped
-    ports:
-      - "1194:1194/udp"
-    cap_add:
-      - NET_ADMIN
-      - MKNOD
-    environment:
-      - OPENVPN_SERVER_IP=10.15.20.32
-      - ENABLE_DNS=true
-      - STATIC_HOST_MAPPINGS=10.0.0.1 gns3lablauncher.mapua.netlab
-      - DOMAIN=mapua.netlab
-    volumes:
-      - ./src/server/var/openvpn:/data
-    networks:
-      - gns3netlab-network
-    privileged: true
-    healthcheck:
-      test: ["CMD", "pgrep", "openvpn"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+
   mongo-gui:
     image: mongo-express
     container_name: mongo-gui
     ports:
       - "${VITE_MONGOWEBGUI_PORT}:${VITE_MONGOWEBGUI_PORT}"
     environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=gns3netlab
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=gns3netlab
       - ME_CONFIG_BASICAUTH_USERNAME=${VITE_MONGOWEBGUI_ADMIN_USERNAME}
       - ME_CONFIG_BASICAUTH_PASSWORD=${VITE_MONGOWEBGUI_ADMIN_PASSWORD}
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:${MONGODB_PORT}
       - ME_CONFIG_SITE_SSL_ENABLED=${ME_CONFIG_SITE_SSL_ENABLED}
-      - ME_CONFIG_SITE_SSL_CRT_PATH=/certs/mongo-gui.cert.pem
-      - ME_CONFIG_SITE_SSL_KEY_PATH=/certs/mongo-gui.key.pem
+      - ME_CONFIG_SITE_SSL_CRT_PATH=/cert/mongo-gui.cert.pem
+      - ME_CONFIG_SITE_SSL_KEY_PATH=/cert/mongo-gui.key.pem
     volumes:
       - ./cert:/certs:ro
     depends_on:
