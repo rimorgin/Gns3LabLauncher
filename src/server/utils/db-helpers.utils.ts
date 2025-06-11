@@ -42,6 +42,38 @@ export const createUser = async (props: IUser): Promise<IUser> => {
   return user;
 };
 
+
+/**
+ * Updates an existing user with the provided details.
+ *
+ * @param {string} id - The ID of the user to update.
+ * @param {Partial<IUser>} updates - The updates to apply to the user.
+ * @returns {Promise<IUser | null>} A promise that resolves to the updated user instance, or null if not found.
+ */
+export const updateUser = async (
+  id: string,
+  updates: Partial<IUser>
+): Promise<IUser | null> => {
+  if (updates.password) {
+    updates.password = await bcrypt.hash(updates.password, 12);
+  }
+  const updatedUser = await User.findByIdAndUpdate(id, updates, {
+    new: true,
+  });
+  return updatedUser;
+};
+
+/**
+ * Deletes a user by their ID.
+ *
+ * @param {string} id - The ID of the user to delete.
+ * @returns {Promise<IUser | null>} A promise that resolves to the deleted user instance, or null if not found.
+ */
+export const deleteUser = async (id: string): Promise<IUser | null> => {
+  const deletedUser = await User.findByIdAndDelete(id);
+  return deletedUser;
+};
+
 /**
  * Creates a new course with the provided course code and name.
  *
@@ -61,6 +93,33 @@ export const createCourse = async (props: ICourse): Promise<ICourse> => {
     coursename: props.coursename,
   });
   return course;
+};
+
+/**
+ * Updates an existing course with the provided details.
+ *
+ * @param {string} id - The ID of the course to update.
+ * @param {Partial<ICourse>} updates - The updates to apply to the course.
+ * @returns {Promise<ICourse | null>} A promise that resolves to the updated course instance, or null if not found.
+ */
+export const updateCourse = async (
+  id: string,
+  updates: Partial<ICourse>
+): Promise<ICourse | null> => {
+  const updatedCourse = await Course.findByIdAndUpdate(id, updates, {
+    new: true,
+  });
+  return updatedCourse;
+};
+/**
+ * Deletes a course by its ID.
+ *
+ * @param {string} id - The ID of the course to delete.
+ * @returns {Promise<ICourse | null>} A promise that resolves to the deleted course instance, or null if not found.
+ */
+export const deleteCourse = async (id: string): Promise<ICourse | null> => {
+  const deletedCourse = await Course.findByIdAndDelete(id);
+  return deletedCourse;
 };
 
 /**
@@ -91,6 +150,35 @@ export const createClassroom = async (
 };
 
 /**
+ * Updates an existing classroom with the provided details.
+ *
+ * @param {string} id - The ID of the classroom to update.
+ * @param {Partial<IClassroom>} updates - The updates to apply to the classroom.
+ * @returns {Promise<IClassroom | null>} A promise that resolves to the updated classroom instance, or null if not found.
+ */
+export const updateClassroom = async (
+  id: string,
+  updates: Partial<IClassroom>
+): Promise<IClassroom | null> => {
+  const updatedClassroom = await Classroom.findByIdAndUpdate(id, updates, {
+    new: true,
+  });
+  return updatedClassroom;
+};
+/**
+ * Deletes a classroom by its ID.
+ *
+ * @param {string} id - The ID of the classroom to delete.
+ * @returns {Promise<IClassroom | null>} A promise that resolves to the deleted classroom instance, or null if not found.
+ */
+export const deleteClassroom = async (
+  id: string
+): Promise<IClassroom | null> => {
+  const deletedClassroom = await Classroom.findByIdAndDelete(id);
+  return deletedClassroom;
+};
+
+/**
  * Creates a new project linked to a specific classroom.
  *
  * @function createProject
@@ -115,4 +203,31 @@ export const createProject = async (
     visible: props.visible,
   });
   return project;
+};
+
+/**
+ * Updates an existing project with the provided details.
+ *
+ * @param {string} id - The ID of the project to update.
+ * @param {Partial<IProject>} updates - The updates to apply to the project.
+ * @returns {Promise<IProject | null>} A promise that resolves to the updated project instance, or null if not found.
+ */
+export const updateProject = async (
+  id: string,
+  updates: Partial<IProject>
+): Promise<IProject | null> => {
+  const updatedProject = await Projects.findByIdAndUpdate(id, updates, {
+    new: true,
+  });
+  return updatedProject;
+};
+/**
+ * Deletes a project by its ID.
+ *
+ * @param {string} id - The ID of the project to delete.
+ * @returns {Promise<IProject | null>} A promise that resolves to the deleted project instance, or null if not found.
+ */
+export const deleteProject = async (id: string): Promise<IProject | null> => {
+  const deletedProject = await Projects.findByIdAndDelete(id);
+  return deletedProject;
 };
