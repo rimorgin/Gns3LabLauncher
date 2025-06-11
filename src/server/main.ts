@@ -28,8 +28,8 @@ import {
 
 import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
 import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
-import vpnConnect from "@srvr/configs/vpn.config.ts";
 import { mongoWebGuiProxyInstance } from "@srvr/middlewares/http-proxy.middleware.ts";
+import vpnOnlyMiddleware from "./middlewares/vpn.middleware.ts";
 
 const app = express();
 let server;
@@ -43,9 +43,9 @@ app.use(cookieParser());
 app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
-//app.use(enforceSingleSessionOnly);
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
+app.use(vpnOnlyMiddleware)
 
 // Initialize Data Storage
 Redis();
@@ -73,16 +73,17 @@ if (MODE === "production" || MODE === "staging") {
   );
   server = https.createServer({ key, cert }, app);
   console.log("🌐 HTTPS server configured");
+
+  const { default: vpnConnect } = await import("./configs/vpn.config.js");
   // enable vpn when not in development
+  console.log("🔗 Connecting to VPN...");
   vpnConnect();
 
-/*   ViteExpress.config({
+  /*   ViteExpress.config({
     //@ts-expect-error type staging no allowed
     mode: MODE,
     inlineViteConfig({})
   }) */
-
-  
 } else {
   server = http.createServer(app);
   console.log("🌐 HTTP server running (non-production)");
@@ -98,6 +99,5 @@ server.listen(envServerPort, () => {
 webSocketListener();
 
 //@ts-expect-error staging mode is not allowed
-ViteExpress.config({mode: MODE})
+ViteExpress.config({ mode: MODE });
 ViteExpress.bind(app, server);
-

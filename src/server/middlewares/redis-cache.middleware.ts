@@ -6,7 +6,10 @@ import { Request, Response, NextFunction } from "express";
   Middleware to cache frequently used api routes with maximum expiry of 3hours
   @param {ttl} specify a custom expiry of cache
 */
-export const redisCache = (ttl = 10800) => {
+export const redisCache = ({
+  ttl = 10800,
+  withUserId = false,
+}: { ttl?: number; withUserId?: boolean } = {}) => {
   return async (
     req: Request,
     res: Response,
@@ -14,8 +17,13 @@ export const redisCache = (ttl = 10800) => {
   ): Promise<void> => {
     const userId = req.session.passport?.user;
     if (!userId || req.method !== "GET") return next();
-    const key = generateRedisRouteKey(req.originalUrl, userId);
 
+    let key: string;
+    if (withUserId) {
+      key = generateRedisRouteKey(`/api/v1${req.path}`, userId);
+    } else {
+      key = generateRedisRouteKey(`/api/v1${req.path}`);
+    }
     try {
       const cached = await redisClient.get(key);
       if (cached) {

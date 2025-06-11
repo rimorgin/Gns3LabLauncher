@@ -1,7 +1,7 @@
 import { createUser } from "@srvr/utils/db-helpers.utils.ts";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import passport from "@srvr/configs/passport.config.ts";
-import { IUser } from "@srvr/types/usermodel.type.ts";
+import { IUser } from "@srvr/types/models.type.ts";
 import User from "@srvr/models/user.model.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
 

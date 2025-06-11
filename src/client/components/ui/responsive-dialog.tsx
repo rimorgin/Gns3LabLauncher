@@ -21,17 +21,19 @@ import {
 } from "@clnt/components/ui/drawer";
 
 type DrawerDialogProps = {
+  open: boolean;
+  onOpenChange: () => void;
   children: ReactNode;
-  title?: string;
+  title?: string | ReactNode;
   description?: string;
   button?: ReactNode;
+  renderHeaderContent?: ReactNode;
 } & (
   | { buttonText: string; button?: never }
   | { buttonText?: never; button: ReactNode }
 );
 
 export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
-  const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const triggerButton = props.button ? (
@@ -42,11 +44,12 @@ export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
 
   if (isDesktop) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogTrigger asChild>{triggerButton}</DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{props.title}</DialogTitle>
+            {props.renderHeaderContent}
             <DialogDescription>{props.description}</DialogDescription>
           </DialogHeader>
           {props.children}
@@ -56,11 +59,12 @@ export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
   }
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
+    <Drawer open={props.open} onOpenChange={props.onOpenChange}>
       <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
           <DrawerTitle>{props.title}</DrawerTitle>
+          {props.renderHeaderContent}
           <DrawerDescription>{props.description}</DrawerDescription>
         </DrawerHeader>
         {props.children}

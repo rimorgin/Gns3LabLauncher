@@ -2,13 +2,22 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import path from "path";
-import { envServerHost, MODE, runComposeFile, runEnvFile, runScript } from "@srvr/configs/env.config.ts";
+import {
+  envServerHost,
+  MODE,
+  runComposeFile,
+  runEnvFile,
+  runScript,
+} from "@srvr/configs/env.config.ts";
 
 console.log("Environment mode:", MODE);
 
 const execAsync = promisify(exec);
 
-// Create self-signed certs if in staging. DONT USE SELF-SIGNED CERTS IN PRODUCTION
+/**
+ * Creates self-signed certificates if the application is running in staging mode.
+ * DONT USE SELF-SIGNED CERTS IN PRODUCTION
+ */
 async function createCertsIfNeeded(): Promise<void> {
   if (MODE !== "staging") return;
 
@@ -33,18 +42,22 @@ async function createCertsIfNeeded(): Promise<void> {
         await execAsync(
           `mkcert -key-file ${keyPath} -cert-file ${certPath} ${envServerHost} localhost 127.0.0.1 ::1`,
         );
-          console.log("🚀 ~ createCertsIfNeeded ~ envServerHost:", envServerHost)
+        console.log("🚀 ~ createCertsIfNeeded ~ envServerHost:", envServerHost);
 
         console.log(`✅ HTTPS certs generated for ${service}`);
       }
     }
   } catch (err: any) {
     console.error("❌ Failed to generate certificates:", err.message);
-    process.exit(0)
+    throw new Error(
+      "Please ensure mkcert is installed and configured correctly.",
+    );
   }
 }
 
-// Starts Docker containers
+/**
+ * Starts the Docker containers defined in the docker-compose file.
+ */
 async function startContainers(): Promise<void> {
   console.log("🐳 Starting Docker containers...");
   try {
@@ -62,12 +75,17 @@ async function startContainers(): Promise<void> {
   }
 }
 
-// Starts the application
+/**
+ * Starts the Vite Express application, including certificate generation and Docker container management.
+ */
 async function startViteExpress(): Promise<void> {
   try {
     await createCertsIfNeeded();
-  } catch {
-    console.error("🚨 Certificate generation failed. Aborting startup.");
+  } catch (error: any) {
+    console.error(
+      "🚨 Certificate generation failed. Aborting startup.",
+      error.message,
+    );
     process.exit(0);
   }
 
@@ -85,17 +103,14 @@ async function startViteExpress(): Promise<void> {
 
   const shutdown = () => {
     console.log("\n🛑 Shutting down services gracefully...");
-    exec(
-      `docker compose --env-file ${runEnvFile} down`,
-      (err) => {
-        if (err) {
-          console.warn("⚠️ Error stopping containers:", err.message);
-        } else {
-          console.log("✅ All containers stopped.");
-        }
-        process.exit(0);
-      },
-    );
+    exec(`docker compose --env-file ${runEnvFile} down`, (err) => {
+      if (err) {
+        console.warn("⚠️ Error stopping containers:", err.message);
+      } else {
+        console.log("✅ All containers stopped.");
+      }
+      process.exit(0);
+    });
   };
 
   process.on("SIGINT", shutdown);

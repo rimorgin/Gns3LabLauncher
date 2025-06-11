@@ -42,12 +42,8 @@ export const useUserStore = create<UserState>()(
       user: null,
       expiresAt: 0,
       loginUser: async (form, strategy = "local") => {
-        let url: string;
-        if (strategy === "local") {
-          url = "/auth/login-local";
-        } else {
-          url = "/auth/login-microsoft";
-        }
+        const url = strategy === "local" ? "/auth/login-local" : "/auth/login-microsoft";
+        
         try {
           const res = await axios.post(url, form);
           const data = res.data;

@@ -1,14 +1,15 @@
+import { IClassroom } from "@srvr/types/models.type.ts";
 import mongoose from "mongoose";
 
 const classroomSchema = new mongoose.Schema({
-  coursecode: {
-    type: String,
+  courseid: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Course",
     required: true,
   },
   classname: {
     type: String,
     required: true,
-    unique: true,
   },
   instructor: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,6 +33,6 @@ const classroomSchema = new mongoose.Schema({
   },
 });
 
-const Classroom = mongoose.model("Classroom", classroomSchema);
+const Classroom = mongoose.model<IClassroom>("Classroom", classroomSchema);
 
 export default Classroom;

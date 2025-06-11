@@ -1,62 +1,154 @@
 import { Router } from "express";
 import {
+  getClassrooms,
+  getCourses,
   getIndex,
+  getProjects,
   getUserPermissions,
+  getUsers,
+  postClassroom,
+  postCourses,
+  postProjects,
+  postUsers,
 } from "@srvr/controllers/index.controller.ts";
 import {
   checkAuthentication,
   checkPermission,
 } from "@srvr/middlewares/auth.middleware.ts";
-import { redisCache } from "@srvr/middlewares/redis-cache.middleware.ts";
-import { mongoWebGuiProxyInstance } from "@srvr/middlewares/http-proxy.middleware.ts";
+import {
+  redisCache,
+} from "@srvr/middlewares/redis-cache.middleware.ts";
+import {
+  mongoWebGuiProxyInstance,
+} from "@srvr/middlewares/http-proxy.middleware.ts";
 
 const router: Router = Router();
-//const { runDockerContainer } = require('../utils/docker-run');
 
 /**
  * @route   GET /
- * @desc    A protected route main application
- * @access  Admin/Instructor/Student
+ * @desc    Protected root route - confirms user access to the main application.
+ * @access  Authenticated users with 'read_dashboard' permission
  */
-
 router.get(
   "/",
   checkAuthentication,
   checkPermission(["read_dashboard"]),
-  getIndex,
+  getIndex
 );
 
 /**
  * @route   GET /permissions
- * @desc    A protected route for getting current logged in user's correct permissions
- * @access  Admin/Instructor/Student
+ * @desc    Get current authenticated user's permissions based on their role.
+ * @access  Authenticated users
  */
-
 router.get(
   "/permissions",
   checkAuthentication,
-  redisCache(),
-  getUserPermissions,
+  redisCache({ withUserId: true }),
+  getUserPermissions
 );
 
-/*
-router.post('/run-docker', async function(req, res, next) {
-  const { containerName, imageName, portNumber } = req.body;
+/**
+ * @route   GET /users
+ * @desc    Fetch list of users filtered by optional query parameter `role`.
+ * @access  Authenticated users with 'read_users' permission
+ */
+router.get(
+  "/users",
+  checkAuthentication,
+  checkPermission(["read_users"]),
+  getUsers
+);
 
-  if (!containerName || !imageName) {
-    return res.status(400).json({ error: '"Container name and image name are required' });
-  }
+/**
+ * @route   POST /users
+ * @desc    Create a new user.
+ * @access  Authenticated users with 'create_users' permission
+ */
+router.post(
+  "/users",
+  checkAuthentication,
+  checkPermission(["create_users"]),
+  postUsers
+);
 
-  try {
-    const containerId = await runDockerContainer(containerName, imageName);
-    res.send({ success: true, containerId });
-  } catch (error) {
-    console.error('Error running Docker container:', error);
-    res.status(500).json({ error: 'Failed to start Docker container', details: error.message });
-  }
-});
-*/
+/**
+ * @route   GET /courses
+ * @desc    Fetch list of all courses, optionally with embedded data.
+ * @access  Authenticated users with 'read_courses' permission
+ */
+router.get(
+  "/courses",
+  checkAuthentication,
+  checkPermission(["read_courses"]),
+  getCourses
+);
 
-router.use('/proxy/mongo-gui', mongoWebGuiProxyInstance)
+/**
+ * @route   POST /courses
+ * @desc    Create a new course.
+ * @access  Authenticated users with 'create_courses' permission
+ */
+router.post(
+  "/courses",
+  checkAuthentication,
+  checkPermission(["create_courses"]),
+  postCourses
+);
+
+/**
+ * @route   GET /classrooms
+ * @desc    Fetch list of all classrooms, optionally populated with course details.
+ * @access  Authenticated users with 'read_classrooms' permission
+ */
+router.get(
+  "/classrooms",
+  checkAuthentication,
+  checkPermission(["read_classrooms"]),
+  getClassrooms
+);
+
+/**
+ * @route   POST /classrooms
+ * @desc    Create a new classroom.
+ * @access  Authenticated users with 'create_classrooms' permission
+ */
+router.post(
+  "/classrooms",
+  checkAuthentication,
+  checkPermission(["create_classrooms"]),
+  postClassroom
+);
+
+/**
+ * @route   GET /projects
+ * @desc    Fetch list of all projects, optionally populated with classroom info.
+ * @access  Authenticated users with 'read_projects' permission
+ */
+router.get(
+  "/projects",
+  checkAuthentication,
+  checkPermission(["read_projects"]),
+  getProjects
+);
+
+/**
+ * @route   POST /projects
+ * @desc    Create a new project.
+ * @access  Authenticated users with 'create_projects' permission
+ */
+router.post(
+  "/projects",
+  checkAuthentication,
+  checkPermission(["create_projects"]),
+  postProjects
+);
+
+/**
+ * @route   Proxy /proxy/mongo-gui
+ * @desc    Reverse proxy to MongoDB Web GUI via HTTP proxy middleware.
+ * @access  Authenticated users (controlled in proxy middleware)
+ */
+router.use("/proxy/mongo-gui", mongoWebGuiProxyInstance);
 
 export default router;

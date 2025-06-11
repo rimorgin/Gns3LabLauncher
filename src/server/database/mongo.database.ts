@@ -2,8 +2,8 @@ import { exec } from "child_process";
 import mongoose from "mongoose";
 import User from "@srvr/models/user.model.ts";
 import bcrypt from "bcrypt";
-import fs from 'fs';
-import tls from 'tls';
+import fs from "fs";
+import tls from "tls";
 import {
   envMongoDBUsername,
   envMongoDBPassword,
@@ -15,6 +15,7 @@ import {
 import Classroom from "@srvr/models/classroom.model.ts";
 import Projects from "@srvr/models/projects.model.ts";
 import GridFileStorage from "@srvr/models/gridfs.model.ts";
+import Course from "@srvr/models/course.model.ts";
 
 const uri = `mongodb://${envMongoDBUsername}:${envMongoDBPassword}@${envMongoDBHost}:${envMongoDBPort}/${envMongoDBDbname}?authSource=admin`;
 
@@ -51,7 +52,7 @@ const MongoDB = async () => {
 
   try {
     mongoose.set("strictQuery", false);
-    mongoose.connect(uri)
+    mongoose.connect(uri);
     /* if (MODE === 'development') {
       mongoose.connect(uri)
     } else {
@@ -66,7 +67,7 @@ const MongoDB = async () => {
         secureContext: secureContext
       });
     } */
-    
+
     console.log(`✅ MongoDB connected`);
     // create default admin credentials if not exists
     const defaultUser = await User.findOne({ username: "gns3labadmin" });
@@ -86,10 +87,12 @@ const MongoDB = async () => {
 
       await User.create(defaultUserCredentials);
 
-      // initiate collections
+      // initiate all collections
       await Classroom.find({}).limit(1);
+      await Course.find({}).limit(1);
       await Projects.find({}).limit(1);
       await GridFileStorage.find({}).limit(1);
+
       console.log("Default admin credential created: ", {
         username: defaultUserCredentials.username,
         email: defaultUserCredentials.email,
@@ -102,9 +105,9 @@ const MongoDB = async () => {
     await Projects.syncIndexes();
     console.log("✅ MongoDB indexes synced");
 
-    /* const fileStream = fs.createReadStream('README.md');
+    /* const fileStream = fs.createReadStream('public/favicon.ico');
     const file = new GridFileStorage({
-      filename: 'myfile.txt',
+      filename: 'myfile.ico',
       contentType: 'text/plain',
       metadata: { owner: 'user123' }
     })

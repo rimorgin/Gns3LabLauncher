@@ -10,9 +10,8 @@ interface AppState {
   toggleSideBar: () => void;
   activeNavName: string;
   setActiveNavName: (navName: string) => void;
-  activeSession: boolean;
-  activateSession: () => void;
-  deactivateSession: () => void;
+  isQuickCreateDialogOpen: boolean;
+  toggleQuickCreateDialog: () => void;
 }
 
 export const useAppStateStore = create<AppState>()(
@@ -29,19 +28,17 @@ export const useAppStateStore = create<AppState>()(
         const { isSideBarToggled } = get();
         set({ isSideBarToggled: !isSideBarToggled });
       },
-
       // SIDEBAR ACTIVE NAV
       activeNavName: "Dashboard",
       setActiveNavName(navName) {
         set({ activeNavName: navName });
       },
-      activeSession: false,
-      activateSession: () => {
-        set({ activeSession: true });
-      },
-      deactivateSession() {
-        set({ activeSession: false });
-      },
+      // QUICK CREATE DIALOG TOGGLE
+      isQuickCreateDialogOpen: false,
+      toggleQuickCreateDialog: () => {
+        const { isQuickCreateDialogOpen } = get();
+        set({ isQuickCreateDialogOpen: !isQuickCreateDialogOpen });
+      }
     }),
     {
       name: "app-state-storage",

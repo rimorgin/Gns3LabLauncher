@@ -39,21 +39,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-  
+
   openvpn:
     image: rimorgin/openvpn
     container_name: openvpn
     restart: unless-stopped
     ports:
-      - "1194:1194/udp"
+      - "${OPENVPN_PORT}:${OPENVPN_PORT}/udp"
     cap_add:
       - NET_ADMIN
       - MKNOD
     environment:
-      - OPENVPN_SERVER_IP=10.15.20.32
-      - ENABLE_DNS=true
-      - STATIC_HOST_MAPPINGS=10.0.0.1 gns3lablauncher.mapua.netlab
-      - DOMAIN=mapua.netlab
+      - OPENVPN_SERVER_IP=${OPENVPN_SERVER_IP}
+      - ENABLE_DNS=${OPENVPN_ENABLE_DNS}
+      - STATIC_HOST_MAPPINGS=${OPENVPN_STATIC_HOST_MAPPINGS}
+      - DOMAIN=${OPENVPN_DOMAIN}
     volumes:
       - ./src/server/var/openvpn:/data
     networks:

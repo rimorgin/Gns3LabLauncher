@@ -2,11 +2,9 @@ import { Separator } from "@clnt/components/ui/separator";
 import { SidebarTrigger } from "@clnt/components/ui/sidebar";
 import ModeToggle from "./theme-toggle";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { IconCirclePlusFilled } from "@tabler/icons-react";
 import { Skeleton } from "@clnt/components/ui/skeleton";
-import { Button } from "./ui/button";
-import { ResponsiveDrawerDialog } from "./ui/responsive-dialog";
 import RBACWrapper from "./rbac-wrapper";
+import { QuickCreate } from "./quick-create";
 
 export function SiteHeader() {
   const { isAppLoading, activeNavName } = useAppStateStore();
@@ -29,22 +27,7 @@ export function SiteHeader() {
             requiredPermissions={["create_users", "create_classrooms"]}
             requiredRoles={["administrator", "instructor"]}
           >
-            {isAppLoading ? (
-              <Skeleton className="h-9 w-31" />
-            ) : (
-              <ResponsiveDrawerDialog
-                title="Quick Create"
-                description=""
-                button={
-                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground dark:text-white max-w-31 duration-50 ease-linear active:scale-95">
-                    <IconCirclePlusFilled />
-                    <span>Quick Create</span>
-                  </Button>
-                }
-              >
-                Quick Create
-              </ResponsiveDrawerDialog>
-            )}
+            {isAppLoading ? <Skeleton className="h-9 w-31" /> : <QuickCreate />}
             <Separator
               orientation="vertical"
               className="mx-2 data-[orientation=vertical]:h-4"

@@ -10,17 +10,17 @@ const upload = multer({
   fileFilter: (req, file, callback) => {
     // Add your file type validation here
     const allowedMimes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'application/pdf',
-      'text/plain',
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "application/pdf",
+      "text/plain",
     ];
-    
+
     if (allowedMimes.includes(file.mimetype)) {
       callback(null, true);
     } else {
-      callback(new Error('Invalid file type'));
+      callback(new Error("Invalid file type"));
     }
   },
 });

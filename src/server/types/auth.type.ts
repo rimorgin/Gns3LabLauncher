@@ -1,7 +1,11 @@
-// === Role Name Type ===
+/**
+ * Represents the possible role names in the application.
+ */
 export type RoleName = "administrator" | "instructor" | "student";
 
-// === Permission Type ===
+/**
+ * Represents the possible permissions that can be assigned to roles.
+ */
 export type Permission =
   | "read_dashboard"
   | "read_lectures"
@@ -10,7 +14,7 @@ export type Permission =
   | "delete_lectures"
   | "read_courses"
   | "create_courses"
-  | "update_cources"
+  | "update_courses"
   | "delete_courses"
   | "create_tasks"
   | "read_tasks"
@@ -53,13 +57,26 @@ export type Permission =
   | "read_security"
   | "update_security";
 
-// === Role Interface ===
+/**
+ * Represents a role with a name and a set of permissions.
+ */
 export interface Role {
+  /**
+   * The name of the role.
+   */
   name: RoleName;
+  /**
+   * The permissions assigned to the role.
+   */
   permissions: Permission[];
 }
 
-// === Roles Collection ===
+/**
+ * Represents a collection of roles.
+ */
 export interface RolesCollection {
+  /**
+   * An array of roles.
+   */
   roles: Role[];
 }
