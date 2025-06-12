@@ -2,6 +2,7 @@
   "verbose": true,
   "ignore": [
     "cert",
+    "docs",
     "node_modules",
     "public",
     "src/server/var",

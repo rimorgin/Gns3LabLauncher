@@ -24,21 +24,34 @@ export function NavSecondary({
     icon: Icon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { isAppLoading } = useAppStateStore();
+  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore();
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
+            const isActive = activeNavName === item.title;
             return isAppLoading ? (
               <SidebarMenuSkeleton key={item.title} showIcon />
             ) : (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  tooltip={item.title}
+                  className={
+                    isActive
+                      ? "bg-primary text-white hover:text-white hover:dark:bg-blue-900 hover:bg-primary/90"
+                      : ""
+                  }
+                >
+                  <button
+                    onClick={() =>
+                      isActive ? {} : setActiveNavName(item.title)
+                    }
+                  >
                     {item.icon && <SidebarIcon icon={item.icon} />}
                     <span>{item.title}</span>
-                  </a>
+                  </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );

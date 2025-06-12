@@ -42,7 +42,11 @@ export function NavSystem({
                       : ""
                   }
                 >
-                  <button onClick={() => setActiveNavName(item.title)}>
+                  <button
+                    onClick={() =>
+                      isActive ? {} : setActiveNavName(item.title)
+                    }
+                  >
                     {item.icon && <SidebarIcon icon={item.icon} />}
                     <span>{item.title}</span>
                   </button>

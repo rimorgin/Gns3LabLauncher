@@ -45,7 +45,6 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
-app.use(vpnOnlyMiddleware)
 
 // Initialize Data Storage
 Redis();
@@ -78,6 +77,7 @@ if (MODE === "production" || MODE === "staging") {
   // enable vpn when not in development
   console.log("🔗 Connecting to VPN...");
   vpnConnect();
+  app.use(vpnOnlyMiddleware)
 
   /*   ViteExpress.config({
     //@ts-expect-error type staging no allowed
