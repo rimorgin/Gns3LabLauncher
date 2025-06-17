@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios";
-import { ClassroomFormData } from "../validators/classroom-schema";
+import { ClassroomFormData } from "../validators/classroom-schema.ts";
 
 // GET /classrooms
 export const getClassroomsFull = async () => {

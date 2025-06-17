@@ -5,7 +5,7 @@ import {
   postSignup,
   postLoginLocal,
   checkSession,
-} from "@srvr/controllers/auth.controller.ts";
+} from "@srvr/features/auth/auth.controller.ts";
 
 const router = express.Router();
 

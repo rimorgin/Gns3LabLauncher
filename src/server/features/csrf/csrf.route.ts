@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getCsrf } from "@srvr/controllers/csrf.controller.ts";
+import { getCsrf } from "./csrf.controller.ts";
 
 const router = Router();
 
@@ -8,6 +8,7 @@ const router = Router();
  * @desc    Retrieves a CSRF token for secure client-side form or API submissions
  * @access  Public
  */
-router.get("/csrf-token", getCsrf);
+//@ts-expect-error error in usage but its correct usage and import
+router.get("/", getCsrf);
 
 export default router;

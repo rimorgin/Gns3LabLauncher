@@ -1,5 +1,5 @@
 import { ICourse } from "@srvr/types/models.type.ts";
-import prisma from "../prisma.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
 
 /**
  * Creates a new course with the provided course code and name.

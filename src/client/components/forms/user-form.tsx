@@ -19,7 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
-import { useClassroomsQuery } from "@clnt/lib/query/classroom-query";
+import { useClassroomsQuery } from "@clnt/lib/query/classrooms-query";
 import { MultiSelect } from "../ui/multi-select";
 import { useUserPost } from "@clnt/lib/query/user-query";
 import { toast } from "sonner";

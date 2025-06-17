@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import passport from "@srvr/configs/passport.config.ts";
 import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
-import { createUser } from "@srvr/utils/db/crud/user.crud.ts";
+import { createUser } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 
 /**

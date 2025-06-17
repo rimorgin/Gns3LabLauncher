@@ -1,7 +1,7 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { exec } from "child_process";
 import { IUserWithRoleInput } from "@srvr/types/models.type.ts";
-import { createUser } from "@srvr/utils/db/crud/user.crud.ts";
+import { createUser } from "@srvr/features/users/users.service.ts";
 
 const checkPostgresHealth = () =>
   new Promise<boolean>((resolve) => {
@@ -11,7 +11,7 @@ const checkPostgresHealth = () =>
         if (error || stderr) {
           return resolve(false);
         }
-        resolve(stdout.includes("1")); // simple sanity check
+        resolve(stdout.includes("1"));
       },
     );
   });
@@ -47,7 +47,7 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
     but it is needed for the first request to respond instantly and cannot wait 
     for a lazy connection to be established
   */
-  const connection = await prisma.$connect
+  const connection = prisma.$connect
 
   if (!connection) {
     console.error("❌ PostgreSQL is healthy but Prisma Client did not connect");

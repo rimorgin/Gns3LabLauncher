@@ -1,7 +1,7 @@
 import { IUserBaseInput, IUserBaseOutput, IUserWithRoleInput, IUserWithRoleOutput } from "@srvr/types/models.type.ts";
-import { capitalizedString, hashString } from "../helpers.ts";
+import { capitalizedString, hashString } from "../../utils/db/helpers.ts";
 import uuidv4 from "@srvr/utils/uuidv4.utils.ts";
-import prisma from "../prisma.ts";
+import prisma from "../../utils/db/prisma.ts";
 
 
 /**

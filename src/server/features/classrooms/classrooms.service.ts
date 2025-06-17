@@ -1,5 +1,5 @@
 import { IClassroom } from "@srvr/types/models.type.ts";
-import prisma from "../prisma.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
 
 /**
  * Creates a new classroom associated with a specific course.

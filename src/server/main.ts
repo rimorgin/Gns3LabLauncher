@@ -9,12 +9,9 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 
 import Redis from "@srvr/database/redis.database.ts";
-//import gridFileStorage from "@srvr/database/gridfs.database.ts";
+import Postgres from "@srvr/database/postgres.database.ts";
 
-import authRouter from "@srvr/routes/auth.route.ts";
-import csrfRouter from "@srvr/routes/csrf.route.ts";
-import indexRouter from "@srvr/routes/index.routes.ts";
-import webSocketListener from "@srvr/routes/websocket.route.ts";
+import registerFeatures, { registerWsFeature } from "@srvr/features/index.features.ts";
 
 import corsMiddleware from "@srvr/middlewares/cors.middleware.ts";
 import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
@@ -27,11 +24,14 @@ import {
 
 import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
 import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
-import vpnOnlyMiddleware from "./middlewares/vpn.middleware.ts";
-import Postgres from "./database/postgres.database.ts";
+import vpnOnlyMiddleware from "@srvr/middlewares/vpn.middleware.ts";
 
 const app = express();
 let server;
+
+// Initialize Data Storage
+await Redis();
+await Postgres();
 
 // Middleware stack
 app.use(corsMiddleware);
@@ -45,14 +45,8 @@ app.use(passport.session());
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
 
-// Initialize Data Storage
-Redis();
-Postgres();
-
 // Routes
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1", csrfRouter);
-app.use("/api/v1", indexRouter);
+await registerFeatures(app)
 
 // Catch-all for unmatched /api/v1 routes
 app.use("/api/v1", notFoundHandler);
@@ -93,7 +87,7 @@ server.listen(envServerPort, () => {
 });
 
 // initialize websocket connection handlers
-webSocketListener();
+registerWsFeature();
 
 console.log(process.env.POSTGRES_URL)
 

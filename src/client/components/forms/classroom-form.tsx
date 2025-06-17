@@ -24,8 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@clnt/components/ui/select";
-import { useCoursesQuery } from "@clnt/lib/query/course-query";
-import { useClassroomsPost } from "@clnt/lib/query/classroom-query";
+import { useCoursesQuery } from "@clnt/lib/query/courses-query";
+import { useClassroomsPost } from "@clnt/lib/query/classrooms-query";
 import { toast } from "sonner";
 import { useUserInstructorsQuery } from "@clnt/lib/query/user-query";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";

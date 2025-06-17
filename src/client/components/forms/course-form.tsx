@@ -14,7 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
-import { useCoursesPost } from "@clnt/lib/query/course-query";
+import { useCoursesPost } from "@clnt/lib/query/courses-query";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 

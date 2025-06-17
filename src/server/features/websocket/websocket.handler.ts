@@ -11,7 +11,7 @@
  * @module webSocketHandlers
  */
 
-import { onSocketConnection } from "@srvr/controllers/websocket.controller.ts";
+import { onSocketConnection } from "@srvr/features/websocket/websocket.controller.ts";
 import { io } from "@srvr/main.ts";
 import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
 import { wrapExpressMiddlewareForSocket } from "@srvr/utils/session-ws.utils.ts";

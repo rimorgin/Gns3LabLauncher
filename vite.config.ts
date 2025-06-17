@@ -10,7 +10,7 @@ const mode = process.env.NODE_ENV;
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
-  console.log(`[VITE] Running in mode: ${mode}`);
+  //console.log(`[VITE] Running in mode: ${mode}`);
   const outDir =
     mode === "staging"
       ? "src/client/dist/staging/"

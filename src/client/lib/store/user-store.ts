@@ -71,7 +71,7 @@ export const useUserStore = create<UserState>()(
       },
       fetchPermissions: async () => {
         try {
-          const res = await axios.get("/permissions");
+          const res = await axios.get("/users/permissions");
           const { permissions } = res.data;
           const currentUser = get().user;
           if (currentUser) {
