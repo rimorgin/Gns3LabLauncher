@@ -6,7 +6,7 @@ export const userFormSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["instructor", "student"]),
-  classes: z.array(z.string().optional()),
+  classroomIds: z.array(z.string().optional()),
 });
 
 export type UserFormData = z.infer<typeof userFormSchema>;

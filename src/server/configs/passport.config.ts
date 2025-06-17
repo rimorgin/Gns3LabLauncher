@@ -1,39 +1,33 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as MicrosoftStrategy } from "passport-microsoft";
-import User from "@srvr/models/user.model.ts";
 import bcrypt from "bcrypt";
 import { NextFunction } from "express";
 import { IUser } from "@clnt/lib/store/user-store.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
 
 passport.serializeUser((user, done) => {
-  //@ts-expect-error no user._id on interface IUser but it is present in the response
-  done(null, user._id);
+  //@ts-expect-error no user.id on interface IUserBase but it is present in the response
+  done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (id: string, done) => {
   try {
-    const user = await User.findById(id).select(
-      "username email role name classes is_online last_active_at",
+    const user = await prisma.user.safeFindUnique({
+        where: { id },
+      },
     );
+    //console.log("🚀 ~ passport.deserializeUser ~ user:", user)
+
     if (!user) return done(null, false);
-
-    const userIdentity = {
-      _id: user._id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      name: user.name,
-      classes: user?.classes,
-      is_online: user?.is_online,
-      last_active_at: user?.last_active_at,
-    };
-
-    done(null, userIdentity);
+    done(null, user);
   } catch (err) {
     done(err);
   }
 });
+
+
+
 
 passport.use(
   new LocalStrategy(
@@ -44,13 +38,14 @@ passport.use(
     async function verify(email, password, done) {
       //console.log("🚀 ~ verify ~ email, password:", email, password)
       try {
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({ where: { email: email } });
         if (!user)
           return done(null, false, { message: "Credentials not found" });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return done(null, false, { message: "Incorrect password." });
 
+        console.log(user)
         return done(null, user);
       } catch (err) {
         return done(err);

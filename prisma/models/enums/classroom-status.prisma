@@ -1,0 +1,6 @@
+enum ClassroomStatusEnum {
+  active
+  expired
+  archived
+  locked
+}

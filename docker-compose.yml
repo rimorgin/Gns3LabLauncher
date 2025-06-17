@@ -1,27 +1,5 @@
 name: Gns3LabLauncher
 services:
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    restart: unless-stopped
-    ports:
-      - "${MONGODB_PORT}:${MONGODB_PORT}"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
-    volumes:
-      - ./src/server/var/mongodb:/data/db
-    networks:
-      - gns3netlab-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'echo ''db.runCommand("ping").ok'' | mongosh "mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/" --quiet | grep -q 1 || exit 1',
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
   redis:
     image: redis:8.0-rc1
@@ -64,25 +42,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-  mongo-gui:
-    image: mongo-express
-    container_name: mongo-gui
-    ports:
-      - "${VITE_MONGOWEBGUI_PORT}:${VITE_MONGOWEBGUI_PORT}"
-    environment:
-      - ME_CONFIG_BASICAUTH_USERNAME=${VITE_MONGOWEBGUI_ADMIN_USERNAME}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${VITE_MONGOWEBGUI_ADMIN_PASSWORD}
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongodb:${MONGODB_PORT}
-      - ME_CONFIG_SITE_SSL_ENABLED=${ME_CONFIG_SITE_SSL_ENABLED}
-      - ME_CONFIG_SITE_SSL_CRT_PATH=/certs/mongo-gui.cert.pem
-      - ME_CONFIG_SITE_SSL_KEY_PATH=/certs/mongo-gui.key.pem
-    volumes:
-      - ./cert:/certs:ro
-    depends_on:
-      - mongodb
-    networks:
-      - gns3netlab-network
-    command: /bin/sh -c 'until nc -z mongodb 27017; do echo "Waiting for MongoDB..."; sleep 2; done; node app.js'
 
 networks:
   gns3netlab-network:

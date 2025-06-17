@@ -1,0 +1,10 @@
+model Instructor {
+  userId       String    @id
+  expertise    String[]
+  isOnline     Boolean   @default(false)
+  lastActiveAt DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  classrooms Classroom[] @relation("ClassroomInstructor")
+}
+ 

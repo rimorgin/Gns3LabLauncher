@@ -1,0 +1,11 @@
+model Project {
+  id              String      @id @default(uuid())
+  projectName     String      @unique
+  projectDescription  String?  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  visible         Boolean?    @default(true)
+  duration        DateTime?
+
+  classroom       Classroom[]  @relation("ClassroomProjects")
+}

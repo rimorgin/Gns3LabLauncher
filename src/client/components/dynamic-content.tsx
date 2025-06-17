@@ -300,7 +300,7 @@ export function DynamicContent() {
                 </tr>
               </tbody>
             </table> */}
-            <UserDataTable data={userQry}/>
+            {/* <UserDataTable data={userQry}/> */}
           </>
         );
       }
@@ -335,7 +335,7 @@ export function DynamicContent() {
     case "Data Library":
       return (
         <iframe
-          src={mongoGuiUrl}
+          src={"http://localhost:5555/"}
           style={{ width: "100%", height: "100%", border: "none" }}
           title="Data Library"
         />

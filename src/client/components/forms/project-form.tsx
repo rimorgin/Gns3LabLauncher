@@ -26,10 +26,10 @@ export function ProjectForm() {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      projectname: "",
-      description: "",
+      projectName: "",
+      projectDescription: "",
       visible: true,
-      classroom: [],
+      classroomIds: [],
     },
   });
 
@@ -60,12 +60,12 @@ export function ProjectForm() {
     classesQry?.map(
       (cls: {
         _id: string;
-        classname: string;
+        classroomName: string;
         status: string;
-        courseid?: { coursecode: string };
+        courseId?: { courseCode: string };
       }) => ({
         value: cls._id,
-        label: `${cls.courseid ? `${cls.courseid.coursecode}` : ""} ${cls.classname} (${cls.status})`,
+        label: `${cls.courseId ? `${cls.courseId.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
       }),
     ) ?? [];
 
@@ -74,7 +74,7 @@ export function ProjectForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="projectname"
+          name="projectName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project Name</FormLabel>
@@ -90,7 +90,7 @@ export function ProjectForm() {
         />
         <FormField
           control={form.control}
-          name="description"
+          name="projectDescription"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project Description</FormLabel>
@@ -122,7 +122,7 @@ export function ProjectForm() {
         />
         <FormField
           control={form.control}
-          name="classroom"
+          name="classroomIds"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -134,7 +134,7 @@ export function ProjectForm() {
                   options={classOptions}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
-                  placeholder="Select classes"
+                  placeholder="Select Classrooms"
                   className="w-full"
                 />
               </FormControl>

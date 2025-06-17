@@ -18,9 +18,6 @@ import {
 import {
   redisCache,
 } from "@srvr/middlewares/redis-cache.middleware.ts";
-import {
-  mongoWebGuiProxyInstance,
-} from "@srvr/middlewares/http-proxy.middleware.ts";
 
 const router: Router = Router();
 
@@ -143,12 +140,5 @@ router.post(
   checkPermission(["create_projects"]),
   postProjects
 );
-
-/**
- * @route   Proxy /proxy/mongo-gui
- * @desc    Reverse proxy to MongoDB Web GUI via HTTP proxy middleware.
- * @access  Authenticated users (controlled in proxy middleware)
- */
-router.use("/proxy/mongo-gui", mongoWebGuiProxyInstance);
 
 export default router;

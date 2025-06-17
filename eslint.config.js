@@ -30,6 +30,7 @@ export default defineConfig([
     rules: {
       "react/react-in-jsx-scope": "off",
       "@typescript-eslint/no-unused-imports": "error",
+      "@typescript-eslint/no-unused-vars": "error",
       "@typescript-eslint/no-explicit-any": "warn",
     },
   },

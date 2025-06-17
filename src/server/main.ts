@@ -9,7 +9,6 @@ import cookieParser from "cookie-parser";
 import passport from "passport";
 
 import Redis from "@srvr/database/redis.database.ts";
-import MongoDB from "@srvr/database/mongo.database.ts";
 //import gridFileStorage from "@srvr/database/gridfs.database.ts";
 
 import authRouter from "@srvr/routes/auth.route.ts";
@@ -28,8 +27,8 @@ import {
 
 import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
 import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
-import { mongoWebGuiProxyInstance } from "@srvr/middlewares/http-proxy.middleware.ts";
 import vpnOnlyMiddleware from "./middlewares/vpn.middleware.ts";
+import Postgres from "./database/postgres.database.ts";
 
 const app = express();
 let server;
@@ -48,14 +47,12 @@ app.use(csrfSynchronisedProtection);
 
 // Initialize Data Storage
 Redis();
-MongoDB();
+Postgres();
 
 // Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1", csrfRouter);
 app.use("/api/v1", indexRouter);
-
-app.use("/api/v1/proxy/mongo-gui", mongoWebGuiProxyInstance);
 
 // Catch-all for unmatched /api/v1 routes
 app.use("/api/v1", notFoundHandler);
@@ -97,6 +94,8 @@ server.listen(envServerPort, () => {
 
 // initialize websocket connection handlers
 webSocketListener();
+
+console.log(process.env.POSTGRES_URL)
 
 //@ts-expect-error staging mode is not allowed
 ViteExpress.config({ mode: MODE });

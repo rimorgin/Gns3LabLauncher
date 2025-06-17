@@ -1,0 +1,7 @@
+model Student {
+  userId       String      @id
+  isOnline     Boolean     @default(false)
+  lastActiveAt DateTime?
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classrooms   Classroom[] @relation("ClassroomStudents")
+}
