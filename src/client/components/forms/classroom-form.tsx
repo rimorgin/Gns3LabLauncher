@@ -35,10 +35,13 @@ export function ClassroomForm() {
   const form = useForm<ClassroomFormData>({
     resolver: zodResolver(classroomFormSchema),
     defaultValues: {
-      courseid: "",
-      classname: "",
-      instructor: "",
+      courseId: "",
+      classroomName: "",
+      instructorId: "",
       status: "active",
+      studentIds: [],
+      projectIds: [],
+
     },
   });
 
@@ -74,7 +77,7 @@ export function ClassroomForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="courseid"
+          name="courseId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Assign to Course</FormLabel>
@@ -90,11 +93,11 @@ export function ClassroomForm() {
                     {coursesQry.map(
                       (cls: {
                         _id: string;
-                        coursecode: string;
-                        coursename: string;
+                        courseCode: string;
+                        courseName: string;
                       }) => (
                         <SelectItem key={cls._id} value={cls._id}>
-                          {cls.coursecode}-{cls.coursename}
+                          {cls.courseCode}-{cls.courseName}
                         </SelectItem>
                       ),
                     )}
@@ -108,7 +111,7 @@ export function ClassroomForm() {
 
         <FormField
           control={form.control}
-          name="classname"
+          name="classroomName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Class Name</FormLabel>
@@ -125,7 +128,7 @@ export function ClassroomForm() {
 
         <FormField
           control={form.control}
-          name="instructor"
+          name="instructorId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -155,40 +158,6 @@ export function ClassroomForm() {
             </FormItem>
           )}
         />
-
-        {/* <FormField
-          control={form.control}
-          name="instructor"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assign to Course</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="e.g. IT186-8L" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Courses</SelectLabel>
-                    {userInstructorQry.map(
-                      (cls: {
-                        _id: string;
-                        coursecode: string;
-                        coursename: string;
-                      }) => (
-                        <SelectItem key={cls._id} value={cls._id}>
-                          {cls.coursecode}-{cls.coursename}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
 
         <FormField
           control={form.control}

@@ -35,18 +35,19 @@ export function UserForm() {
       username: "",
       password: "",
       role: "student",
-      classes: [],
+      classroomIds: [],
     },
   });
 
-  // Fetch classrooms with embedded course data                                                   EMBED DATA with boolean option TRUE
+  // Fetch classrooms with embedded course data
   const {
-    data: classesQry = [],
+    data: classroomQry = [],
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
+    // EMBED DATA with boolean option TRUE
   } = useClassroomsQuery(true);
   const { mutateAsync, status } = useUserPost();
-  console.log("🚀 ~ UserForm ~ classesQry:", classesQry);
+  console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
 
   const onSubmit = async (data: UserFormData) => {
     const email = data.email.toLowerCase();
@@ -65,15 +66,15 @@ export function UserForm() {
   if (isClassroomsLoading) return <div>Loading…</div>;
   if (errorOnClassrooms) return <div>Failed to load resources</div>;
 
-  const classOptions = classesQry?.map(
+  const classroomOptions = classroomQry?.map(
     (cls: {
       _id: string;
-      classname: string;
+      classroomName: string;
       status: string;
-      courseid?: { coursecode: string };
+      courseId?: { courseCode: string };
     }) => ({
       value: cls._id,
-      label: `${cls.courseid ? `${cls.courseid.coursecode}` : ""} ${cls.classname} (${cls.status})`,
+      label: `${cls.courseId ? `${cls.courseId.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
     }),
   );
 
@@ -194,7 +195,7 @@ export function UserForm() {
 
         <FormField
           control={form.control}
-          name="classes"
+          name="classroomIds"
           render={({ field }) => (
             <FormItem>
               <FormLabel>
@@ -203,10 +204,10 @@ export function UserForm() {
               </FormLabel>
               <FormControl>
                 <MultiSelect
-                  options={classOptions}
+                  options={classroomOptions}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
-                  placeholder="Select classes"
+                  placeholder="Select Classrooms"
                   className="w-full"
                 />
               </FormControl>

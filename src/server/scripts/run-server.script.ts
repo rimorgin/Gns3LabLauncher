@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 import fs from "fs";
 import path from "path";
@@ -76,6 +76,22 @@ async function startContainers(): Promise<void> {
 }
 
 /**
+ * Starts the prisma studio for data library
+ */
+let prismaStudioProcess: ReturnType<typeof spawn> | null = null;
+
+async function startPrismaStudio(): Promise<void> {
+  console.log("Starting Prisma Studio...");
+
+  prismaStudioProcess = spawn("yarn", ["prisma", "studio", "--browser", "none"], {
+    stdio: "inherit",
+    detached: true,
+  });
+
+  prismaStudioProcess.unref();
+}
+
+/**
  * Starts the Vite Express application, including certificate generation and Docker container management.
  */
 async function startViteExpress(): Promise<void> {
@@ -90,6 +106,7 @@ async function startViteExpress(): Promise<void> {
   }
 
   await startContainers();
+  await startPrismaStudio();
 
   const appProcess = exec(runScript);
 
@@ -103,7 +120,11 @@ async function startViteExpress(): Promise<void> {
 
   const shutdown = () => {
     console.log("\n🛑 Shutting down services gracefully...");
-    exec(`docker compose --env-file ${runEnvFile} down`, (err) => {
+    if (prismaStudioProcess && !prismaStudioProcess.killed) {
+      prismaStudioProcess.kill("SIGINT");
+      console.log("✅ Prisma Studio stopped.");
+    }
+    exec(`docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`, (err) => {
       if (err) {
         console.warn("⚠️ Error stopping containers:", err.message);
       } else {

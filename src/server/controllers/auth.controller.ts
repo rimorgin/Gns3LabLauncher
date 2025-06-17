@@ -1,9 +1,9 @@
-import { createUser } from "@srvr/utils/db-helpers.utils.ts";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import passport from "@srvr/configs/passport.config.ts";
-import { IUser } from "@srvr/types/models.type.ts";
-import User from "@srvr/models/user.model.ts";
+import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
+import { createUser } from "@srvr/utils/db/crud/user.crud.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
 
 /**
  * Fetches the currently authenticated user from the database using their session ID.
@@ -23,7 +23,9 @@ export const getUser = async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const user = await User.findById(userSessionId);
+  const user = await prisma.user.safeFindUnique({
+    where: { id: userSessionId }
+  });
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
@@ -49,7 +51,7 @@ export const postLoginLocal = (
   res: Response,
   next: NextFunction,
 ): void => {
-  passport.authenticate("local", async (err: any, user: IUser, info: any) => {
+  passport.authenticate("local", async (err: any, user: IUserBaseInput, info: any) => {
     if (err) return next(err);
     if (!user) {
       return res

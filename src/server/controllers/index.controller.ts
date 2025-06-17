@@ -8,15 +8,16 @@
  * @module permissions.controller
  */
 
+import { UserRolesEnum } from "@prisma/client";
 import roles from "@srvr/configs/roles.config.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
-import Classroom from "@srvr/models/classroom.model.ts";
-import Course from "@srvr/models/course.model.ts";
-import Projects from "@srvr/models/projects.model.ts";
-import User from "@srvr/models/user.model.ts";
-import { createClassroom, createCourse, createProject, createUser } from "@srvr/utils/db-helpers.utils.ts";
-import { getRolePermissions } from "@srvr/utils/user-helpers.utils.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
+import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import { Request, Response } from "express";
+import { createUser } from "@srvr/utils/db/crud/user.crud.ts";
+import { createCourse } from "@srvr/utils/db/crud/course.crud.ts";
+import { createClassroom } from "@srvr/utils/db/crud/classroom.crud.ts";
+import { createProject } from "@srvr/utils/db/crud/project.crud.ts";
 
 /**
  * Fetches the permissions associated with the currently authenticated user's role.
@@ -83,20 +84,38 @@ export const getIndex = (req: Request, res: Response): void => {
  *  - 500 Internal Server Error if database query fails
  */
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
-  const role = req.query.role as string;
-  console.log("🚀 ~ getUsers ~ role :", role )
-  const filter: Record<string, any> = {
-    role: role ? role : { $ne: "administrator" }, // always exclude admin
-  };
-  // If role is specified, override role filter to exact match
-  if (role) {
-    filter.role = role;
-  } else {
-    filter.role = { $ne: "administrator" };
+  try {
+    const { role, only_ids, partial } = req.query;
+
+    let select = undefined;
+
+    const whereCondition = role
+      ? { role: role as UserRolesEnum }
+      : { role: { not: UserRolesEnum.administrator } };
+
+    if (only_ids) {
+      select = { id: true };
+    } else if (partial) {
+      select = {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+      };
+    }
+
+    const users = await prisma.user.safeFindMany({
+      where: whereCondition,
+      ...(select && { select }),
+    });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-  const users = await User.find(filter).exec();
-  res.status(200).json(users);
 };
+
 
 /**
  * Handles user creation via POST request.
@@ -115,19 +134,24 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
  *  - 500 Internal Server Error if an exception occurs during creation
  */
 export const postUsers = async (req: Request, res: Response): Promise<void> => {
-  console.log("🚀 ~ postUsers ~ req.body:", req.body)
-  const { username, email } = req.body
-  const isUserExists = await User.findOne({
-    $or: [{ username }, { email }]
-  }).exec();
+  const { username, email } = req.body;
 
-  if (isUserExists) {
-    res.status(409).json({ message: "User already exists." });
-    return
+  const [emailExists, usernameExists] = await prisma.$transaction([
+    prisma.user.findUnique({ where: { email } }),
+    prisma.user.findUnique({ where: { username } }),
+  ]);
+
+  if (emailExists || usernameExists) {
+    const msg = [
+      emailExists ? `Email ${email}` : null,
+      usernameExists ? `Username ${username}` : null,
+    ].filter(Boolean).join(" and ");
+    res.status(409).json({ message: `${msg} already exists.` });
+    return;
   }
 
-  const newUser = await createUser(req.body)
-  res.status(200).json({message: "User Created", newData: newUser})
+  const newUser = await createUser(req.body);
+  res.status(201).json({ message: "User Created", newData: newUser });
 };
 
 /**
@@ -149,11 +173,15 @@ export const getCourses = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const requiresEmbeddedData = req.query.embed_data;
-  console.log("boolean embed", requiresEmbeddedData);
+  const { only_ids } = req.query;
 
-  const courses = await Course.find().exec();
-  //console.log("🚀 ~ getCourses ~ courses:", courses)
+  const courses = only_ids 
+    ? await prisma.course.findMany({
+        select: { id: true }
+      })
+    : await prisma.course.findMany();
+  
+
   res.status(200).json(courses);
 };
 
@@ -178,9 +206,9 @@ export const postCourses = async (
   res: Response,
 ): Promise<void> => {
   console.log("posting course for user: ", req.user?.username);
-  const { coursecode } = req.body;
+  const { courseCode } = req.body;
 
-  const isCourseExists = await Course.findOne({coursecode})
+  const isCourseExists = await prisma.course.findUnique({ where: { courseCode }})
   if (isCourseExists) {
     res.status(409).json({ message: "Course already exists." });
     return
@@ -216,11 +244,31 @@ export const getClassrooms = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const requiresEmbeddedData = req.query.embed_data;
+  const {embed_data: requiresEmbeddedData, course, students, instructor, projects, only_ids, partial } = req.query;
 
   const classrooms = requiresEmbeddedData
-    ? await Classroom.find().populate("courseid").exec()
-    : await Classroom.find().exec();
+    ? await prisma.classroom.findMany({
+        include: {
+          course: course ? true : false,
+          students: students ? true : false,
+          instructor: instructor ? true : false,
+          projects: projects ? true : false
+        }
+      })
+    : only_ids 
+    ? await prisma.classroom.findMany({
+        select: {
+          id: true
+        }
+      }) 
+    : partial 
+    ? await prisma.classroom.findMany({
+        select: {
+          id: true,
+          classroomName: true,
+        }
+      }) 
+    : await prisma.course.findMany();
 
   //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
   res.status(200).json(classrooms);
@@ -248,12 +296,16 @@ export const postClassroom = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { courseid, classname } = req.body;
+  const { courseId, classroomName } = req.body;
 
-  const isClassroomExists = await Classroom.findOne({
-    courseid,
-    classname,
-  }).exec();
+  const isClassroomExists = await prisma.classroom.findUnique({
+    where: {
+      uniqueClassroomPerCourse: {
+        classroomName: classroomName,
+        courseId: courseId
+      }
+    }
+  })
   if (isClassroomExists) {
     res.status(409).json({ message: "Classroom already exists." });
     return;
@@ -287,10 +339,27 @@ export const postClassroom = async (
  *  - 500 Internal Server Error if fetching fails
  */
 export const getProjects = async (req: Request, res: Response): Promise<void> => {
-  const requiresEmbeddedData = req.query.embed_data;
+  const { embed_data: requiresEmbeddedData, only_ids, partial } = req.query;
   const projects = requiresEmbeddedData
-    ? await Classroom.find().populate("classroom").exec()
-    : await Classroom.find().exec();
+    ? await prisma.project.findMany({
+        include: {
+          classroom: true
+        },
+    })
+    : only_ids 
+    ? await prisma.project.findMany({
+        select: {
+          id: true
+        }
+      })
+    : partial 
+    ? await prisma.project.findMany({
+        select: {
+          id: true,
+          projectName: true,
+        }
+      }) 
+    : await prisma.project.findMany();
   
   res.status(200).json(projects)
 }
@@ -309,8 +378,9 @@ export const getProjects = async (req: Request, res: Response): Promise<void> =>
  *  - 500 Internal Server Error if an exception occurs
  */
 export const postProjects = async (req: Request, res: Response): Promise<void> => {
-  const { projectname } = req.body;
-  const projectExists = await Projects.findOne({projectname}).exec();
+  const { projectName } = req.body;
+  const projectExists = await prisma.project.findUnique({ where: { projectName } });
+  console.log("🚀 ~ postProjects ~ projectName :", projectName )
 
   if (projectExists) {
     res.status(409).json({ message: "Project already exists." });

@@ -1,7 +1,7 @@
 import { NextFunction, Response, Request } from "express";
 import roles from "@srvr/configs/roles.config.ts";
 import { Permission } from "@srvr/types/auth.type.ts";
-import { getRolePermissions } from "@srvr/utils/user-helpers.utils.ts";
+import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import { redisClient, redisStore } from "@srvr/database/redis.database.ts";
 
 export const checkAuthentication = (

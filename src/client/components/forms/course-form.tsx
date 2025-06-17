@@ -23,8 +23,8 @@ export function CourseForm() {
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
-      coursecode: "",
-      coursename: "",
+      courseCode: "",
+      courseName: "",
     },
   });
 
@@ -51,7 +51,7 @@ export function CourseForm() {
       >
         <FormField
           control={form.control}
-          name="coursecode"
+          name="courseCode"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Course Code</FormLabel>
@@ -64,7 +64,7 @@ export function CourseForm() {
         />
         <FormField
           control={form.control}
-          name="coursename"
+          name="courseName"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Course Name</FormLabel>

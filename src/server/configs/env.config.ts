@@ -45,14 +45,10 @@ export const envRedisHost = process.env.REDIS_HOST;
 export const envRedisPort = process.env.REDIS_PORT;
 export const envRedisPassword = process.env.REDIS_PASSWORD;
 
-export const envMongoDBUsername = process.env.MONGO_INITDB_ROOT_USERNAME;
-export const envMongoDBPassword = process.env.MONGO_INITDB_ROOT_PASSWORD;
-export const envMongoDBHost = process.env.MONGODB_HOST;
-export const envMongoDBPort = process.env.MONGODB_PORT;
-export const envMongoDBDbname = process.env.MONGODB_DBNAME;
-
-export const envMongoWebGuiUsername =
-  process.env.VITE_MONGOWEBGUI_ADMIN_USERNAME;
-export const envMongoWebGuiPassword =
-  process.env.VITE_MONGOWEBGUI_ADMIN_PASSWORD;
-export const envMongoWebGuiPort = process.env.VITE_MONGOWEBGUI_PORT;
+export const envPostgresHost = process.env.POSTGRES_HOST;
+export const envPostgresPort = process.env.POSTGRES_PORT;
+export const envPostgresUsername = process.env.POSTGRES_USER;
+export const envPostgresPassword = process.env.POSTGRES_PASSWORD;
+export const envPostgresDb = process.env.POSTGRES_DB;
+export const envPostgresSchema = process.env.POSTGRES_SCHEMA || "public";
+export const envPostgresUrl =  `postgresql://${envPostgresUsername}:${envPostgresPassword}@${envPostgresHost}:${envPostgresPort}/${envPostgresDb}?schema=${envPostgresSchema}`;
