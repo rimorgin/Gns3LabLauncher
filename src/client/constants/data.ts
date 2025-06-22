@@ -13,7 +13,8 @@ import {
   IconHeartCog,
   IconCheckupList,
   IconCalendarWeekFilled,
-  IconHeartCode,
+  IconChalkboardTeacher,
+  IconMessage2Code,
 } from "@tabler/icons-react";
 
 export const data = {
@@ -28,6 +29,10 @@ export const data = {
         icon: IconUsers,
       },
       {
+        title: "Course",
+        icon: IconChalkboardTeacher
+      },
+      {
         title: "Classroom",
         icon: IconUserScreen,
       },
@@ -36,24 +41,7 @@ export const data = {
         icon: IconFolder,
       },
     ],
-    secondary: [
-      {
-        title: "Settings",
-        url: "#",
-        icon: IconSettings,
-      },
-      {
-        title: "Get Help",
-        url: "#",
-        icon: IconHelp,
-      },
-      {
-        title: "Search",
-        url: "#",
-        icon: IconSearch,
-      },
-    ],
-    documents: [
+  /*   documents: [
       {
         name: "Data Library",
         url: "#",
@@ -69,7 +57,7 @@ export const data = {
         url: "#",
         icon: IconFileWord,
       },
-    ],
+    ], */
     reports: [
       {
         title: "Completions",
@@ -91,10 +79,28 @@ export const data = {
       },
       {
         title: "System Logs",
-        icon: IconHeartCode,
+        icon: IconMessage2Code,
+      },
+    ],
+    secondary: [
+      {
+        title: "Settings",
+        url: "#",
+        icon: IconSettings,
+      },
+      {
+        title: "Get Help",
+        url: "#",
+        icon: IconHelp,
+      },
+      {
+        title: "Search",
+        url: "#",
+        icon: IconSearch,
       },
     ],
   },
+
   table: [
     {
       id: 1,

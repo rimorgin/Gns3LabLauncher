@@ -1,6 +1,6 @@
 import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
-import { getClassrooms, postClassroom } from "./classrooms.controller.ts";
+import { deleteClassroom, getClassroomById, getClassrooms, patchClassroom, postClassroom } from "./classrooms.controller.ts";
 
 const router = Router()
 
@@ -17,6 +17,18 @@ router.get(
 );
 
 /**
+ * @route   GET /classroomById
+ * @desc    Fetch a classroom by id,
+ * @access  Authenticated users with 'read_classrooms' permission
+ */
+router.get(
+  "/",
+  checkAuthentication,
+  checkPermission(["read_classrooms"]),
+  getClassroomById
+);
+
+/**
  * @route   POST /classrooms
  * @desc    Create a new classroom.
  * @access  Authenticated users with 'create_classrooms' permission
@@ -27,5 +39,29 @@ router.post(
   checkPermission(["create_classrooms"]),
   postClassroom
 )
+
+/**
+ * @route   PATCH /classrooms/:id
+ * @desc    Updates classroom.
+ * @access  Authenticated users with 'update_classrooms' permission
+ */
+router.patch(
+  '/:id', 
+  checkAuthentication,
+  checkPermission(["update_classrooms"]), 
+  patchClassroom
+);
+
+/**
+ * @route   DELETE /classrooms/:id
+ * @desc    Deletes classroom.
+ * @access  Authenticated users with 'deletes_classrooms' permission
+ */
+router.delete('/:id', 
+  checkAuthentication,
+  checkPermission(["delete_classrooms"]), 
+  deleteClassroom
+);
+
 
 export default router;

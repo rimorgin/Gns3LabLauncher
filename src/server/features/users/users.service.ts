@@ -87,7 +87,7 @@ export const createUser = async (props: IUserWithRoleInput): Promise<IUserWithRo
  * @param {Partial<IUserBaseInput>} updates - The updates to apply to the user.
  * @returns {Promise<Partial<IUserBaseOutput> | null>} A promise that resolves to the updated user instance, or null if not found, and returns username as a result.
  */
-export const updateUser = async (
+export const updateUserById = async (
   id: string,
   updates: Partial<IUserBaseInput>
 ): Promise<Partial<IUserBaseOutput> | null> => {
@@ -110,7 +110,7 @@ export const updateUser = async (
  * @param {string} id - The ID of the user to delete.
  * @returns {Promise<Partial<IUserBaseOutput> | null>} A promise that resolves to the deleted user instance, or null if not found, and returns a username as a  result.
  */
-export const deleteUser = async (id: string): Promise<Partial<IUserBaseOutput> | null> => {
+export const deleteUserById = async (id: string): Promise<Partial<IUserBaseOutput> | null> => {
   const deletedUser = await prisma.user.delete({
     where: { id },
     select: {

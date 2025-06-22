@@ -1,15 +1,16 @@
-const projects = [
+import { IProject } from "@srvr/types/models.type.ts";
+
+// Ensure IProject includes 'id' property in its definition:
+// interface IProject { id: number; projectName: string; projectDescription: string; status: string; }
+
+const projects: IProject[] = [
   {
-    id: 1,
-    name: "BGP Lab",
-    description: "Simulating BGP between ISPs",
-    status: "In Progress",
+    projectName: "BGP Lab",
+    projectDescription: "Simulating BGP between ISPs",
   },
   {
-    id: 2,
-    name: "Firewall Config",
-    description: "pfSense with VLANs",
-    status: "Not Started",
+    projectName: "Firewall Config",
+    projectDescription: "pfSense with VLANs",
   },
 ];
 

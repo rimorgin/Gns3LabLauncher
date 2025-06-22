@@ -29,6 +29,7 @@ import {
   IconLayoutSidebarLeftExpand,
 } from "@tabler/icons-react";
 import { useKeyDown } from "@clnt/hooks/use-key-down";
+import { data } from "@clnt/constants/data";
 
 //const SIDEBAR_COOKIE_NAME = "sidebar_state"
 //const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -730,6 +731,62 @@ function SidebarMenuSubButton({
   );
 }
 
+function SidebarMenuLoadingContent() {
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5 text-center"
+            >
+              <a href="#">
+                <span className="text-2xl font-semibold text-center">
+                  Gns3Lab
+                  <span className="text-transparent bg-clip-text bg-gradient-to-tr from-(--primary) to-(--success)">
+                    Launcher
+                  </span>
+                </span>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+
+      <SidebarContent>
+        {Object.entries(data.nav).map(([groupKey, groupItems], groupIndex) => (
+          <SidebarGroup
+            key={groupKey}
+            className={`${groupKey === "secondary" && "mt-auto"}`}
+          >
+            <SidebarGroupLabel className="capitalize">
+              {groupKey !== 'secondary' && groupKey}
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="flex flex-col gap-2">
+              <SidebarMenu>
+                {(groupItems as any[]).map((_, key) => (
+                  <SidebarMenuSkeleton key={key} showIcon />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+
+      <SidebarFooter>
+        <div className="w-full flex flex-row items-center gap-3 px-4 py-2">
+          <Skeleton className="h-8 w-8 rounded-sm" />
+          <div className="flex-1 space-y-1">
+            <Skeleton className="h-4 w-1/3 rounded-lg" />
+            <Skeleton className="h-4 w-2/3 rounded-lg" />
+          </div>
+        </div>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
 export {
   Sidebar,
   SidebarContent,
@@ -756,4 +813,5 @@ export {
   SidebarIcon,
   SidebarTrigger,
   useSidebar,
+  SidebarMenuLoadingContent,
 };

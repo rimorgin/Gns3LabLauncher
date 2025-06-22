@@ -1,14 +1,13 @@
 model User {
-  id        String   @id @default(uuid())
-  name      String?  @default("Gns3 Labber")
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      UserRolesEnum     @default(student)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  student       Student?
-  instructor    Instructor?
+  id            String         @id @default(uuid())
+  name          String?        @default("Gns3 Labber")
+  username      String         @unique
+  email         String         @unique
+  password      String
+  role          UserRolesEnum  @default(student)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   administrator Administrator?
+  instructor    Instructor?
+  student       Student?
 }

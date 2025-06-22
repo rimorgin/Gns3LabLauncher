@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { ICourse } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 
@@ -18,7 +19,10 @@ export const createCourse = async (props: ICourse): Promise<ICourse> => {
   const course = await prisma.course.create({
     data: {
       courseCode: props.courseCode,
-      courseName: props.courseName
+      courseName: props.courseName,
+      classrooms: {
+        connect: (props.classroomIds ?? []).map((id) => ({ id }))
+      }
     }
   });
   return course;
@@ -31,7 +35,7 @@ export const createCourse = async (props: ICourse): Promise<ICourse> => {
  * @param {Partial<ICourse>} updates - The updates to apply to the course.
  * @returns {Promise<Partial<ICourse> | null>} A promise that resolves to the updated course instance, or null if not found, and return courseCode as a result
  */
-export const updateCourse = async (
+export const updateCourseById = async (
   id: string,
   updates: Partial<ICourse>
 ): Promise<Partial<ICourse> | null> => {
@@ -47,10 +51,10 @@ export const updateCourse = async (
 /**
  * Deletes a course by its ID.
  *
- * @param {string} id - The ID of the course to delete.
+ * @param {/string} id - The ID of the course to delete.
  * @returns {Promise<Partial<ICourse> | null>} A promise that resolves to the deleted course instance, or null if not found, and return courseCode as a result
  */
-export const deleteCourse = async (id: string): Promise<Partial<ICourse> | null> => {
+export const deleteCourseById = async (id: string): Promise<Partial<ICourse> | null> => {
   const deletedCourse = await prisma.course.delete({
     where: { id },
     select: {

@@ -1,8 +1,7 @@
-// vpn.middleware
 import { Request, Response, NextFunction } from "express";
-import ip from "ip";
+import ipaddr from "ipaddr.js";
 
-const ALLOWED_SUBNET = "10.0.0.0/23";
+const ALLOWED_SUBNET = "10.0.0.0/23"; // Change as needed
 
 export default function vpnOnlyMiddleware(
   req: Request,
@@ -18,20 +17,38 @@ export default function vpnOnlyMiddleware(
   // Remove IPv6 prefix if present (e.g., "::ffff:10.0.0.25")
   const clientIp = rawIp.replace(/^::ffff:/, "");
 
-  if (!ip.isPrivate(clientIp)) {
+  let parsedIp: ipaddr.IPv4 | ipaddr.IPv6;
+
+  try {
+    parsedIp = ipaddr.parse(clientIp);
+  } catch (err) {
+    res.status(400).json({
+      error: "Invalid IP",
+      message: `The provided IP address "${clientIp}" is not valid.`,
+    });
+    return
+  }
+
+  // Reject public IPs
+  if (parsedIp.kind() !== "ipv4" || parsedIp.range() !== "private") {
     res.status(403).json({
       error: "Access Denied",
       message: "Your IP address is not on the internal network.",
     });
-    return;
+    return
   }
 
-  if (!ip.cidrSubnet(ALLOWED_SUBNET).contains(clientIp)) {
-    res.status(403).send({
+  // Check if IP is within allowed subnet
+  const [subnetIpStr, subnetMask] = ALLOWED_SUBNET.split("/");
+  const subnetIp = ipaddr.parse(subnetIpStr);
+  const maskLength = parseInt(subnetMask, 10);
+
+  if (!(parsedIp instanceof ipaddr.IPv4) || !subnetIp.match(parsedIp, maskLength)) {
+    res.status(403).json({
       error: "Access Denied",
-      message: `IP ${clientIp} is not within the allowed subnet: ${ALLOWED_SUBNET}`,
+      message: `IP ${clientIp} is not within the allowed subnet`,
     });
-    return;
+    return
   }
 
   next();

@@ -1,20 +1,8 @@
 import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
-import { redisCache } from "@srvr/middlewares/redis-cache.middleware.ts";
 import { Router } from "express";
-import { getUserPermissions, getUsers, postUsers } from "./users.controller.ts";
+import { deleteUser, getUsers, patchUser, postUsers } from "./users.controller.ts";
 
 const router = Router()
-/**
- * @route   GET /permissions
- * @desc    Get current authenticated user's permissions based on their role.
- * @access  Authenticated users
- */
-router.get(
-  "/permissions",
-  checkAuthentication,
-  redisCache({ withUserId: true }),
-  getUserPermissions
-);
 
 /**
  * @route   GET /users
@@ -38,6 +26,30 @@ router.post(
   checkAuthentication,
   checkPermission(["create_users"]),
   postUsers
+);
+
+/**
+ * @route   PATCH /users/:id
+ * @desc    Update a resource in user.
+ * @access  Authenticated users with 'update_users' permission
+ */
+router.patch(
+  "/:id",
+  checkAuthentication,
+  checkPermission(["update_users"]),
+  patchUser
+);
+
+/**
+ * @route   DELETE /users/:id
+ * @desc    Delete a resource in user.
+ * @access  Authenticated users with 'delete_users' permission
+ */
+router.delete(
+  "/:id",
+  checkAuthentication,
+  checkPermission(["delete_users"]),
+  deleteUser
 );
 
 export default router;

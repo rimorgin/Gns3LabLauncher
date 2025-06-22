@@ -1,17 +1,15 @@
 model Classroom {
-  id            String   @id @default(uuid())
-  classroomName String   
-  status        ClassroomStatusEnum   @default(active)
-  courseId      String
+  id            String              @id @default(uuid())
+  classroomName String
+  status        ClassroomStatusEnum @default(active)
+  courseId      String?
   instructorId  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Relations
-  course     Course      @relation("ClassroomCourse", fields: [courseId], references: [id])
-  projects   Project[]   @relation("ClassroomProjects")
-  instructor Instructor? @relation("ClassroomInstructor", fields: [instructorId], references: [userId])
-  students   Student[]   @relation("ClassroomStudents")
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  course        Course?             @relation("ClassroomCourse", fields: [courseId], references: [id])
+  instructor    Instructor?         @relation("ClassroomInstructor", fields: [instructorId], references: [userId])
+  projects      Project[]           @relation("ClassroomProjects")
+  students      Student[]           @relation("ClassroomStudents")
 
   @@unique([classroomName, courseId], name: "uniqueClassroomPerCourse")
 }

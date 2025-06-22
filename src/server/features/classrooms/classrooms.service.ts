@@ -44,7 +44,7 @@ export const createClassroom = async (
  * @param {Partial<IClassroom>} updates - The updates to apply to the classroom.
  * @returns {Promise<Partial<IClassroom> | null>} A promise that resolves to the updated classroom instance, or null if not found, and then return classroomName.
  */
-export const updateClassroom = async (
+export const updateClassroomById = async (
   id: string,
   updates: Partial<IClassroom>
 ): Promise<Partial<IClassroom> | null> => {
@@ -63,7 +63,7 @@ export const updateClassroom = async (
  * @param {string} id - The ID of the classroom to delete.
  * @returns {Promise<Partial<IClassroom> | null>} A promise that resolves to the deleted classroom instance, or null if not found, and then return classroomName.
  */
-export const deleteClassroom = async (
+export const deleteClassroomById = async (
   id: string
 ): Promise<Partial<IClassroom> | null> => {
   const deletedClassroom = await prisma.classroom.delete({

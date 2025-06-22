@@ -14,9 +14,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
-import { useCoursesPost } from "@clnt/lib/query/courses-query";
+import { useCoursesPost } from "@clnt/lib/mutations/courses-mutation";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
+import { Skeleton } from "../ui/skeleton";
+import { MultiSelect } from "../ui/multi-select";
 
 export function CourseForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -25,8 +28,16 @@ export function CourseForm() {
     defaultValues: {
       courseCode: "",
       courseName: "",
+      classroomIds: []
     },
   });
+
+    const {
+      data: classroomQry = [],
+      isLoading: isClassroomsLoading,
+      error: errorOnClassrooms,
+      // EMBED DATA with boolean option TRUE
+    } = useClassroomsQuery({includes: ["courseId"]});
 
   const { mutateAsync, status } = useCoursesPost();
 
@@ -41,6 +52,30 @@ export function CourseForm() {
       error: (error) => error.response.data.message,
     });
   };
+
+  if (isClassroomsLoading) 
+      return (
+        <>
+          <Skeleton className="w-18 h-4" />
+          <Skeleton className="w-full h-8" />
+          <Skeleton className="w-18 h-4" />
+          <Skeleton className="w-full h-8" />
+        </>
+      );
+    if (errorOnClassrooms) return <div>Failed to load resources</div>;
+
+    const classroomOptions = classroomQry
+      ?.filter((cls: { courseId?: string }) => !cls.courseId)
+      .map(
+        (cls: {
+          id: string;
+          classroomName: string;
+          status: string;
+        }) => ({
+          value: cls.id,
+          label: `${cls.classroomName} (${cls.status})`,
+        }),
+      );
 
   return (
     <Form {...form}>
@@ -72,6 +107,29 @@ export function CourseForm() {
                 <Input
                   placeholder="e.g. Advance Computer Networking 1"
                   {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="classroomIds"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Select Classes{" "}
+                <span className="text-muted-foreground">{"(optional)"}</span>
+              </FormLabel>
+              <FormControl>
+                <MultiSelect
+                  options={classroomOptions}
+                  value={(field.value ?? []).filter(Boolean) as string[]}
+                  onValueChange={field.onChange}
+                  placeholder="Select Classrooms"
+                  className="w-full"
                 />
               </FormControl>
               <FormMessage />

@@ -1,54 +1,24 @@
 import { useEffect } from "react";
 import {
-  Routes,
-  Route,
-  Navigate,
-  useNavigate,
-  useLocation,
+  RouterProvider,
 } from "react-router";
-import HomePage from "@clnt/pages/main/home";
-import LoginPage from "@clnt/pages/auth/login";
-import { useUserStore } from "@clnt/lib/store/user-store";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import socket from "@clnt/lib/socket";
 import { useModal } from "@clnt/hooks/use-modal";
-import { SessionExpiredAlert } from "@clnt/components/session-expired-alert";
+import { SessionKickedAlert } from "@clnt/components/common/session-kicked-alert";
+import router from "@clnt/pages/route-layout";
+import { useLogout, useUser } from "./lib/auth";
 
 function App() {
-  const { user, fetchPermissions } = useUserStore();
+  const user = useUser();
+  const logoutUser = useLogout()
   const { setIsAppLoading } = useAppStateStore();
-  const { isOpen, openModal, closeModal } = useModal();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { isOpen: isModalOpen, openModal, closeModal } = useModal();
 
   console.log("running in ", import.meta.env.MODE);
 
   useEffect(() => {
-    const delay = () => new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const permissions = async () => {
-      await fetchPermissions();
-      await delay();
-      setIsAppLoading(false);
-    };
-
-    if (user && !user?.permissions) {
-      setIsAppLoading(true);
-      permissions();
-    }
-  }, [user]);
-
-  // Redirect logic based on auth state
-  useEffect(() => {
-    if (!user && location.pathname !== "/signin") {
-      navigate("/signin");
-    } else if (user && location.pathname === "/signin") {
-      navigate("/");
-    }
-  }, [user, location.pathname]);
-
-  useEffect(() => {
-    if (!user?._id) return;
+    if (!user.data?.id) return;
 
     // Connect on mount
     socket.connect();
@@ -61,6 +31,11 @@ function App() {
       console.log("🔴 Disconnected from server");
     };
 
+    const onSessionExpired = async () => {
+      await logoutUser.mutateAsync({});
+      console.log("🔴 Session expired");
+    }
+
     const onSessionKicked = () => {
       openModal();
       console.log("🔴 Kicked from server");
@@ -68,6 +43,7 @@ function App() {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
+    socket.on("session-expired", onSessionExpired)
     socket.on("session-kicked", onSessionKicked);
 
     return () => {
@@ -75,23 +51,14 @@ function App() {
       socket.off("disconnect", onDisconnect);
       socket.disconnect();
     };
-  }, [user?._id]);
+  }, [user.data?.id]);
 
-  return (
-    <>
-      <SessionExpiredAlert isOpen={isOpen} onOpenChange={closeModal} />
-      <Routes>
-        <Route
-          path="/signin"
-          element={!user ? <LoginPage /> : <Navigate to="/" />}
-        />
-        <Route
-          path="/"
-          element={user ? <HomePage /> : <Navigate to="/signin" />}
-        />
-      </Routes>
-    </>
+  return isModalOpen ? (
+    <SessionKickedAlert isOpen={isModalOpen} onOpenChange={closeModal} />
+  ) : (
+    <RouterProvider router={router} />
   );
+  
 }
 
 export default App;

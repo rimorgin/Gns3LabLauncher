@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userFormSchema, UserFormData } from "@clnt/lib/validators/user-schema";
-import { Input } from "@clnt/components/ui/input";
+import { Input, StringArrayInput } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
 import {
   Select,
@@ -19,11 +19,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
-import { useClassroomsQuery } from "@clnt/lib/query/classrooms-query";
+import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
 import { MultiSelect } from "../ui/multi-select";
-import { useUserPost } from "@clnt/lib/query/user-query";
+import { useUserPost } from "@clnt/lib/mutations/user-mutation";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { Skeleton } from "../ui/skeleton";
 
 export function UserForm() {
    const { toggleQuickCreateDialog } = useAppStateStore();
@@ -35,7 +36,13 @@ export function UserForm() {
       username: "",
       password: "",
       role: "student",
-      classroomIds: [],
+      instructor: {
+        expertise: [], // for instructor role only
+        classroomIds: [], // optional
+      },
+      student: {
+        classroomIds: [], // optional
+      },
     },
   });
 
@@ -45,7 +52,7 @@ export function UserForm() {
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
     // EMBED DATA with boolean option TRUE
-  } = useClassroomsQuery(true);
+  } = useClassroomsQuery({includes: ["course"]});
   const { mutateAsync, status } = useUserPost();
   console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
 
@@ -61,20 +68,35 @@ export function UserForm() {
       },
       error: (error) => error.response.data.message,
     });
+    console.log("🚀 ~ onSubmit ~ newData:", newData)
   };
 
-  if (isClassroomsLoading) return <div>Loading…</div>;
+  if (isClassroomsLoading) 
+    return (
+      <>
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+      </>
+    );
   if (errorOnClassrooms) return <div>Failed to load resources</div>;
 
   const classroomOptions = classroomQry?.map(
     (cls: {
-      _id: string;
+      id: string;
       classroomName: string;
       status: string;
-      courseId?: { courseCode: string };
+      course?: { id: string; courseCode: string };
     }) => ({
-      value: cls._id,
-      label: `${cls.courseId ? `${cls.courseId.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
+      value: cls.id,
+      label: `${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
     }),
   );
 
@@ -158,48 +180,35 @@ export function UserForm() {
             </FormItem>
           )}
         />
-
-        {/* <FormField
-          control={form.control}
-          name="classes"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assign to Course</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+        {form.watch("role") === "instructor" && (
+          <FormField
+            control={form.control}
+            name="instructor.expertise"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Instructor Expertise</FormLabel>
                 <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="e.g. IT186-8L" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Courses</SelectLabel>
-                    {classessqry.map(
-                      (cls: {
-                        _id: string;
-                        coursecode: string;
-                        coursename: string;
-                      }) => (
-                        <SelectItem key={cls._id} value={cls._id}>
-                          {cls.coursecode}-{cls.coursename}
-                        </SelectItem>
-                      ),
+                  <StringArrayInput
+                    value={(field.value ?? []).filter(
+                      (v): v is string => typeof v === "string",
                     )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        /> */}
+                    onChange={field.onChange}
+                    placeholder="Add expertise..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
-          name="classroomIds"
+          name={`${form.watch("role")}.classroomIds`}
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Select Classes{" "}
+                Select Classes
                 <span className="text-muted-foreground">{"(optional)"}</span>
               </FormLabel>
               <FormControl>
@@ -217,7 +226,7 @@ export function UserForm() {
         />
 
         <Button type="submit" className="w-full">
-          {status === 'pending' ? "Creating User..." : "Create User"}
+          {status === "pending" ? "Creating User..." : "Create User"}
         </Button>
       </form>
     </Form>

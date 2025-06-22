@@ -8,7 +8,8 @@ const sessionConfig = {
   sessionCookieOptions: {
     secure: MODE === "production" || MODE === "staging",
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 3, // 3 hours
+    maxAge: 1000 * 60 * 60 * 3, // 3 hours 
+    //1000 * 60 * 2,
   },
   sessionSaveUninitialized: true,
   sessionResave: true,

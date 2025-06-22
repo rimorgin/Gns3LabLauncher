@@ -1,6 +1,7 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import { createCourse } from "./courses.service.ts";
+import { createCourse, deleteCourseById, updateCourseById } from "./courses.service.ts";
+import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
 
 /**
  * Retrieves a list of all courses.
@@ -30,9 +31,40 @@ export const getCourses = async (
     : await prisma.course.findMany();
   
 
-  res.status(200).json(courses);
+  res.status(200).json({
+    message: APP_RESPONSE_MESSAGE.coursesReturned,
+    courses: courses
+  });
 };
 
+/**
+ * Retrieves a course by id.
+ *
+ * @function getCourseById
+ *
+ * @param {Request} req - Express request object, must include `:id` route param.
+ * @param {Response} res - Express response object to return course data or errors.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON array of course objects
+ *  - 500 Internal Server Error if fetching courses fails
+ */
+export const getCourseById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { id: courseId } = req.params
+  const course = await prisma.course.findUnique({
+    where: { id: courseId },
+    select: { id: true }
+  })
+  
+
+  res.status(200).json({
+    message: APP_RESPONSE_MESSAGE.courseReturned,
+    course: course
+  });
+};
 /**
  * Creates a new course with the given course code and name.
  *
@@ -53,22 +85,87 @@ export const postCourses = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  console.log("posting course for user: ", req.user?.username);
   const { courseCode } = req.body;
 
   const isCourseExists = await prisma.course.findUnique({ where: { courseCode }})
   if (isCourseExists) {
-    res.status(409).json({ message: "Course already exists." });
+    res.status(409).json({ message: APP_RESPONSE_MESSAGE.courseDoesExist });
     return
   }
   try {
     const newCourse = await createCourse(req.body)
     //console.log("🚀 ~ postCourses ~ courses:", courses)
-    res.status(201).json({ message: "Course created", newData: newCourse });
+    res.status(201).json({ message: APP_RESPONSE_MESSAGE.courseCreated, newData: newCourse });
     return;
   } catch (error: any) {
       res
         .status(500)
         .json({ message: `Error creating course: ${error.message}` });
+  }
+};
+
+/**
+ * Updates an existing course by ID using the service method.
+ *
+ * @function patchCourse
+ *
+ * @param {Request} req - Express request object containing `id` in the URL and update fields in the body.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with updated course data
+ *  - 404 Not Found if course does not exist
+ *  - 500 Internal Server Error if update fails
+ */
+export const patchCourse = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const updatedCourse = await updateCourseById(id, req.body);
+
+    if (!updatedCourse) {
+      res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
+      return
+    }
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.courseUpdated,
+      newData: updatedCourse,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: `Error updating course: ${error.message}` });
+  }
+};
+
+/**
+ * Deletes an existing course by ID using the service method.
+ *
+ * @function deleteCourse
+ *
+ * @param {Request} req - Express request object containing `id` in the URL.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with deleted course data
+ *  - 404 Not Found if course does not exist
+ *  - 500 Internal Server Error if deletion fails
+ */
+export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const deleted = await deleteCourseById(id);
+
+    if (!deleted) {
+      res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
+      return
+    }
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.courseDeleted,
+      newData: deleted,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: `Error deleting course: ${error.message}` });
   }
 };

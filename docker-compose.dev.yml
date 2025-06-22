@@ -15,7 +15,7 @@ services:
     networks:
       - gns3netlab-network
     healthcheck:
-      test: ["CMD", "psql", "-U", "gns3adminpostgres", "-d", "Gns3LabLauncher", "-c", "SELECT 1;"]
+      test: ["CMD", "pg_isready", "-U", "gns3adminpostgres", "-d", "Gns3LabLauncher"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -37,7 +37,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-      
+
 networks:
   gns3netlab-network:
     driver: bridge

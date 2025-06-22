@@ -1,4 +1,3 @@
-// src/components/forms/ClassroomForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -24,11 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@clnt/components/ui/select";
-import { useCoursesQuery } from "@clnt/lib/query/courses-query";
-import { useClassroomsPost } from "@clnt/lib/query/classrooms-query";
+import { useCoursesQuery } from "@clnt/lib/queries/courses-query";
 import { toast } from "sonner";
-import { useUserInstructorsQuery } from "@clnt/lib/query/user-query";
+import { useUsersByRoleQuery } from "@clnt/lib/queries/user-query";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { useProjectsQuery } from "@clnt/lib/queries/projects-query";
+import { useClassroomsPost } from "@clnt/lib/mutations/classrooms-mutation";
+import { MultiSelect } from "../ui/multi-select";
+import { Skeleton } from "../ui/skeleton";
 
 export function ClassroomForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -41,7 +43,6 @@ export function ClassroomForm() {
       status: "active",
       studentIds: [],
       projectIds: [],
-
     },
   });
 
@@ -50,11 +51,24 @@ export function ClassroomForm() {
     isLoading: isCoursesLoading,
     error: errorOnCourses,
   } = useCoursesQuery();
+
+  const {
+    data: projectsQry = [],
+    isLoading: isProjectsLoading,
+    error: errorOnProjects,
+  } = useProjectsQuery({});
+
+  const {
+    data: userStudentsQry = [],
+    isLoading: isUserStudentsLoading,
+    error: errorOnUserStudents,
+  } = useUsersByRoleQuery({role:"student"});
+
   const {
     data: userInstructorQry = [],
     isLoading: isUserInstructorLoading,
     error: errorOnUserInstructor,
-  } = useUserInstructorsQuery();
+  } = useUsersByRoleQuery({role:"instructor"});
   const { mutateAsync, status } = useClassroomsPost();
 
   const onSubmit = async (data: ClassroomFormData) => {
@@ -69,52 +83,56 @@ export function ClassroomForm() {
     });
   };
 
-  if (isCoursesLoading && isUserInstructorLoading) return <div>Loading courses…</div>;
-  if (errorOnCourses && errorOnUserInstructor) return <div>Failed to load courses</div>;
+  if (
+    isCoursesLoading &&
+    isProjectsLoading &&
+    isUserStudentsLoading &&
+    isUserInstructorLoading
+  )
+    return (
+      <>
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+      </>
+    );
+
+  if (
+    errorOnCourses &&
+    errorOnUserStudents && 
+    errorOnUserInstructor &&
+    errorOnProjects
+  )
+    return <div>Failed to load courses</div>;
+
+  const projectOptions = projectsQry.map(
+    (prjt: {id: string, projectName: string}) => ({
+      value: prjt.id,
+      label: prjt.projectName
+    }))
+
+  const studentOptions = userStudentsQry.map(
+    (student: {id: string, name: string}) => ({
+      value: student.id,
+      label: student.name
+    }))
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="courseId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Assign to Course</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="e.g. IT186-8L" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Courses</SelectLabel>
-                    {coursesQry.map(
-                      (cls: {
-                        _id: string;
-                        courseCode: string;
-                        courseName: string;
-                      }) => (
-                        <SelectItem key={cls._id} value={cls._id}>
-                          {cls.courseCode}-{cls.courseName}
-                        </SelectItem>
-                      ),
-                    )}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="classroomName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Class Name</FormLabel>
+              <FormLabel>Classroom Name</FormLabel>
               <FormControl>
                 <Input
                   placeholder="e.g. AM1 1st Semester 2023-2024"
@@ -131,10 +149,7 @@ export function ClassroomForm() {
           name="instructorId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Class Instructor
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel>Class Instructor</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -145,8 +160,8 @@ export function ClassroomForm() {
                   <SelectGroup>
                     <SelectLabel>Instructors</SelectLabel>
                     {userInstructorQry.map(
-                      (usr: { _id: string; name: string }) => (
-                        <SelectItem key={usr._id} value={usr._id}>
+                      (usr: { id: string; name: string }) => (
+                        <SelectItem key={usr.id} value={usr.id}>
                           {usr.name}
                         </SelectItem>
                       ),
@@ -154,6 +169,86 @@ export function ClassroomForm() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="courseId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Assign to Course
+                <span className="text-muted-foreground">{"(optional)"}</span>
+              </FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="e.g. IT186-8L" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Courses</SelectLabel>
+                    {coursesQry.map(
+                      (cls: {
+                        id: string;
+                        courseCode: string;
+                        courseName: string;
+                      }) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {cls.courseCode}-{cls.courseName}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="studentIds"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Assign Students
+                <span className="text-muted-foreground">{"(optional)"}</span>
+              </FormLabel>
+              <FormControl>
+                <MultiSelect
+                  options={studentOptions}
+                  value={(field.value ?? []).filter(Boolean) as string[]}
+                  onValueChange={field.onChange}
+                  placeholder="Select Students"
+                  className="w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="projectIds"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                Assign Projects
+                <span className="text-muted-foreground">{"(optional)"}</span>
+              </FormLabel>
+              <FormControl>
+                <MultiSelect
+                  options={projectOptions}
+                  value={(field.value ?? []).filter(Boolean) as string[]}
+                  onValueChange={field.onChange}
+                  placeholder="Select Projects"
+                  className="w-full"
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

@@ -7,7 +7,7 @@ import { Button } from "./button";
 import { IconGripVertical } from "@tabler/icons-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { flexRender, Row } from "@tanstack/react-table";
-import { schema } from "../user-data-table";
+import { schema } from "../common/data-table";
 import { z } from "zod";
 import { CSS } from "@dnd-kit/utilities";
 

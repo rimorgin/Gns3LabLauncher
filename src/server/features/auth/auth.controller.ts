@@ -4,6 +4,62 @@ import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
 import { createUser } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
+import roles from "@srvr/configs/roles.config.ts";
+import { APP_RESPONSE_MESSAGE, HttpStatusCode } from "@srvr/configs/constants.config.ts";
+import { logger } from "@srvr/middlewares/logger.middleware.ts";
+
+/**
+ * Checks whether the current session is valid (user is authenticated).
+ *
+ * @param {Request} req - Express request object containing session data.
+ * @param {Response} res - Express response object to send session status.
+ *
+ * @returns {void} Sends:
+ *  - 200 OK if authenticated
+ *  - 401 Unauthorized if not authenticated
+ */
+export const checkSession = (req: Request, res: Response): void => {
+  if (!req.isAuthenticated?.()) {
+    res.status(HttpStatusCode.UNAUTHORIZED).json({ session: false });
+    return;
+  }
+  
+  res.status(200).json({ session: true });
+};
+
+/**
+ * Fetches the permissions associated with the currently authenticated user's role.
+ *
+ * @function getUserPermissions
+ *
+ * @param {Request} req - Express request object containing authenticated user data.
+ * @param {Response} res - Express response object to send permission data or error messages.
+ *
+ * @returns {void} Sends:
+ *  - 200 JSON with list of permissions if successful
+ *  - 401 Unauthorized if user is not authenticated or has no role
+ *  - 403 Forbidden if role is unrecognized or has no permissions
+ */
+export const getUserPermissions = (req: Request, res: Response): void => {
+  const userRole = req.user?.role;
+
+  if (!userRole) {
+    res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Unauthorized or role missing" });
+    return;
+  }
+
+  const permissions = getRolePermissions(roles, userRole);
+  if (!permissions.length) {
+    res
+      .status(403)
+      .json({ message: "Role not recognized or has no permissions" });
+    return;
+  }
+
+  res.json({ permissions });
+};
+
 
 /**
  * Fetches the currently authenticated user from the database using their session ID.
@@ -18,20 +74,15 @@ import prisma from "@srvr/utils/db/prisma.ts";
  */
 export const getUser = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
-  if (!userSessionId) {
-    res.status(401).json({ message: "You are not logged in" });
-    return;
-  }
-
   const user = await prisma.user.safeFindUnique({
     where: { id: userSessionId }
   });
   if (!user) {
-    res.status(404).json({ message: "User not found" });
+    res.status(404).json({ message: APP_RESPONSE_MESSAGE.userDoesntExist });
     return;
   }
 
-  res.json({ user, expiresAt: req.session?.cookie.maxAge });
+  res.json({ user });
 };
 
 /**
@@ -55,20 +106,26 @@ export const postLoginLocal = (
     if (err) return next(err);
     if (!user) {
       return res
-        .status(401)
+        .status(HttpStatusCode.UNAUTHORIZED)
         .json({ type: "error", message: info?.message || "Unauthorized" });
     }
 
     req.login(user, async (err) => {
       if (err) return next(err);
 
-      req.session.loginTime = new Date();
+      // explicitly log because the logger middleware captures user logs only when they are logged in
+      logger.info(`Request completed with status ${res.statusCode}`, {
+        context: user.username,
+        message: `User ${user.username} logged in`,
+        stack: {
+          ip: req.ip?.replace("::ffff:", ''),
+          userAgent: req.headers['user-agent'],
+        },
+      });
       res.json({
-        toast: true,
-        type: "success",
-        message: "Login successful",
-        user: user,
-        expiresAt: req.session.cookie.maxAge,
+        user: req.session.passport?.user, //return user id
+        session: true,
+        message: APP_RESPONSE_MESSAGE.userLoggedIn
       });
     });
   })(req, res, next);
@@ -124,12 +181,10 @@ export const postLogout = (
     if (err) return next(err);
     req.session.destroy(async () => {
       if (userSessionId)
-        await redisClient.del(`gns3labuser:active_session:${userSessionId}`);
+        await redisClient.del(`gns3labuser:session:${userSessionId}`);
       console.log("req.logout session destroyed");
       res.json({
-        toast: true,
-        type: "success",
-        message: "Logout successful",
+        message: APP_RESPONSE_MESSAGE.userLoggedOut,
       });
     });
   });
@@ -160,22 +215,4 @@ export const postSignup = async (
   } catch (error) {
     return next(error);
   }
-};
-
-/**
- * Checks whether the current session is valid (user is authenticated).
- *
- * @param {Request} req - Express request object containing session data.
- * @param {Response} res - Express response object to send session status.
- *
- * @returns {void} Sends:
- *  - 200 OK if authenticated
- *  - 401 Unauthorized if not authenticated
- */
-export const checkSession = (req: Request, res: Response): void => {
-  if (!req.isAuthenticated?.()) {
-    res.status(401).json({ session: "invalid" });
-    return;
-  }
-  res.sendStatus(200);
 };

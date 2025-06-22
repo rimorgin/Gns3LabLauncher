@@ -1,8 +1,8 @@
-import { IUser } from "@clnt/lib/store/user-store";
-import { useUserStore } from "@clnt/lib/store/user-store";
+import { IUser, useUser } from "@clnt/lib/auth";
 
 export const usePermissions = () => {
-  const { user } = useUserStore();
+  const userQuery = useUser();
+  const user = userQuery.data;
 
   /**
    * Check if user has at least one of the required permissions

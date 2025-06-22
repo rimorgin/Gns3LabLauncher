@@ -15,11 +15,12 @@ import {
 import { Input } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
 import { Switch } from "../ui/switch";
-import { useClassroomsQuery } from "@clnt/lib/query/classrooms-query";
+import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
 import { MultiSelect } from "../ui/multi-select";
-import { useProjectsPost } from "@clnt/lib/query/projects-query";
+import { useProjectsPost } from "@clnt/lib/mutations/projects-mutation";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { Skeleton } from "../ui/skeleton";
 
 export function ProjectForm() { 
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -34,10 +35,10 @@ export function ProjectForm() {
   });
 
   const {
-    data: classesQry = [],
+    data: classroomsQry = [],
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
-  } = useClassroomsQuery(true);
+  } = useClassroomsQuery({includes:['course']});
   const { mutateAsync, status } = useProjectsPost();
 
   const onSubmit = async (data: ProjectFormData) => {
@@ -53,21 +54,32 @@ export function ProjectForm() {
     });
   };
 
-  if (isClassroomsLoading) return <div>Loading…</div>;
+  if (isClassroomsLoading) 
+    return (
+      <>
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+      </>
+    );
   if (errorOnClassrooms) return <div>Failed to load resources</div>;
 
-  const classOptions =
-    classesQry?.map(
-      (cls: {
-        _id: string;
-        classroomName: string;
-        status: string;
-        courseId?: { courseCode: string };
-      }) => ({
-        value: cls._id,
-        label: `${cls.courseId ? `${cls.courseId.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
-      }),
-    ) ?? [];
+  const classroomOptions = classroomsQry?.map(
+    (cls: {
+      id: string;
+      classroomName: string;
+      status: string;
+      course?: { id: string; courseCode: string };
+    }) => ({
+      value: cls.id,
+      label: `${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
+    }),
+  );
 
   return (
     <Form {...form}>
@@ -131,7 +143,7 @@ export function ProjectForm() {
               </FormLabel>
               <FormControl>
                 <MultiSelect
-                  options={classOptions}
+                  options={classroomOptions}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
                   placeholder="Select Classrooms"

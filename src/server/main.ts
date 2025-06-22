@@ -13,18 +13,18 @@ import Postgres from "@srvr/database/postgres.database.ts";
 
 import registerFeatures, { registerWsFeature } from "@srvr/features/index.features.ts";
 
-import corsMiddleware from "@srvr/middlewares/cors.middleware.ts";
+import helmetMiddleware from "@srvr/middlewares/helmet.middleware.ts";
 import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
 import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
 import csrfTokenMiddleware from "@srvr/middlewares/csrf.middleware.ts";
-import {
-  errorHandler,
-  notFoundHandler,
-} from "@srvr/middlewares/error.middleware.ts";
 
-import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
-import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
+import rateLimiterMiddleware from "@srvr/middlewares/rate-limiter.middleware.ts";
 import vpnOnlyMiddleware from "@srvr/middlewares/vpn.middleware.ts";
+import errorMiddleware from "@srvr/middlewares/error.middleware.ts";
+
+import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
+import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
+import webSocketListener from "./features/websocket/websocket.handler.ts";
 
 const app = express();
 let server;
@@ -34,23 +34,35 @@ await Redis();
 await Postgres();
 
 // Middleware stack
-app.use(corsMiddleware);
-app.use(loggerMiddleware);
+//app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
+
+// SECURITY 
+app.use(helmetMiddleware())
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
+// Reduce fingerprinting
+app.disable('x-powered-by')
+// prevent DDos or Brute Force 
+app.use(rateLimiterMiddleware) //disable in development
+// enforce single session only
+//app.use(enforceSingleSessionOnly)
+// enforce validation of session every client mounts
+
+// LOGGING
+app.use(loggerMiddleware);
+// ERROR HANDLING
+app.use(errorMiddleware)
 
 // Routes
 await registerFeatures(app)
 
-// Catch-all for unmatched /api/v1 routes
-app.use("/api/v1", notFoundHandler);
-app.use("/api/v1", errorHandler);
+
 
 if (MODE === "production" || MODE === "staging") {
   const key = fs.readFileSync(
@@ -64,10 +76,10 @@ if (MODE === "production" || MODE === "staging") {
   server = https.createServer({ key, cert }, app);
   console.log("🌐 HTTPS server configured");
 
-  const { default: vpnConnect } = await import("./configs/vpn.config.js");
+  const { default: vpnConnect } = await import("@srvr/configs/vpn.config.js");
   // enable vpn when not in development
   console.log("🔗 Connecting to VPN...");
-  vpnConnect();
+  await vpnConnect();
   app.use(vpnOnlyMiddleware)
 
   /*   ViteExpress.config({
@@ -87,9 +99,7 @@ server.listen(envServerPort, () => {
 });
 
 // initialize websocket connection handlers
-registerWsFeature();
-
-console.log(process.env.POSTGRES_URL)
+webSocketListener()
 
 //@ts-expect-error staging mode is not allowed
 ViteExpress.config({ mode: MODE });

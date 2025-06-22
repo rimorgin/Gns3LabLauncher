@@ -3,8 +3,9 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as MicrosoftStrategy } from "passport-microsoft";
 import bcrypt from "bcrypt";
 import { NextFunction } from "express";
-import { IUser } from "@clnt/lib/store/user-store.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import { IUserWithRoleOutput } from "@srvr/types/models.type.ts";
+import { APP_RESPONSE_MESSAGE } from "./constants.config.ts";
 
 passport.serializeUser((user, done) => {
   //@ts-expect-error no user.id on interface IUserBase but it is present in the response
@@ -26,9 +27,6 @@ passport.deserializeUser(async (id: string, done) => {
   }
 });
 
-
-
-
 passport.use(
   new LocalStrategy(
     {
@@ -40,12 +38,12 @@ passport.use(
       try {
         const user = await prisma.user.findUnique({ where: { email: email } });
         if (!user)
-          return done(null, false, { message: "Credentials not found" });
+          return done(null, false, { message: APP_RESPONSE_MESSAGE.invalidCredentials });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return done(null, false, { message: "Incorrect password." });
 
-        console.log(user)
+        //console.log(user)
         return done(null, user);
       } catch (err) {
         return done(err);
@@ -76,7 +74,7 @@ passport.use(
     function (
       accessToken: string,
       refreshToken: string,
-      profile: IUser,
+      profile: IUserWithRoleOutput,
       done: NextFunction,
     ) {
       /*User.findById(profile.id)

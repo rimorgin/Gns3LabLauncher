@@ -11,6 +11,7 @@ import {
 } from "@srvr/configs/env.config.ts";
 
 console.log("Environment mode:", MODE);
+console.log("MAP HOST: ", process.env.OPENVPN_STATIC_HOST_MAPPINGS)
 
 const execAsync = promisify(exec);
 
@@ -22,7 +23,7 @@ async function createCertsIfNeeded(): Promise<void> {
   if (MODE !== "staging") return;
 
   const certDir = path.resolve(process.cwd(), "cert");
-  const services = ["vite-express", "mongo-gui"];
+  const services = ["vite-express"];
 
   try {
     if (!fs.existsSync(certDir)) {
@@ -83,12 +84,11 @@ let prismaStudioProcess: ReturnType<typeof spawn> | null = null;
 async function startPrismaStudio(): Promise<void> {
   console.log("Starting Prisma Studio...");
 
-  prismaStudioProcess = spawn("yarn", ["prisma", "studio", "--browser", "none"], {
+  prismaStudioProcess = spawn("yarn", ["run", "prisma:studio"], {
     stdio: "inherit",
-    detached: true,
+    shell: true,
   });
-
-  prismaStudioProcess.unref();
+  prismaStudioProcess.pid
 }
 
 /**
@@ -118,10 +118,12 @@ async function startViteExpress(): Promise<void> {
     console.error(`[APP ERR]: ${data}`);
   });
 
-  const shutdown = () => {
+  const shutdown = async() => {
     console.log("\n🛑 Shutting down services gracefully...");
-    if (prismaStudioProcess && !prismaStudioProcess.killed) {
-      prismaStudioProcess.kill("SIGINT");
+    if (prismaStudioProcess &&  prismaStudioProcess.pid && !prismaStudioProcess.killed) {
+      console.log("🚀 ~ shutdown ~ prismaStudioProcess.pid:", prismaStudioProcess.pid)
+      
+      await prismaStudioProcess.kill();
       console.log("✅ Prisma Studio stopped.");
     }
     exec(`docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`, (err) => {

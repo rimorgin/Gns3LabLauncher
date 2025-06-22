@@ -4,12 +4,14 @@ import { Button } from "@clnt/components/ui/button";
 import { Input } from "@clnt/components/ui/input";
 import { Label } from "@clnt/components/ui/label";
 import { useLoading } from "@clnt/hooks/use-loading";
-import { LoginFormValues, useUserStore } from "@clnt/lib/store/user-store";
 import {
   IconBrandWindowsFilled,
   IconEye,
   IconEyeClosed,
 } from "@tabler/icons-react";
+import { LoginFormValues, useLogin } from "@clnt/lib/auth";
+import router from "@clnt/pages/route-layout";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -19,7 +21,7 @@ export function LoginForm({
     email: "",
     password: "",
   });
-  const { loginUser } = useUserStore();
+  const loginUser = useLogin()
   const { isLoading, startLoading, stopLoading } = useLoading();
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
@@ -29,21 +31,27 @@ export function LoginForm({
 
   const handleLoginLocal = async (e: React.FormEvent) => {
     e.preventDefault();
-    startLoading();
 
     try {
-      await loginUser(form, "local");
+      toast.promise(loginUser.mutateAsync(form), {
+        loading: "Logging in...",
+        success: "Logged in successfully",
+        error: (err) => {
+          const message = err?.response?.data?.message || "Login failed";
+          return message;
+        },
+      });
+      
     } catch (error) {
       console.error("Login error:", error);
     } finally {
-      stopLoading();
     }
   };
 
   const handleLoginMicrosoft = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await loginUser(form, "microsoft");
+      await loginUser.mutateAsync(form);
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -108,8 +116,8 @@ export function LoginForm({
             </button>
           </div>
         </div>
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Logging in" : "Login"}
+        <Button type="submit" className="w-full" disabled={loginUser.isPending}>
+          {loginUser.isPending ? "Logging in" : "Login"}
         </Button>
         <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">

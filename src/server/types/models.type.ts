@@ -92,6 +92,7 @@ export interface IStudentUser {
 export interface ICourse {
   courseCode: string;
   courseName: string | null;
+  classroomIds?: string [];
 }
 
 /**

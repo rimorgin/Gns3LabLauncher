@@ -40,7 +40,7 @@ export const createProject = async (
  * @param {Partial<IProject>} updates - The updates to apply to the project.
  * @returns {Promise<Partial<IProject> | null>} A promise that resolves to the updated project instance, or null if not found, and then return projectName.
  */
-export const updateProject = async (
+export const updateProjectById = async (
   id: string,
   updates: Partial<IProject>
 ): Promise<Partial<IProject> | null> => {
@@ -59,7 +59,7 @@ export const updateProject = async (
  * @param {string} id - The ID of the project to delete.
  * @returns {Promise<Partial<IProject> | null>} A promise that resolves to the deleted project instance, or null if not found, and then return projectName.
  */
-export const deleteProject = async (id: string): Promise<IProject | null> => {
+export const deleteProjectById = async (id: string): Promise<IProject | null> => {
   const deletedProject = await prisma.project.delete({
     where: { id },
     select: {

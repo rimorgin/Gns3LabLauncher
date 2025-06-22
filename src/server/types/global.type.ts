@@ -1,5 +1,5 @@
+import { User } from "@prisma/client";
 import { Session, SessionData } from "express-session";
-import { IUser } from "./models.type.ts";
 
 /**
  * Represents the possible environment modes for the application.
@@ -44,7 +44,7 @@ declare module "http" {
     /**
      * Optional property to store the user object associated with the request.
      */
-    user?: IUser;
+    user?: User;
   }
 }
 
@@ -56,7 +56,7 @@ declare module "express-serve-static-core" {
     /**
      * Optional property to store the user object associated with the request.
      */
-    user?: IUser;
+    user?: User;
     /**
      * Function to check if the user is authenticated.
      * @returns {boolean} True if the user is authenticated, false otherwise.

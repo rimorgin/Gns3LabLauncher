@@ -22,9 +22,16 @@ export const onSocketConnection = async (socket: Socket) => {
   const currentSessionId = socket.request.sessionID;
 
   // If no authenticated user ID found in session, disconnect the socket
-  if (!user) return socket.disconnect();
+  if (!user) { 
+    console.log("session expired", user)
+    socket.emit("session-expired", {
+      reason: "Your time has run out. Please login again to continue..."
+    })
+    socket.disconnect()
+    return 
+  };
 
-  const redisKey = `gns3labuser:session:${user._id}`;
+  const redisKey = `gns3labuser:session:${user.id}`;
   const sessionRecord = await redisClient.hGetAll(redisKey);
 
   const previousSessionId = sessionRecord.sessionID;
@@ -57,14 +64,14 @@ export const onSocketConnection = async (socket: Socket) => {
     socketID: currentSocketId,
   });
 
-  console.log(`🔌 User ${user._id} connected with socket ${currentSocketId}`);
+  console.log(`🔌 User ${user.id} connected with socket ${currentSocketId}`);
 
-  for (const classes in user.classes) {
+  /* for (const classes in user.classes) {
     console.log(classes);
     //socket.join(classes)
-  }
+  } */
   // Join a room specific to this user for targeted messaging
-  socket.join(`active_user:${user._id}`);
+  socket.join(`active_user:${user.id}`);
 
   console.log(socket.rooms);
 };

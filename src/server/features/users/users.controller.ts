@@ -1,41 +1,8 @@
-import { UserRolesEnum } from "@prisma/client";
+import { Prisma, UserRolesEnum } from "@prisma/client";
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import { createUser } from "./users.service.ts";
-import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
-import roles from "@srvr/configs/roles.config.ts";
-
-/**
- * Fetches the permissions associated with the currently authenticated user's role.
- *
- * @function getUserPermissions
- *
- * @param {Request} req - Express request object containing authenticated user data.
- * @param {Response} res - Express response object to send permission data or error messages.
- *
- * @returns {void} Sends:
- *  - 200 JSON with list of permissions if successful
- *  - 401 Unauthorized if user is not authenticated or has no role
- *  - 403 Forbidden if role is unrecognized or has no permissions
- */
-export const getUserPermissions = (req: Request, res: Response): void => {
-  const userRole = req.user?.role;
-
-  if (!userRole) {
-    res.status(401).json({ message: "Unauthorized or role missing" });
-    return;
-  }
-
-  const permissions = getRolePermissions(roles, userRole);
-  if (!permissions.length) {
-    res
-      .status(403)
-      .json({ message: "Role not recognized or has no permissions" });
-    return;
-  }
-
-  res.json({ permissions });
-};
+import { createUser, deleteUserById, updateUserById } from "./users.service.ts";
+import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
 
 /**
  * Fetches a list of users filtered by role (excluding administrators by default).
@@ -52,38 +19,75 @@ export const getUserPermissions = (req: Request, res: Response): void => {
  *  - 200 JSON array of user objects matching the filter
  *  - 500 Internal Server Error if database query fails
  */
+
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { role, only_ids, partial } = req.query;
+    const { role, only_ids, includeRoleData, includeRoleRelations } = req.query;
 
-    let select = undefined;
-
-    const whereCondition = role
+    // Role filter
+    const where: Prisma.UserWhereInput = role
       ? { role: role as UserRolesEnum }
       : { role: { not: UserRolesEnum.administrator } };
 
-    if (only_ids) {
+    // Handle selection fields
+    let select: Prisma.UserSelect | undefined;
+    let selectRelation: Prisma.UserSelect | undefined;
+
+    if (only_ids === 'true') {
       select = { id: true };
-    } else if (partial) {
+    } else {
       select = {
         id: true,
+        username: true,
         name: true,
         email: true,
         role: true,
+        student: includeRoleData ? true : false,
+        instructor: includeRoleData ? true : false
       };
     }
 
-    const users = await prisma.user.safeFindMany({
-      where: whereCondition,
-      ...(select && { select }),
+
+    if (includeRoleRelations === 'true') {
+      select.student = {
+        select: {
+          classrooms: {
+            select: {
+              id: true,
+              classroomName: true
+            }
+          }
+        }
+      },
+      select.instructor = {
+        select: {
+          classrooms: {
+            select: {
+              id: true,
+              classroomName: true
+            }
+          }
+        }
+      }
+    }
+
+    const combinedSelect = {...select, ...selectRelation}
+
+    const users = await prisma.user.findMany({
+      where,
+      ...(combinedSelect && { select: combinedSelect }),
     });
 
-    res.status(200).json(users);
+    res.status(200).json({ 
+      message: APP_RESPONSE_MESSAGE.usersReturned,
+      users: users
+    });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 
 
 /**
@@ -115,10 +119,52 @@ export const postUsers = async (req: Request, res: Response): Promise<void> => {
       emailExists ? `Email ${email}` : null,
       usernameExists ? `Username ${username}` : null,
     ].filter(Boolean).join(" and ");
-    res.status(409).json({ message: `${msg} already exists.` });
+    res.status(409).json({ message: `${msg} ${APP_RESPONSE_MESSAGE.userDoesExist}` });
     return;
   }
 
   const newUser = await createUser(req.body);
-  res.status(201).json({ message: "User Created", newData: newUser });
+  res.status(201).json({ message: APP_RESPONSE_MESSAGE.userCreated, newData: newUser });
 };
+
+/**
+ * Handles updating a user by ID via PATCH request.
+ *
+ * Retrieves the `id` from the request URL and updates the user with the provided body data.
+ *
+ * @function patchUser
+ *
+ * @param {Request} req - Express request object containing `id` as a URL parameter and updated user data in the body.
+ * @param {Response} res - Express response object to send success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 201 JSON indicating successful user update
+ *  - 500 Internal Server Error if an exception occurs during the update
+ */
+export const patchUser = async (req: Request, res: Response): Promise<void> => {
+  const id = req.params.id
+ 
+  const updatedUser = await updateUserById(id, req.body)
+  res.status(201).json({ message: APP_RESPONSE_MESSAGE.userUpdated, newData: updatedUser });
+}
+
+/**
+ * Handles deleting a user by ID via DELETE request.
+ *
+ * Retrieves the `id` from the request URL and deletes the corresponding user.
+ *
+ * @function deleteUser
+ *
+ * @param {Request} req - Express request object containing `id` as a URL parameter.
+ * @param {Response} res - Express response object to send success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 201 JSON indicating successful user deletion
+ *  - 500 Internal Server Error if an exception occurs during deletion
+ */
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
+  const id = req.params.id
+ 
+  const deletedUser = await deleteUserById(id)
+  res.status(201).json({ message: APP_RESPONSE_MESSAGE.userDeleted, newData: deletedUser });
+}

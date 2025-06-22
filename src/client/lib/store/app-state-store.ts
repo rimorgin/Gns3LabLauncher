@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 
 export type Theme = "dark" | "light" | "system";
 
-interface AppState {
+interface IAppState {
   isAppLoading: boolean;
   setIsAppLoading: (state: boolean) => void;
   isSideBarToggled: boolean;
@@ -12,37 +12,44 @@ interface AppState {
   setActiveNavName: (navName: string) => void;
   isQuickCreateDialogOpen: boolean;
   toggleQuickCreateDialog: () => void;
+  resetAppState: () => void;
 }
 
-export const useAppStateStore = create<AppState>()(
+const initialState = {
+  isAppLoading: false,
+  isSideBarToggled: true,
+  activeNavName: "Dashboard",
+  isQuickCreateDialogOpen: false
+}
+
+export const useAppStateStore = create<IAppState>()(
   persist(
-    (set, get) => ({
-      // APP LOADING
-      isAppLoading: false,
-      setIsAppLoading(state) {
-        set({ isAppLoading: state });
-      },
-      // SIDEBAR TOGGLE
-      isSideBarToggled: true,
-      toggleSideBar: () => {
-        const { isSideBarToggled } = get();
-        set({ isSideBarToggled: !isSideBarToggled });
-      },
-      // SIDEBAR ACTIVE NAV
-      activeNavName: "Dashboard",
-      setActiveNavName(navName) {
-        set({ activeNavName: navName });
-      },
-      // QUICK CREATE DIALOG TOGGLE
-      isQuickCreateDialogOpen: false,
-      toggleQuickCreateDialog: () => {
-        const { isQuickCreateDialogOpen } = get();
-        set({ isQuickCreateDialogOpen: !isQuickCreateDialogOpen });
-      }
-    }),
-    {
-      name: "app-state-storage",
-      storage: createJSONStorage(() => sessionStorage),
+  (set, get) => ({
+    ...initialState,
+    // APP LOADING
+    setIsAppLoading(state) {
+      set({ isAppLoading: state });
     },
-  ),
-);
+    // SIDEBAR TOGGLE
+    toggleSideBar: () => {
+      const { isSideBarToggled } = get();
+      set({ isSideBarToggled: !isSideBarToggled });
+    },
+    // SIDEBAR ACTIVE NAV
+    setActiveNavName(navName) {
+      set({ activeNavName: navName });
+    },
+    // QUICK CREATE DIALOG TOGGLE
+    toggleQuickCreateDialog: () => {
+      const { isQuickCreateDialogOpen } = get();
+      set({ isQuickCreateDialogOpen: !isQuickCreateDialogOpen });
+    },
+    resetAppState: () => {
+      set({ ...initialState });
+    }
+  }),
+  {
+    name: "app-state-storage",
+    storage: createJSONStorage(() => localStorage),
+  },
+));

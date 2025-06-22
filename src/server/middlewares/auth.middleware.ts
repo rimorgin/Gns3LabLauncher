@@ -3,14 +3,18 @@ import roles from "@srvr/configs/roles.config.ts";
 import { Permission } from "@srvr/types/auth.type.ts";
 import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import { redisClient, redisStore } from "@srvr/database/redis.database.ts";
+import { APP_RESPONSE_MESSAGE, HttpStatusCode } from "@srvr/configs/constants.config.ts";
 
 export const checkAuthentication = (
   req: Request,
   res: Response,
   next: NextFunction,
 ): void => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/signin");
+  if (!req.isAuthenticated?.()) {
+    res.status(HttpStatusCode.UNAUTHORIZED).json({
+      message: APP_RESPONSE_MESSAGE.userUnauthorized,
+    });
+    return;
   }
   console.log("authenticated");
   next();
@@ -24,8 +28,7 @@ export const checkPermission = (requiredPermissions: Permission[]) => {
 
     if (!hasPermissions) {
       res.status(403).json({
-        message:
-          "Forbidden: You do not have permission to access this resource.",
+        message: APP_RESPONSE_MESSAGE.userDoesntHavePerms
       });
       return;
     }
@@ -34,7 +37,8 @@ export const checkPermission = (requiredPermissions: Permission[]) => {
   };
 };
 
-export default async function enforceSingleSessionOnly(
+
+export async function enforceSingleSessionOnly(
   req: Request,
   res: Response,
   next: NextFunction,
@@ -42,9 +46,12 @@ export default async function enforceSingleSessionOnly(
   const userId = req.session?.passport?.user;
   if (!userId) return next();
 
+
+  console.log("🚀 ~ userId:", userId)
   const userKey = `gns3labuser:session:${userId}`;
+
   const currentSessionId = req.sessionID;
-  console.log("🚀 ~ userKey:", userKey);
+  //console.log("🚀 ~ userKey:", userKey);
   const oldSessionId = await redisClient.get(userKey);
 
   // No existing session → just set current

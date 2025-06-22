@@ -1,6 +1,8 @@
 import prisma from "@srvr/utils/db/prisma.ts";
-import { createClassroom } from "./classrooms.service.ts";
+import { createClassroom, deleteClassroomById, updateClassroomById } from "./classrooms.service.ts";
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
+import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
 
 /**
  * Retrieves a list of classrooms.
@@ -20,41 +22,115 @@ export const getClassrooms = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const {embed_data: requiresEmbeddedData, course, students, instructor, projects, only_ids, partial } = req.query;
+  const {
+    course,
+    courseId,
+    students,
+    instructor,
+    projects,
+    only_ids
+  } = req.query;
 
-  const classrooms = requiresEmbeddedData
-    ? await prisma.classroom.findMany({
-        include: {
-          course: course ? true : false,
-          students: students ? true : false,
-          instructor: instructor ? true : false,
-          projects: projects ? true : false
-        }
-      })
-    : only_ids 
-    ? await prisma.classroom.findMany({
-        select: {
-          id: true
-        }
-      }) 
-    : partial 
+  // Convert query params to booleans
+  const isCourse = course === "true"
+  const isCourseId = courseId === "true"
+  const isStudents = students === "true"
+  const isInstructor = instructor === "true"
+  const isProjects = projects === "true"
+  const isOnlyIds = only_ids === "true"
+
+  let includeOptions: Prisma.ClassroomSelect | undefined = {
+    course: isCourse,
+    courseId: isCourseId,
+    students: isStudents,
+    instructor: isInstructor,
+    projects: isProjects
+  };
+  const classrooms = isOnlyIds
     ? await prisma.classroom.findMany({
         select: {
           id: true,
-          classroomName: true,
+          ...(includeOptions)
         }
       }) 
-    : await prisma.course.findMany();
+    : await prisma.classroom.findMany({
+        select: {
+          id: true,
+          classroomName: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          ...(includeOptions)
+        }
+      });
 
   //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
-  res.status(200).json(classrooms);
+  res.status(200).json({
+    message: APP_RESPONSE_MESSAGE.classroomsReturned,
+    classrooms: classrooms
+  });
 };
+
+
+/**
+ * Retrieves a classroom by id.
+ *
+ * 
+ * * Query Parameters:
+ *  - course: If present, includes related course details.
+ *  - students: If present, includes related students details.
+ *  - instructor: If present, includes related instructor details.
+ *  - projects: If present, includes related projects details.
+ *
+ * @function getClassroomById
+ *
+ * @param {Request} req - Express request object, may contain request :id as parameter and query parameters.
+ * @param {Response} res - Express response object to return classroom data or errors.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON array of classroom objects (with optionally populated course info)
+ *  - 500 Internal Server Error if fetching classrooms fails
+ */
+export const getClassroomById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { id: classroomID } = req.params
+  const { course, courseId, students, instructor, projects } = req.query;
+  console.log("🚀 ~ courseId:", courseId)
+
+  let includeOptions: Prisma.ClassroomSelect | undefined = {
+    course: course ? true : false,
+    courseId: courseId ? true : false,
+    students: students ? true : false,
+    instructor: instructor ? true : false,
+    projects: projects ? true : false
+  };
+  const classrooms = await prisma.classroom.findUnique({
+    where: { id: classroomID },
+    select: {
+      id: true,
+      classroomName: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
+      ...(includeOptions)
+    }
+  });
+
+  //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
+  res.status(200).json({
+    message: APP_RESPONSE_MESSAGE.classroomsReturned,
+    classrooms: classrooms
+  });
+};
+
 
 /**
  * Creates a new classroom with the given details after checking for duplicates.
  *
  * A classroom is considered a duplicate if a record already exists
- * with the same `courseid` and `classname`.
+ * with the same `courseId` and `classroomName`.
  *
  * On successful creation, invalidates the cached classroom list in Redis.
  *
@@ -83,7 +159,7 @@ export const postClassroom = async (
     }
   })
   if (isClassroomExists) {
-    res.status(409).json({ message: "Classroom already exists." });
+    res.status(409).json({ message: APP_RESPONSE_MESSAGE.classroomDoesExist });
     return;
   }
   try {
@@ -91,10 +167,76 @@ export const postClassroom = async (
     //console.log("🚀 ~ postCourses ~ courses:", courses)
     res
       .status(201)
-      .json({ message: "Classroom created", newData: newClassroom });
+      .json({ message: APP_RESPONSE_MESSAGE.classroomCreated, newData: newClassroom });
   } catch (error: any) {
     res
       .status(500)
       .json({ message: `Error creating Classroom: ${error.message}` });
+  }
+};
+
+/**
+ * Updates an existing classroom by ID using service method.
+ *
+ * @function patchClassroom
+ *
+ * @param {Request} req - Express request object containing `id` in the URL and update fields in the body.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with updated classroom data
+ *  - 404 Not Found if classroom does not exist
+ *  - 500 Internal Server Error if update fails
+ */
+export const patchClassroom = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const updatedClassroom = await updateClassroomById(id, req.body);
+
+    if (!updatedClassroom) {
+      res.status(404).json({ message: APP_RESPONSE_MESSAGE.classroomDoesntExist });
+      return
+    }
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.classroomUpdated,
+      newData: updatedClassroom,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: `Error updating Classroom: ${error.message}` });
+  }
+};
+
+/**
+ * Deletes an existing classroom by ID using service method.
+ *
+ * @function deleteClassroom
+ *
+ * @param {Request} req - Express request object containing `id` in the URL.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with deleted classroom data
+ *  - 404 Not Found if classroom does not exist
+ *  - 500 Internal Server Error if deletion fails
+ */
+export const deleteClassroom = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params;
+
+  try {
+    const deletedClassroom = await deleteClassroomById(id);
+
+    if (!deletedClassroom) {
+      res.status(404).json({ message: APP_RESPONSE_MESSAGE.classroomDoesntExist });
+      return
+    }
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.classroomDeleted,
+      newData: deletedClassroom,
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: `Error deleting Classroom: ${error.message}` });
   }
 };

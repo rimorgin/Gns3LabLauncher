@@ -7,15 +7,13 @@ export default function csrfTokenMiddleware(
   next: NextFunction,
 ): void {
   if (!req.session) {
-    throw new Error(
-      "Session middleware must be initialized before csrfMiddleware.",
-    );
+    throw new Error("Session middleware must be initialized before csrfMiddleware.");
   }
 
-  if (!req.session.csrfToken) {
-    const token = generateToken(req, true);
-    storeTokenInState(req, token); // This will save secret in req.session.csrfSecret
-  }
+  // Always generate a new token based on current session
+  const token = generateToken(req);
+  storeTokenInState(req, token);
 
   next();
 }
+

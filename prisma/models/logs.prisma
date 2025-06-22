@@ -1,0 +1,11 @@
+model logs {
+  id         Int       @id @default(autoincrement())
+  level      String?   @db.VarChar
+  timestamp  DateTime? @db.Timestamp(6)
+  message    String?
+  context    String?   @db.VarChar
+  stack      Json?     @db.Json
+  statusCode Int       @default(autoincrement())
+  durationMs Int       @default(autoincrement())
+  ip         String?   @db.VarChar
+}
