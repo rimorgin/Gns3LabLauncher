@@ -18,7 +18,7 @@ export function SessionKickedAlert({
   isOpen = false,
   onOpenChange = () => {},
 }: SessionExpiredAlertProps) {
-  const logoutUser = useLogout()
+  const logoutUser = useLogout();
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>

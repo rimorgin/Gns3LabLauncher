@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from "vite-plugin-pwa";
 import react from "@vitejs/plugin-react";
 import dns from "node:dns";
 
@@ -18,11 +18,7 @@ export default defineConfig(() => {
       : "src/client/dist/production/";
 
   return {
-    plugins: [
-      react(),
-      tailwindcss(),
-      VitePWA({ registerType: 'autoUpdate' })
-    ],
+    plugins: [react(), tailwindcss(), VitePWA({ registerType: "autoUpdate" })],
     root: process.cwd(),
     base: "/",
     build: {
@@ -45,7 +41,10 @@ export default defineConfig(() => {
       }, */
     },
     esbuild: {
-      drop: mode === "production" ? (["console", "debugger"] as ("console" | "debugger")[]) : [],
+      drop:
+        mode === "production"
+          ? (["console", "debugger"] as ("console" | "debugger")[])
+          : [],
       //remove console.log and keep console.error
       //pure: mode === "production" ? ["console.log"] : [],
     },

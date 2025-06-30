@@ -1,6 +1,6 @@
 import express from "express";
 import {
-  getUser,
+  getMe,
   postLogout,
   postSignup,
   postLoginLocal,
@@ -21,15 +21,15 @@ router.get(
   "/permissions",
   checkAuthentication,
   redisCache({ withUserId: true }),
-  getUserPermissions
+  getUserPermissions,
 );
 
 /**
- * @route   GET /user
+ * @route   GET /me
  * @desc    Fetches the currently authenticated user's data from the session
  * @access  Private (User must be logged in)
  */
-router.get("/user", checkAuthentication, getUser);
+router.get("/me", checkAuthentication, redisCache({ withUserId: true }), getMe);
 
 /**
  * @route   GET /session/check

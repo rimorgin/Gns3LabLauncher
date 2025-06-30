@@ -1,26 +1,25 @@
-import { useUsersQuery } from '@clnt/lib/queries/user-query';
-import React from 'react'
-import { Skeleton } from '../ui/skeleton';
+import { useUsersQuery } from "@clnt/lib/queries/user-query";
+import React from "react";
+import { Skeleton } from "../ui/skeleton";
+import { UserDataTable } from "../common/user-data-table";
 
 export default function UsersContent() {
   const {
-      isLoading: isUserLoading,
-      error: isUserError,
-      data: userQry,
-    } = useUsersQuery();
-  return isUserLoading 
-    ? (
-      <div className="px-4 lg:px-6">
-        <Skeleton className="h-100 w-auto rounded-xl" />
-      </div>
-    ) : isUserError 
-    ? (
-      <div className="px-4 lg:px-6">
-        <p>Something breaks!...</p>
-      </div>
-    ):(
-      <>
-        {/* <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
+    isLoading: isUserLoading,
+    error: isUserError,
+    data: userQry,
+  } = useUsersQuery({ includeRoleData: true, includeRoleRelations: true });
+  return isUserLoading ? (
+    <div className="mt-8 px-4 lg:px-6">
+      <Skeleton className="h-100 w-auto rounded-xl" />
+    </div>
+  ) : isUserError ? (
+    <div className="px-4 lg:px-6">
+      <p>Something breaks!...</p>
+    </div>
+  ) : (
+    <>
+      {/* <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
           <thead className="bg-gray-50">
             <tr>
               <th
@@ -251,7 +250,7 @@ export default function UsersContent() {
             </tr>
           </tbody>
         </table> */}
-        {/* <UserDataTable data={userQry}/> */}
-      </>
-    );
+      <UserDataTable data={userQry} />
+    </>
+  );
 }

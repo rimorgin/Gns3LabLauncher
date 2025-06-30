@@ -11,3 +11,9 @@ model User {
   instructor    Instructor?
   student       Student?
 }
+
+model UserGroups {
+  id            String          @id @default(uuid())
+  groupName     String          
+  student       Student[]       @relation("UserGroups")
+}

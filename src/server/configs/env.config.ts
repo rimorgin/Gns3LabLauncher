@@ -13,10 +13,9 @@ export const runScript =
     ? `yarn run ${MODE}`
     : "yarn run dev";
 
-
 if (!fs.existsSync(runEnvFile)) {
   throw new Error(
-    `No .env file found in your directory ${MODE} mode. Please create one.`
+    `No .env file found in your directory ${MODE} mode. Please create one.`,
   );
 }
 
@@ -30,8 +29,6 @@ dotenv.config({
   path: path.join(process.cwd(), runEnvFile),
   debug: MODE === "development",
 });
-  
-
 
 export const envProtocol =
   MODE === "production" || MODE === "staging" ? "https" : "http";
@@ -51,4 +48,4 @@ export const envPostgresUsername = process.env.POSTGRES_USER;
 export const envPostgresPassword = process.env.POSTGRES_PASSWORD;
 export const envPostgresDb = process.env.POSTGRES_DB;
 export const envPostgresSchema = process.env.POSTGRES_SCHEMA || "public";
-export const envPostgresUrl =  `postgresql://${envPostgresUsername}:${envPostgresPassword}@${envPostgresHost}:${envPostgresPort}/${envPostgresDb}?schema=${envPostgresSchema}`;
+export const envPostgresUrl = `postgresql://${envPostgresUsername}:${envPostgresPassword}@${envPostgresHost}:${envPostgresPort}/${envPostgresDb}?schema=${envPostgresSchema}`;

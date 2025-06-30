@@ -1,27 +1,16 @@
-import { DefaultTable, PostgresTransport } from '@innova2/winston-pg';
-import { envPostgresUrl, MODE } from '@srvr/configs/env.config.ts';
-import { NextFunction, Request, Response } from 'express';
-import winston from 'winston';
+import { PostgresTransport } from "@innova2/winston-pg";
+import { envPostgresUrl, MODE } from "@srvr/configs/env.config.ts";
+import { NextFunction, Request, Response } from "express";
+import winston from "winston";
 
 const { combine, timestamp, printf } = winston.format;
-
-// Custom formatter
-const format = printf(({ level, message, timestamp, context, stack }) => {
-  return JSON.stringify({
-    level,
-    timestamp,
-    context,
-    message,
-    stack,
-  });
-});
-
 interface MyLogTable {
   id: number;
   level: string;
   timestamp: string;
   context: string;
   message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stack: any;
   statusCode?: number;
   durationMs?: number;
@@ -31,24 +20,24 @@ interface MyLogTable {
 const pgTransport = new PostgresTransport<MyLogTable>({
   connectionString: envPostgresUrl,
   maxPool: 10,
-  level: 'info',
-  tableName: 'logs',
+  level: "info",
+  tableName: "logs",
   tableColumns: [
-    { name: 'id', dataType: 'SERIAL', primaryKey: true },
-    { name: 'level', dataType: 'VARCHAR' },
-    { name: 'timestamp', dataType: 'TIMESTAMP' },
-    { name: 'message', dataType: 'TEXT' },
-    { name: 'context', dataType: 'VARCHAR' },
-    { name: 'stack', dataType: 'JSON' },
-    { name: 'statusCode', dataType: 'SERIAL' },
-    { name: 'durationMs', dataType: 'SERIAL' },
-    { name: 'ip', dataType: 'VARCHAR' },
+    { name: "id", dataType: "SERIAL", primaryKey: true },
+    { name: "level", dataType: "VARCHAR" },
+    { name: "timestamp", dataType: "TIMESTAMP" },
+    { name: "message", dataType: "TEXT" },
+    { name: "context", dataType: "VARCHAR" },
+    { name: "stack", dataType: "JSON" },
+    { name: "statusCode", dataType: "SERIAL" },
+    { name: "durationMs", dataType: "SERIAL" },
+    { name: "ip", dataType: "VARCHAR" },
   ],
 });
 
 export const logger = winston.createLogger({
   levels: winston.config.syslog.levels,
-  level: process.env.LOG_LEVEL || 'info',
+  level: process.env.LOG_LEVEL || "info",
   format: combine(
     timestamp(),
     printf(({ level, message, timestamp, context, stack }) => {
@@ -59,19 +48,15 @@ export const logger = winston.createLogger({
         message,
         stack,
       });
-    })
+    }),
   ),
-  transports: [
-    pgTransport,
-    new winston.transports.Console()
-  ]
+  transports: [pgTransport, new winston.transports.Console()],
 });
-
 
 export default function loggerMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   const start = Date.now();
 
@@ -83,13 +68,13 @@ export default function loggerMiddleware(
   // Only log the request start
   const logMeta = {
     message: `HTTP ${req.method} ${req.path}`,
-    context: username || 'anonymous',
+    context: username || "anonymous",
     stack: {
-      userAgent: req.headers['user-agent'],
+      userAgent: req.headers["user-agent"],
     },
-    ip: req.ip?.replace("::ffff:", ''),
+    ip: req.ip?.replace("::ffff:", ""),
   };
-/* 
+  /* 
   // Log initial request info
   logger.info(logMeta.message, {
     ...logMeta,
@@ -97,7 +82,7 @@ export default function loggerMiddleware(
   }); */
 
   // Wait for response to finish
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - start;
     const responseMeta = {
       statusCode: res.statusCode,
@@ -109,9 +94,9 @@ export default function loggerMiddleware(
       logger.error(`Request completed with status ${res.statusCode}`, {
         ...logMeta,
         ...responseMeta,
-        level: 'warn',
+        level: "warn",
       });
-      return
+      return;
     }
 
     logger.info(`Request completed with status ${res.statusCode}`, {
@@ -119,7 +104,6 @@ export default function loggerMiddleware(
       ...responseMeta,
       level: "info",
     });
-
   });
 
   next();

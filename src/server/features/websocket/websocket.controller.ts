@@ -22,14 +22,14 @@ export const onSocketConnection = async (socket: Socket) => {
   const currentSessionId = socket.request.sessionID;
 
   // If no authenticated user ID found in session, disconnect the socket
-  if (!user) { 
-    console.log("session expired", user)
+  if (!user) {
+    console.log("session expired", user);
     socket.emit("session-expired", {
-      reason: "Your time has run out. Please login again to continue..."
-    })
-    socket.disconnect()
-    return 
-  };
+      reason: "Your time has run out. Please login again to continue...",
+    });
+    socket.disconnect();
+    return;
+  }
 
   const redisKey = `gns3labuser:session:${user.id}`;
   const sessionRecord = await redisClient.hGetAll(redisKey);

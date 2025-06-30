@@ -1,8 +1,17 @@
-import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
+import {
+  checkAuthentication,
+  checkPermission,
+} from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
-import { deleteProject, getProjects, getProjectsById, patchProject, postProjects } from "./projects.controller.ts";
+import {
+  deleteProject,
+  getProjects,
+  getProjectsById,
+  patchProject,
+  postProjects,
+} from "./projects.controller.ts";
 
-const router = Router()
+const router = Router();
 
 /**
  * @route   GET /projects
@@ -13,7 +22,7 @@ router.get(
   "/",
   checkAuthentication,
   checkPermission(["read_projects"]),
-  getProjects
+  getProjects,
 );
 
 /**
@@ -25,7 +34,7 @@ router.get(
   "/:id",
   checkAuthentication,
   checkPermission(["read_projects"]),
-  getProjectsById
+  getProjectsById,
 );
 
 /**
@@ -37,7 +46,7 @@ router.post(
   "/",
   checkAuthentication,
   checkPermission(["create_projects"]),
-  postProjects
+  postProjects,
 );
 
 /**
@@ -49,7 +58,7 @@ router.get(
   "/:id",
   checkAuthentication,
   checkPermission(["read_projects"]),
-  getProjectsById
+  getProjectsById,
 );
 
 /**
@@ -61,7 +70,7 @@ router.patch(
   "/:id",
   checkAuthentication,
   checkPermission(["read_projects"]),
-  patchProject
+  patchProject,
 );
 
 /**
@@ -73,7 +82,7 @@ router.delete(
   "/:id",
   checkAuthentication,
   checkPermission(["read_projects"]),
-  deleteProject
+  deleteProject,
 );
 
 export default router;

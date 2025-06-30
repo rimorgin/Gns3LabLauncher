@@ -7,15 +7,16 @@ import {
 } from "@clnt/components/ui/tabs";
 import { ResponsiveDrawerDialog } from "../ui/responsive-dialog";
 import { Button } from "@clnt/components/ui/button";
-import { UserForm } from "../forms/user-form";
 import { ClassroomForm } from "../forms/classroom-form";
 import { ProjectForm } from "../forms/project-form";
 import { CourseForm } from "../forms/course-form";
-import { useState } from "react";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { UserGroupForm } from "../forms/user-group-form";
+import { UserCreateForm } from "../forms/user/user-create-form";
 
 export default function QuickCreate() {
-  const { isQuickCreateDialogOpen, toggleQuickCreateDialog } = useAppStateStore();
+  const { isQuickCreateDialogOpen, toggleQuickCreateDialog } =
+    useAppStateStore();
 
   return (
     <ResponsiveDrawerDialog
@@ -31,6 +32,7 @@ export default function QuickCreate() {
       <Tabs defaultValue="user" className="w-full -mt-8.5 -ml-2">
         <TabsList className="mb-4">
           <TabsTrigger value="user">User</TabsTrigger>
+          <TabsTrigger value="user-group">User Group</TabsTrigger>
           <TabsTrigger value="course">Course</TabsTrigger>
           <TabsTrigger value="classroom">Classroom</TabsTrigger>
           <TabsTrigger value="project">Project</TabsTrigger>
@@ -41,7 +43,15 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a user by filling all required forms.
             </p>
-            <UserForm />
+            <UserCreateForm />
+          </div>
+        </TabsContent>
+        <TabsContent value="user-group">
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Create a user group by filling all required forms.
+            </p>
+            <UserGroupForm />
           </div>
         </TabsContent>
         <TabsContent value="course">

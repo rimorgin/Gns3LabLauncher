@@ -1,9 +1,9 @@
-// components/RBACWrapper.tsx
 import { usePermissions } from "@clnt/hooks/use-permissions";
-import { IUser } from "@clnt/lib/auth";
+import { IUser } from "@clnt/types/auth-types";
+import { Permission } from "@clnt/types/roles-permissions-types";
 
 interface RBACWrapperProps {
-  requiredPermissions?: string | string[];
+  requiredPermissions?: Permission | Permission[];
   requiredRoles?: IUser["role"] | IUser["role"][];
   requireAllPermission?: boolean;
   //fallback?: React.ReactNode;

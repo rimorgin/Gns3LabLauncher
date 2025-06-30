@@ -1,7 +1,12 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import { createCourse, deleteCourseById, updateCourseById } from "./courses.service.ts";
+import {
+  createCourse,
+  deleteCourseById,
+  updateCourseById,
+} from "./courses.service.ts";
 import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
+import { prismaErrorCode } from "@srvr/utils/db/helpers.ts";
 
 /**
  * Retrieves a list of all courses.
@@ -24,16 +29,15 @@ export const getCourses = async (
 ): Promise<void> => {
   const { only_ids } = req.query;
 
-  const courses = only_ids 
+  const courses = only_ids
     ? await prisma.course.findMany({
-        select: { id: true }
+        select: { id: true },
       })
     : await prisma.course.findMany();
-  
 
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.coursesReturned,
-    courses: courses
+    courses: courses,
   });
 };
 
@@ -53,16 +57,15 @@ export const getCourseById = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { id: courseId } = req.params
+  const { id: courseId } = req.params;
   const course = await prisma.course.findUnique({
     where: { id: courseId },
-    select: { id: true }
-  })
-  
+    select: { id: true },
+  });
 
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.courseReturned,
-    course: course
+    course: course,
   });
 };
 /**
@@ -87,21 +90,30 @@ export const postCourses = async (
 ): Promise<void> => {
   const { courseCode } = req.body;
 
-  const isCourseExists = await prisma.course.findUnique({ where: { courseCode }})
+  const isCourseExists = await prisma.course.findUnique({
+    where: { courseCode },
+  });
   if (isCourseExists) {
     res.status(409).json({ message: APP_RESPONSE_MESSAGE.courseDoesExist });
-    return
+    return;
   }
   try {
-    const newCourse = await createCourse(req.body)
+    const newCourse = await createCourse(req.body);
     //console.log("🚀 ~ postCourses ~ courses:", courses)
-    res.status(201).json({ message: APP_RESPONSE_MESSAGE.courseCreated, newData: newCourse });
+    res.status(201).json({
+      message: APP_RESPONSE_MESSAGE.courseCreated,
+      newData: newCourse,
+    });
     return;
-  } catch (error: any) {
-      res
-        .status(500)
-        .json({ message: `Error creating course: ${error.message}` });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -117,7 +129,10 @@ export const postCourses = async (
  *  - 404 Not Found if course does not exist
  *  - 500 Internal Server Error if update fails
  */
-export const patchCourse = async (req: Request, res: Response): Promise<void> => {
+export const patchCourse = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -125,16 +140,22 @@ export const patchCourse = async (req: Request, res: Response): Promise<void> =>
 
     if (!updatedCourse) {
       res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
-      return
+      return;
     }
 
     res.status(200).json({
       message: APP_RESPONSE_MESSAGE.courseUpdated,
       newData: updatedCourse,
     });
-  } catch (error: any) {
-    res.status(500).json({ message: `Error updating course: ${error.message}` });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -150,7 +171,10 @@ export const patchCourse = async (req: Request, res: Response): Promise<void> =>
  *  - 404 Not Found if course does not exist
  *  - 500 Internal Server Error if deletion fails
  */
-export const deleteCourse = async (req: Request, res: Response): Promise<void> => {
+export const deleteCourse = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -158,14 +182,20 @@ export const deleteCourse = async (req: Request, res: Response): Promise<void> =
 
     if (!deleted) {
       res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
-      return
+      return;
     }
 
     res.status(200).json({
       message: APP_RESPONSE_MESSAGE.courseDeleted,
       newData: deleted,
     });
-  } catch (error: any) {
-    res.status(500).json({ message: `Error deleting course: ${error.message}` });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };

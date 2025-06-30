@@ -1,8 +1,17 @@
-import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
+import {
+  checkAuthentication,
+  checkPermission,
+} from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
-import { deleteCourse, getCourseById, getCourses, patchCourse, postCourses } from "./courses.controller.ts";
+import {
+  deleteCourse,
+  getCourseById,
+  getCourses,
+  patchCourse,
+  postCourses,
+} from "./courses.controller.ts";
 
-const router = Router()
+const router = Router();
 
 /**
  * @route   GET /courses
@@ -13,7 +22,7 @@ router.get(
   "/",
   checkAuthentication,
   checkPermission(["read_courses"]),
-  getCourses
+  getCourses,
 );
 
 /**
@@ -25,7 +34,7 @@ router.get(
   "/:id",
   checkAuthentication,
   checkPermission(["read_courses"]),
-  getCourseById
+  getCourseById,
 );
 
 /**
@@ -37,7 +46,7 @@ router.post(
   "/",
   checkAuthentication,
   checkPermission(["create_courses"]),
-  postCourses
+  postCourses,
 );
 
 /**
@@ -49,7 +58,7 @@ router.patch(
   "/:id",
   checkAuthentication,
   checkPermission(["create_courses"]),
-  patchCourse
+  patchCourse,
 );
 
 /**
@@ -61,7 +70,7 @@ router.delete(
   "/",
   checkAuthentication,
   checkPermission(["delete_courses"]),
-  deleteCourse
+  deleteCourse,
 );
 
 export default router;

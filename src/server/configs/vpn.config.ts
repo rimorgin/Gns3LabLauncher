@@ -45,7 +45,7 @@ export const connectToOpenVPNServer = (): Promise<boolean> => {
 
     vpnProcess.stdout.on("data", (data) => {
       output += data.toString();
-      console.log(output)
+      console.log(output);
       if (output.includes("Initialization Sequence Completed")) {
         console.log("✅ OpenVPN connected");
         resolve(true);

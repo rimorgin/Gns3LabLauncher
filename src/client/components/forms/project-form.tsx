@@ -22,7 +22,7 @@ import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { Skeleton } from "../ui/skeleton";
 
-export function ProjectForm() { 
+export function ProjectForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
@@ -38,7 +38,7 @@ export function ProjectForm() {
     data: classroomsQry = [],
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
-  } = useClassroomsQuery({includes:['course']});
+  } = useClassroomsQuery({ includes: ["course"] });
   const { mutateAsync, status } = useProjectsPost();
 
   const onSubmit = async (data: ProjectFormData) => {
@@ -54,7 +54,7 @@ export function ProjectForm() {
     });
   };
 
-  if (isClassroomsLoading) 
+  if (isClassroomsLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -137,10 +137,7 @@ export function ProjectForm() {
           name="classroomIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Select Classes{" "}
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Select Classrooms</FormLabel>
               <FormControl>
                 <MultiSelect
                   options={classroomOptions}

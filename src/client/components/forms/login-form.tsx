@@ -3,14 +3,12 @@ import { cn } from "@clnt/lib/utils";
 import { Button } from "@clnt/components/ui/button";
 import { Input } from "@clnt/components/ui/input";
 import { Label } from "@clnt/components/ui/label";
-import { useLoading } from "@clnt/hooks/use-loading";
 import {
   IconBrandWindowsFilled,
   IconEye,
   IconEyeClosed,
 } from "@tabler/icons-react";
 import { LoginFormValues, useLogin } from "@clnt/lib/auth";
-import router from "@clnt/pages/route-layout";
 import { toast } from "sonner";
 
 export function LoginForm({
@@ -21,8 +19,7 @@ export function LoginForm({
     email: "",
     password: "",
   });
-  const loginUser = useLogin()
-  const { isLoading, startLoading, stopLoading } = useLoading();
+  const loginUser = useLogin();
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,10 +38,8 @@ export function LoginForm({
           return message;
         },
       });
-      
     } catch (error) {
       console.error("Login error:", error);
-    } finally {
     }
   };
 

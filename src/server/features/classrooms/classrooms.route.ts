@@ -1,8 +1,17 @@
-import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
+import {
+  checkAuthentication,
+  checkPermission,
+} from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
-import { deleteClassroom, getClassroomById, getClassrooms, patchClassroom, postClassroom } from "./classrooms.controller.ts";
+import {
+  deleteClassroom,
+  getClassroomById,
+  getClassrooms,
+  patchClassroom,
+  postClassroom,
+} from "./classrooms.controller.ts";
 
-const router = Router()
+const router = Router();
 
 /**
  * @route   GET /classrooms
@@ -13,7 +22,7 @@ router.get(
   "/",
   checkAuthentication,
   checkPermission(["read_classrooms"]),
-  getClassrooms
+  getClassrooms,
 );
 
 /**
@@ -25,7 +34,7 @@ router.get(
   "/",
   checkAuthentication,
   checkPermission(["read_classrooms"]),
-  getClassroomById
+  getClassroomById,
 );
 
 /**
@@ -37,8 +46,8 @@ router.post(
   "/",
   checkAuthentication,
   checkPermission(["create_classrooms"]),
-  postClassroom
-)
+  postClassroom,
+);
 
 /**
  * @route   PATCH /classrooms/:id
@@ -46,10 +55,10 @@ router.post(
  * @access  Authenticated users with 'update_classrooms' permission
  */
 router.patch(
-  '/:id', 
+  "/:id",
   checkAuthentication,
-  checkPermission(["update_classrooms"]), 
-  patchClassroom
+  checkPermission(["update_classrooms"]),
+  patchClassroom,
 );
 
 /**
@@ -57,11 +66,11 @@ router.patch(
  * @desc    Deletes classroom.
  * @access  Authenticated users with 'deletes_classrooms' permission
  */
-router.delete('/:id', 
+router.delete(
+  "/:id",
   checkAuthentication,
-  checkPermission(["delete_classrooms"]), 
-  deleteClassroom
+  checkPermission(["delete_classrooms"]),
+  deleteClassroom,
 );
-
 
 export default router;

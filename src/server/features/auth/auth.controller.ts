@@ -6,7 +6,10 @@ import { createUser } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import roles from "@srvr/configs/roles.config.ts";
-import { APP_RESPONSE_MESSAGE, HttpStatusCode } from "@srvr/configs/constants.config.ts";
+import {
+  APP_RESPONSE_MESSAGE,
+  HttpStatusCode,
+} from "@srvr/configs/constants.config.ts";
 import { logger } from "@srvr/middlewares/logger.middleware.ts";
 
 /**
@@ -24,7 +27,7 @@ export const checkSession = (req: Request, res: Response): void => {
     res.status(HttpStatusCode.UNAUTHORIZED).json({ session: false });
     return;
   }
-  
+
   res.status(200).json({ session: true });
 };
 
@@ -45,7 +48,9 @@ export const getUserPermissions = (req: Request, res: Response): void => {
   const userRole = req.user?.role;
 
   if (!userRole) {
-    res.status(HttpStatusCode.UNAUTHORIZED).json({ message: "Unauthorized or role missing" });
+    res
+      .status(HttpStatusCode.UNAUTHORIZED)
+      .json({ message: "Unauthorized or role missing" });
     return;
   }
 
@@ -60,7 +65,6 @@ export const getUserPermissions = (req: Request, res: Response): void => {
   res.json({ permissions });
 };
 
-
 /**
  * Fetches the currently authenticated user from the database using their session ID.
  *
@@ -72,10 +76,11 @@ export const getUserPermissions = (req: Request, res: Response): void => {
  *  - 401 if not logged in
  *  - 404 if user is not found in the database
  */
-export const getUser = async (req: Request, res: Response): Promise<void> => {
+export const getMe = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
-  const user = await prisma.user.safeFindUnique({
-    where: { id: userSessionId }
+  const user = await prisma.user.findUnique({
+    where: { id: userSessionId },
+    omit: { password: true },
   });
   if (!user) {
     res.status(404).json({ message: APP_RESPONSE_MESSAGE.userDoesntExist });
@@ -102,33 +107,40 @@ export const postLoginLocal = (
   res: Response,
   next: NextFunction,
 ): void => {
-  passport.authenticate("local", async (err: any, user: IUserBaseInput, info: any) => {
-    if (err) return next(err);
-    if (!user) {
-      return res
-        .status(HttpStatusCode.UNAUTHORIZED)
-        .json({ type: "error", message: info?.message || "Unauthorized" });
-    }
-
-    req.login(user, async (err) => {
+  passport.authenticate(
+    "local",
+    (
+      err: Error | null,
+      user: IUserBaseInput | false,
+      info: { message?: string } = {},
+    ) => {
       if (err) return next(err);
+      if (!user) {
+        return res
+          .status(HttpStatusCode.UNAUTHORIZED)
+          .json({ type: "error", message: info.message || "Unauthorized" });
+      }
 
-      // explicitly log because the logger middleware captures user logs only when they are logged in
-      logger.info(`Request completed with status ${res.statusCode}`, {
-        context: user.username,
-        message: `User ${user.username} logged in`,
-        stack: {
-          ip: req.ip?.replace("::ffff:", ''),
-          userAgent: req.headers['user-agent'],
-        },
+      req.login(user, async (loginErr) => {
+        if (loginErr) return next(loginErr);
+
+        logger.info(`Request completed with status ${res.statusCode}`, {
+          context: user.username,
+          message: `User ${user.username} logged in`,
+          stack: {
+            userAgent: req.headers["user-agent"],
+          },
+          ip: req.ip?.replace("::ffff:", ""),
+        });
+
+        res.json({
+          user: req.session.passport?.user, // This will be serialized user
+          session: true,
+          message: APP_RESPONSE_MESSAGE.userLoggedIn,
+        });
       });
-      res.json({
-        user: req.session.passport?.user, //return user id
-        session: true,
-        message: APP_RESPONSE_MESSAGE.userLoggedIn
-      });
-    });
-  })(req, res, next);
+    },
+  )(req, res, next);
 };
 
 /**
@@ -208,7 +220,7 @@ export const postSignup = async (
 ): Promise<void> => {
   try {
     const user = await createUser(req.body);
-    req.login(user, (err: any) => {
+    req.login(user, (err: Error) => {
       if (err) return next(err);
       res.redirect("/");
     });

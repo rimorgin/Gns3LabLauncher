@@ -47,7 +47,7 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
     but it is needed for the first request to respond instantly and cannot wait 
     for a lazy connection to be established
   */
-  const connection = prisma.$connect
+  const connection = prisma.$connect;
 
   if (!connection) {
     console.error("❌ PostgreSQL is healthy but Prisma Client did not connect");
@@ -57,10 +57,10 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
   console.log(`✅ PostgreSQL connected`);
 
   const isDefaultCredentialsExists = await prisma.user.findUnique({
-    where: { 
-      username: "gns3labadmin" 
-    }
-  })
+    where: {
+      username: "gns3labadmin",
+    },
+  });
 
   if (!isDefaultCredentialsExists) {
     const defaultUserCredentials: IUserWithRoleInput = {
@@ -68,10 +68,10 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
       email: "gns3labadmin@admin.net",
       username: "gns3labadmin",
       password: "gns3labadmin",
-      role: "administrator"
+      role: "administrator",
     };
-  
-    const admin = await createUser(defaultUserCredentials)
-    console.log("🚀 ~ Postgres ~ Gns3AdminCredentials", admin)
+
+    const admin = await createUser(defaultUserCredentials);
+    console.log("🚀 ~ Postgres ~ Gns3AdminCredentials", admin);
   }
 }

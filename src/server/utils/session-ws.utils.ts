@@ -48,6 +48,11 @@ export const forceLogoutUserBySessionID = (
  */
 export const wrapExpressMiddlewareForSocket =
   (middleware: RequestHandler) =>
-  (req: IncomingMessage, res: ServerResponse, next: (err?: any) => void) => {
+  (
+    req: IncomingMessage,
+    res: ServerResponse,
+    next: (err?: unknown) => void,
+  ) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     middleware(req as any, res as any, next);
   };

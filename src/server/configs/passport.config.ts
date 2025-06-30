@@ -14,10 +14,10 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id: string, done) => {
   try {
-    const user = await prisma.user.safeFindUnique({
-        where: { id },
-      },
-    );
+    const user = await prisma.user.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
     //console.log("🚀 ~ passport.deserializeUser ~ user:", user)
 
     if (!user) return done(null, false);
@@ -38,10 +38,14 @@ passport.use(
       try {
         const user = await prisma.user.findUnique({ where: { email: email } });
         if (!user)
-          return done(null, false, { message: APP_RESPONSE_MESSAGE.invalidCredentials });
+          return done(null, false, {
+            message: APP_RESPONSE_MESSAGE.invalidCredentials,
+          });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
-          return done(null, false, { message: "Incorrect password." });
+          return done(null, false, {
+            message: APP_RESPONSE_MESSAGE.invalidCredentials,
+          });
 
         //console.log(user)
         return done(null, user);

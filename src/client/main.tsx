@@ -24,7 +24,10 @@ const asyncStoragePersister = createAsyncStoragePersister({
 });
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <PersistQueryClientProvider client={queryClient} persistOptions={{persister: asyncStoragePersister}}>
+  <PersistQueryClientProvider
+    client={queryClient}
+    persistOptions={{ persister: asyncStoragePersister }}
+  >
     <AppWrapper>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
         <TooltipProvider>

@@ -3,5 +3,6 @@ model Student {
   isOnline     Boolean     @default(false)
   lastActiveAt DateTime?
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userGroups   UserGroups[] @relation("UserGroups")
   classrooms   Classroom[] @relation("ClassroomStudents")
 }

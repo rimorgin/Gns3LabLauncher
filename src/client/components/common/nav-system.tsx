@@ -7,7 +7,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
 } from "@clnt/components/ui/sidebar";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 
@@ -19,7 +18,7 @@ export default function NavSystem({
     icon?: Icon;
   }[];
 }) {
-  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore();
+  const { activeNavName, setActiveNavName } = useAppStateStore();
 
   return (
     <SidebarGroup>
@@ -29,9 +28,7 @@ export default function NavSystem({
           {items.map((item) => {
             const isActive = item.title === activeNavName;
 
-            return isAppLoading ? (
-              <SidebarMenuSkeleton key={item.title} showIcon />
-            ) : (
+            return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild

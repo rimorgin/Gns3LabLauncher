@@ -7,7 +7,9 @@ export default function csrfTokenMiddleware(
   next: NextFunction,
 ): void {
   if (!req.session) {
-    throw new Error("Session middleware must be initialized before csrfMiddleware.");
+    throw new Error(
+      "Session middleware must be initialized before csrfMiddleware.",
+    );
   }
 
   // Always generate a new token based on current session
@@ -16,4 +18,3 @@ export default function csrfTokenMiddleware(
 
   next();
 }
-

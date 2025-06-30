@@ -1,7 +1,6 @@
 type ViewOption = "dropdown" | "list" | "full";
 type ModelOption = "user" | "course" | "classroom" | "project";
 
-
 const viewSelects = {
   user: {
     dropdown: { id: true },
@@ -27,14 +26,10 @@ const viewSelects = {
 
 export function getSelectByView<
   M extends ModelOption,
-  V extends ViewOption = "full"
->(
-  model: M,
-  view?: V
-): (typeof viewSelects)[M][V] {
-  return viewSelects[model][view ?? "full" as V];
+  V extends ViewOption = "full",
+>(model: M, view?: V): (typeof viewSelects)[M][V] {
+  return viewSelects[model][view ?? ("full" as V)];
 }
-
 
 /* const s1 = getSelectByView("user", "dropdown");
 // inferred: { id: true }

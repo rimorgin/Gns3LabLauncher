@@ -1,4 +1,4 @@
-model logs {
+model Logs {
   id         Int       @id @default(autoincrement())
   level      String?   @db.VarChar
   timestamp  DateTime? @db.Timestamp(6)

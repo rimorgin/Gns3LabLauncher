@@ -27,4 +27,6 @@ cert
 var
 .env*
 
+src/server/var/**/*
+
 prisma/migrations

@@ -35,22 +35,27 @@ axiosInstance.interceptors.response.use(
       typeof response.data === "string" &&
       response.data.trim().startsWith("<!doctype html>")
     ) {
-      throw new Error("Invalid response: received HTML document instead of JSON data.");
+      throw new Error(
+        "Invalid response: received HTML document instead of JSON data.",
+      );
     }
-    csrfToken = null
+    csrfToken = null;
     return response;
   },
   (error) => {
-    if (error?.response?.status === 401 /* && error?.response?.message === "Unauthorized: You must be logged in to access this resource." */) {
-      console.log("🚀 ~ error?.response?.message:", error?.response?.message)
+    if (
+      error?.response?.status ===
+      401 /* && error?.response?.message === "Unauthorized: You must be logged in to access this resource." */
+    ) {
+      console.log("🚀 ~ error?.response?.message:", error?.response?.message);
       /* 
       useUserStore.getState().invalidateUser(); // 🔐 clear session
       window.location.href = "/signin"; // optional auto-redirect */
-      throw new Error(error?.response?.message)
+      throw new Error(error?.response?.message);
     }
-    csrfToken = null
+    csrfToken = null;
     return Promise.reject(error);
-  }
+  },
 );
 
 export default axiosInstance;

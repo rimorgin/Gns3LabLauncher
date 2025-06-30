@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
 } from "@clnt/components/ui/sidebar";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 
@@ -24,16 +23,14 @@ export default function NavSecondary({
     icon: Icon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { isAppLoading, activeNavName, setActiveNavName } = useAppStateStore();
+  const { activeNavName, setActiveNavName } = useAppStateStore();
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
             const isActive = activeNavName === item.title;
-            return isAppLoading ? (
-              <SidebarMenuSkeleton key={item.title} showIcon />
-            ) : (
+            return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild

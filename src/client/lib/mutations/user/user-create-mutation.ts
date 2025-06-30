@@ -1,47 +1,48 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from '@clnt/lib/axios.ts'
-import { UserFormData } from "../validators/user-schema";
+import axios from "@clnt/lib/axios.ts";
+import { UserCreateData } from "@clnt/lib/validators/user-schema.ts";
 
 // ---- Mutation ----
 
-export const postUser = async (data: UserFormData) => {
+export const postUser = async (data: UserCreateData) => {
   const response = await axios.post("/users", data);
   return response.data;
 };
-
 
 export const useUserPost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: postUser,
     // When mutate is called:
-    onMutate: async (newTodo) => {
+    onMutate: async (newData) => {
       // Cancel any outgoing refetches
       // (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['users'] })
+      await queryClient.cancelQueries({ queryKey: ["users"] });
 
       // Snapshot the previous value
-      const previousTodos = queryClient.getQueryData(['users'])
+      const previousUsers = queryClient.getQueryData(["users"]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(['users'], (old) => Array.isArray(old) ? [...old, newTodo] : [newTodo])
+      queryClient.setQueryData(["users"], (old) =>
+        Array.isArray(old) ? [...old, newData] : [newData],
+      );
 
       // Return a context object with the snapshotted value
-      return { previousTodos }
+      return { previousUsers };
     },
     // If the mutation fails,
     // use the context returned from onMutate to roll back
     onError: (err, newTodo, context) => {
       if (context) {
-        queryClient.setQueryData(['users'], context.previousTodos);
+        queryClient.setQueryData(["users"], context.previousUsers);
       }
     },
     /* onSuccess: (newData) => {
-      queryClient.setQueryData(["users"], (oldData: UserFormData[]) => {
+      queryClient.setQueryData(["users"], (oldData: UserCreateData[]) => {
         if (!oldData) return [newData];
         return [...oldData, newData];
       });
     }, */
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['users'] })
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
   });
 };

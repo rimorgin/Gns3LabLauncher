@@ -1,7 +1,10 @@
 // src/components/forms/UserForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { userFormSchema, UserFormData } from "@clnt/lib/validators/user-schema";
+import {
+  UserCreateData,
+  userCreateSchema,
+} from "@clnt/lib/validators/user-schema";
 import { Input, StringArrayInput } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
 import {
@@ -20,29 +23,23 @@ import {
   FormMessage,
 } from "@clnt/components/ui/form";
 import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
-import { MultiSelect } from "../ui/multi-select";
-import { useUserPost } from "@clnt/lib/mutations/user-mutation";
+import { MultiSelect } from "@clnt/components/ui/multi-select";
+import { useUserPost } from "@clnt/lib/mutations/user/user-create-mutation";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@clnt/components/ui/skeleton";
+import { useUserGroupsQuery } from "@clnt/lib/queries/user-groups-query";
 
-export function UserForm() {
-   const { toggleQuickCreateDialog } = useAppStateStore();
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(userFormSchema),
+export function UserCreateForm() {
+  const { toggleQuickCreateDialog } = useAppStateStore();
+  const form = useForm<UserCreateData>({
+    resolver: zodResolver(userCreateSchema),
     defaultValues: {
       name: "",
       email: "",
       username: "",
       password: "",
       role: "student",
-      instructor: {
-        expertise: [], // for instructor role only
-        classroomIds: [], // optional
-      },
-      student: {
-        classroomIds: [], // optional
-      },
     },
   });
 
@@ -52,11 +49,17 @@ export function UserForm() {
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
     // EMBED DATA with boolean option TRUE
-  } = useClassroomsQuery({includes: ["course"]});
+  } = useClassroomsQuery({ includes: ["course"] });
+  const {
+    data: userGroupQry = [],
+    isLoading: isUserGroupLoading,
+    error: errorOnUserGroup,
+    // EMBED DATA with boolean option TRUE
+  } = useUserGroupsQuery();
   const { mutateAsync, status } = useUserPost();
-  console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
+  //console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
 
-  const onSubmit = async (data: UserFormData) => {
+  const onSubmit = async (data: UserCreateData) => {
     const email = data.email.toLowerCase();
     const newData = { ...data, email: email };
     toast.promise(mutateAsync(newData), {
@@ -68,10 +71,10 @@ export function UserForm() {
       },
       error: (error) => error.response.data.message,
     });
-    console.log("🚀 ~ onSubmit ~ newData:", newData)
+    //console.log("🚀 ~ onSubmit ~ newData:", newData);
   };
 
-  if (isClassroomsLoading) 
+  if (isClassroomsLoading && isUserGroupLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -86,7 +89,8 @@ export function UserForm() {
         <Skeleton className="w-full h-8" />
       </>
     );
-  if (errorOnClassrooms) return <div>Failed to load resources</div>;
+  if (errorOnClassrooms && errorOnUserGroup)
+    return <div>Failed to load resources</div>;
 
   const classroomOptions = classroomQry?.map(
     (cls: {
@@ -97,6 +101,13 @@ export function UserForm() {
     }) => ({
       value: cls.id,
       label: `${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
+    }),
+  );
+
+  const userGroupOptions = userGroupQry?.map(
+    (group: { id: string; groupName: string }) => ({
+      value: group.id,
+      label: group.groupName,
     }),
   );
 
@@ -180,7 +191,7 @@ export function UserForm() {
             </FormItem>
           )}
         />
-        {form.watch("role") === "instructor" && (
+        {form.watch("role") === "instructor" ? (
           <FormField
             control={form.control}
             name="instructor.expertise"
@@ -200,6 +211,29 @@ export function UserForm() {
               </FormItem>
             )}
           />
+        ) : (
+          <FormField
+            control={form.control}
+            name="student.groupIds"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Select Groups
+                  <span className="text-muted-foreground">{"(optional)"}</span>
+                </FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    options={userGroupOptions}
+                    value={(field.value ?? []).filter(Boolean) as string[]}
+                    onValueChange={field.onChange}
+                    placeholder="Select Groups"
+                    className="w-full"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         )}
 
         <FormField
@@ -208,7 +242,7 @@ export function UserForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Select Classes
+                Select Classrooms
                 <span className="text-muted-foreground">{"(optional)"}</span>
               </FormLabel>
               <FormControl>

@@ -28,16 +28,16 @@ export function CourseForm() {
     defaultValues: {
       courseCode: "",
       courseName: "",
-      classroomIds: []
+      classroomIds: [],
     },
   });
 
-    const {
-      data: classroomQry = [],
-      isLoading: isClassroomsLoading,
-      error: errorOnClassrooms,
-      // EMBED DATA with boolean option TRUE
-    } = useClassroomsQuery({includes: ["courseId"]});
+  const {
+    data: classroomQry = [],
+    isLoading: isClassroomsLoading,
+    error: errorOnClassrooms,
+    // EMBED DATA with boolean option TRUE
+  } = useClassroomsQuery({ includes: ["courseId"] });
 
   const { mutateAsync, status } = useCoursesPost();
 
@@ -53,29 +53,23 @@ export function CourseForm() {
     });
   };
 
-  if (isClassroomsLoading) 
-      return (
-        <>
-          <Skeleton className="w-18 h-4" />
-          <Skeleton className="w-full h-8" />
-          <Skeleton className="w-18 h-4" />
-          <Skeleton className="w-full h-8" />
-        </>
-      );
-    if (errorOnClassrooms) return <div>Failed to load resources</div>;
+  if (isClassroomsLoading)
+    return (
+      <>
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+        <Skeleton className="w-18 h-4" />
+        <Skeleton className="w-full h-8" />
+      </>
+    );
+  if (errorOnClassrooms) return <div>Failed to load resources</div>;
 
-    const classroomOptions = classroomQry
-      ?.filter((cls: { courseId?: string }) => !cls.courseId)
-      .map(
-        (cls: {
-          id: string;
-          classroomName: string;
-          status: string;
-        }) => ({
-          value: cls.id,
-          label: `${cls.classroomName} (${cls.status})`,
-        }),
-      );
+  const classroomOptions = classroomQry
+    ?.filter((cls: { courseId?: string }) => !cls.courseId)
+    .map((cls: { id: string; classroomName: string; status: string }) => ({
+      value: cls.id,
+      label: `${cls.classroomName} (${cls.status})`,
+    }));
 
   return (
     <Form {...form}>
@@ -119,10 +113,7 @@ export function CourseForm() {
           name="classroomIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Select Classes{" "}
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Select Available Classrooms</FormLabel>
               <FormControl>
                 <MultiSelect
                   options={classroomOptions}

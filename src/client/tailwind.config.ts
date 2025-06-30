@@ -5,6 +5,9 @@ const config: Config = {
   content: ["./**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      width: {
+        "95p": "95%",
+      },
       bgGradientDeg: {
         135: "135deg",
       },

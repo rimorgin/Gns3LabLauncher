@@ -62,13 +62,13 @@ export function ClassroomForm() {
     data: userStudentsQry = [],
     isLoading: isUserStudentsLoading,
     error: errorOnUserStudents,
-  } = useUsersByRoleQuery({role:"student"});
+  } = useUsersByRoleQuery({ role: "student" });
 
   const {
     data: userInstructorQry = [],
     isLoading: isUserInstructorLoading,
     error: errorOnUserInstructor,
-  } = useUsersByRoleQuery({role:"instructor"});
+  } = useUsersByRoleQuery({ role: "instructor" });
   const { mutateAsync, status } = useClassroomsPost();
 
   const onSubmit = async (data: ClassroomFormData) => {
@@ -106,23 +106,25 @@ export function ClassroomForm() {
 
   if (
     errorOnCourses &&
-    errorOnUserStudents && 
+    errorOnUserStudents &&
     errorOnUserInstructor &&
     errorOnProjects
   )
     return <div>Failed to load courses</div>;
 
   const projectOptions = projectsQry.map(
-    (prjt: {id: string, projectName: string}) => ({
+    (prjt: { id: string; projectName: string }) => ({
       value: prjt.id,
-      label: prjt.projectName
-    }))
+      label: prjt.projectName,
+    }),
+  );
 
   const studentOptions = userStudentsQry.map(
-    (student: {id: string, name: string}) => ({
+    (student: { id: string; name: string }) => ({
       value: student.id,
-      label: student.name
-    }))
+      label: student.name,
+    }),
+  );
 
   return (
     <Form {...form}>
@@ -178,10 +180,7 @@ export function ClassroomForm() {
           name="courseId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Assign to Course
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Assign to Course</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -214,10 +213,7 @@ export function ClassroomForm() {
           name="studentIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Assign Students
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Assign to Students</FormLabel>
               <FormControl>
                 <MultiSelect
                   options={studentOptions}
@@ -236,10 +232,7 @@ export function ClassroomForm() {
           name="projectIds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Assign Projects
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Assign to Projects</FormLabel>
               <FormControl>
                 <MultiSelect
                   options={projectOptions}

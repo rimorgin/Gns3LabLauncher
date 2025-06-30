@@ -1,11 +1,8 @@
 import {
   IconDashboard,
-  IconDatabase,
   IconUserScreen,
-  IconFileWord,
   IconFolder,
   IconHelp,
-  IconReport,
   IconSearch,
   IconSettings,
   IconUsers,
@@ -30,7 +27,7 @@ export const data = {
       },
       {
         title: "Course",
-        icon: IconChalkboardTeacher
+        icon: IconChalkboardTeacher,
       },
       {
         title: "Classroom",
@@ -41,7 +38,7 @@ export const data = {
         icon: IconFolder,
       },
     ],
-  /*   documents: [
+    /*   documents: [
       {
         name: "Data Library",
         url: "#",

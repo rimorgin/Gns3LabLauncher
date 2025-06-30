@@ -260,6 +260,7 @@ function Sidebar({
 interface SidebarIconProps {
   icon: React.ComponentType<{ className?: string }>; // Accepts icons that take at least a className
   className?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any; // For other div props like onClick, title, etc.
 }
 
@@ -755,17 +756,17 @@ function SidebarMenuLoadingContent() {
       </SidebarHeader>
 
       <SidebarContent>
-        {Object.entries(data.nav).map(([groupKey, groupItems], groupIndex) => (
+        {Object.entries(data.nav).map(([groupKey, groupItems]) => (
           <SidebarGroup
             key={groupKey}
             className={`${groupKey === "secondary" && "mt-auto"}`}
           >
             <SidebarGroupLabel className="capitalize">
-              {groupKey !== 'secondary' && groupKey}
+              {groupKey !== "secondary" && groupKey}
             </SidebarGroupLabel>
             <SidebarGroupContent className="flex flex-col gap-2">
               <SidebarMenu>
-                {(groupItems as any[]).map((_, key) => (
+                {(groupItems as unknown as []).map((_, key) => (
                   <SidebarMenuSkeleton key={key} showIcon />
                 ))}
               </SidebarMenu>

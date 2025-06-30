@@ -11,7 +11,7 @@ import {
 } from "@srvr/configs/env.config.ts";
 
 console.log("Environment mode:", MODE);
-console.log("MAP HOST: ", process.env.OPENVPN_STATIC_HOST_MAPPINGS)
+console.log("MAP HOST: ", process.env.OPENVPN_STATIC_HOST_MAPPINGS);
 
 const execAsync = promisify(exec);
 
@@ -48,8 +48,11 @@ async function createCertsIfNeeded(): Promise<void> {
         console.log(`✅ HTTPS certs generated for ${service}`);
       }
     }
-  } catch (err: any) {
-    console.error("❌ Failed to generate certificates:", err.message);
+  } catch (error: unknown) {
+    console.error(
+      "❌ Failed to generate certificates:",
+      (error as { message: string }).message,
+    );
     throw new Error(
       "Please ensure mkcert is installed and configured correctly.",
     );
@@ -67,10 +70,11 @@ async function startContainers(): Promise<void> {
     );
     if (stdout) console.log(stdout);
     if (stderr) console.error(stderr);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       "❌ Failed to start containers:",
-      error.stderr || error.message,
+      (error as { stderr?: string; message?: string }).stderr ||
+        (error as { message?: string }).message,
     );
     throw error;
   }
@@ -88,7 +92,6 @@ async function startPrismaStudio(): Promise<void> {
     stdio: "inherit",
     shell: true,
   });
-  prismaStudioProcess.pid
 }
 
 /**
@@ -97,10 +100,10 @@ async function startPrismaStudio(): Promise<void> {
 async function startViteExpress(): Promise<void> {
   try {
     await createCertsIfNeeded();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       "🚨 Certificate generation failed. Aborting startup.",
-      error.message,
+      (error as { message: string }).message,
     );
     process.exit(0);
   }
@@ -118,22 +121,32 @@ async function startViteExpress(): Promise<void> {
     console.error(`[APP ERR]: ${data}`);
   });
 
-  const shutdown = async() => {
+  const shutdown = async () => {
     console.log("\n🛑 Shutting down services gracefully...");
-    if (prismaStudioProcess &&  prismaStudioProcess.pid && !prismaStudioProcess.killed) {
-      console.log("🚀 ~ shutdown ~ prismaStudioProcess.pid:", prismaStudioProcess.pid)
-      
+    if (
+      prismaStudioProcess &&
+      prismaStudioProcess.pid &&
+      !prismaStudioProcess.killed
+    ) {
+      console.log(
+        "🚀 ~ shutdown ~ prismaStudioProcess.pid:",
+        prismaStudioProcess.pid,
+      );
+
       await prismaStudioProcess.kill();
       console.log("✅ Prisma Studio stopped.");
     }
-    exec(`docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`, (err) => {
-      if (err) {
-        console.warn("⚠️ Error stopping containers:", err.message);
-      } else {
-        console.log("✅ All containers stopped.");
-      }
-      process.exit(0);
-    });
+    exec(
+      `docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`,
+      (err) => {
+        if (err) {
+          console.warn("⚠️ Error stopping containers:", err.message);
+        } else {
+          console.log("✅ All containers stopped.");
+        }
+        process.exit(0);
+      },
+    );
   };
 
   process.on("SIGINT", shutdown);

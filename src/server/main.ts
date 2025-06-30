@@ -11,7 +11,7 @@ import passport from "passport";
 import Redis from "@srvr/database/redis.database.ts";
 import Postgres from "@srvr/database/postgres.database.ts";
 
-import registerFeatures, { registerWsFeature } from "@srvr/features/index.features.ts";
+import registerFeatures from "@srvr/features/index.features.ts";
 
 import helmetMiddleware from "@srvr/middlewares/helmet.middleware.ts";
 import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
@@ -42,14 +42,14 @@ app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// SECURITY 
-app.use(helmetMiddleware())
+// SECURITY
+app.use(helmetMiddleware());
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
 // Reduce fingerprinting
-app.disable('x-powered-by')
-// prevent DDos or Brute Force 
-app.use(rateLimiterMiddleware) //disable in development
+app.disable("x-powered-by");
+// prevent DDos or Brute Force
+app.use(rateLimiterMiddleware); //disable in development
 // enforce single session only
 //app.use(enforceSingleSessionOnly)
 // enforce validation of session every client mounts
@@ -57,12 +57,10 @@ app.use(rateLimiterMiddleware) //disable in development
 // LOGGING
 app.use(loggerMiddleware);
 // ERROR HANDLING
-app.use(errorMiddleware)
+app.use(errorMiddleware);
 
 // Routes
-await registerFeatures(app)
-
-
+await registerFeatures(app);
 
 if (MODE === "production" || MODE === "staging") {
   const key = fs.readFileSync(
@@ -80,7 +78,7 @@ if (MODE === "production" || MODE === "staging") {
   // enable vpn when not in development
   console.log("🔗 Connecting to VPN...");
   await vpnConnect();
-  app.use(vpnOnlyMiddleware)
+  app.use(vpnOnlyMiddleware);
 
   /*   ViteExpress.config({
     //@ts-expect-error type staging no allowed
@@ -99,7 +97,7 @@ server.listen(envServerPort, () => {
 });
 
 // initialize websocket connection handlers
-webSocketListener()
+webSocketListener();
 
 //@ts-expect-error staging mode is not allowed
 ViteExpress.config({ mode: MODE });

@@ -14,10 +14,16 @@ import RBACWrapper from "./rbac-wrapper";
 import { useUser } from "@clnt/lib/auth";
 
 const NavMain = React.lazy(() => import("@clnt/components/common/nav-main"));
-const NavUser = React.lazy(() => import("@clnt/components/common/nav-user"))
-const NavSecondary = React.lazy(() => import("@clnt/components/common/nav-secondary"));
-const NavSystem = React.lazy(() => import("@clnt/components/common/nav-system"));
-const NavReports = React.lazy(() => import("@clnt/components/common//nav-reports"));
+const NavUser = React.lazy(() => import("@clnt/components/common/nav-user"));
+const NavSecondary = React.lazy(
+  () => import("@clnt/components/common/nav-secondary"),
+);
+const NavSystem = React.lazy(
+  () => import("@clnt/components/common/nav-system"),
+);
+const NavReports = React.lazy(
+  () => import("@clnt/components/common//nav-reports"),
+);
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const user = useUser();
@@ -54,7 +60,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             requiredPermissions={[
               "read_data_library",
               "read_system_health",
-              " read_system_logs",
+              "read_system_logs",
             ]}
           >
             <NavSystem items={data.nav.system} />

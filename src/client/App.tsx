@@ -1,8 +1,5 @@
 import { useEffect } from "react";
-import {
-  RouterProvider,
-} from "react-router";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { RouterProvider } from "react-router";
 import socket from "@clnt/lib/socket";
 import { useModal } from "@clnt/hooks/use-modal";
 import { SessionKickedAlert } from "@clnt/components/common/session-kicked-alert";
@@ -11,8 +8,7 @@ import { useLogout, useUser } from "./lib/auth";
 
 function App() {
   const user = useUser();
-  const logoutUser = useLogout()
-  const { setIsAppLoading } = useAppStateStore();
+  const logoutUser = useLogout();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
 
   console.log("running in ", import.meta.env.MODE);
@@ -34,7 +30,7 @@ function App() {
     const onSessionExpired = async () => {
       await logoutUser.mutateAsync({});
       console.log("🔴 Session expired");
-    }
+    };
 
     const onSessionKicked = () => {
       openModal();
@@ -43,7 +39,7 @@ function App() {
 
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
-    socket.on("session-expired", onSessionExpired)
+    socket.on("session-expired", onSessionExpired);
     socket.on("session-kicked", onSessionKicked);
 
     return () => {
@@ -58,7 +54,6 @@ function App() {
   ) : (
     <RouterProvider router={router} />
   );
-  
 }
 
 export default App;

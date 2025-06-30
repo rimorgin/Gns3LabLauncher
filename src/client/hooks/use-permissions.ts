@@ -1,4 +1,6 @@
-import { IUser, useUser } from "@clnt/lib/auth";
+import { useUser } from "@clnt/lib/auth";
+import { IUser } from "@clnt/types/auth-types";
+import { Permission } from "@clnt/types/roles-permissions-types";
 
 export const usePermissions = () => {
   const userQuery = useUser();
@@ -8,7 +10,7 @@ export const usePermissions = () => {
    * Check if user has at least one of the required permissions
    */
   const hasAnyPermission = (
-    requiredPermissions: string | string[],
+    requiredPermissions: Permission | Permission[],
   ): boolean => {
     if (!user || !Array.isArray(user.permissions)) return false;
 
@@ -25,7 +27,7 @@ export const usePermissions = () => {
    * Check if user has all of the required permissions
    */
   const hasAllPermissions = (
-    requiredPermissions: string | string[],
+    requiredPermissions: Permission | Permission[],
   ): boolean => {
     if (!user || !Array.isArray(user.permissions)) return false;
 

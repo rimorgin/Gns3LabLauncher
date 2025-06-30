@@ -33,7 +33,7 @@ export const redisCache = ({
       }
 
       const originalJson = res.json.bind(res);
-      res.json = (body: any): Response => {
+      res.json = (body: Body): Response => {
         redisClient
           .setEx(key, ttl, JSON.stringify(body))
           .catch((err) => console.warn("[Redis Cache] setEx error", err));

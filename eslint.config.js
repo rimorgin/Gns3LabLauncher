@@ -1,26 +1,27 @@
 import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import pluginReact from "eslint-plugin-react";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier";
+import react from "eslint-plugin-react";
+import eslintConfigPrettier from "eslint-config-prettier/flat";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import { defineConfig, globalIgnores } from "eslint/config";
-import pluginQuery from '@tanstack/eslint-plugin-query'
-
+import pluginQuery from "@tanstack/eslint-plugin-query";
 
 export default defineConfig([
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    files: ["**/*.{js,ts,jsx,tsx}"],
     plugins: { js },
     extends: ["js/recommended"],
   },
   {
-    files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
+    files: ["**/*.{js,ts,jsx,tsx}"],
+    plugins: { react },
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
   },
   tseslint.configs.recommended,
-  pluginReact.configs.flat.recommended,
-  eslintPluginPrettierRecommended.configs.recommended,
-  pluginQuery.configs["flat/recommended"],
+  ...pluginQuery.configs["flat/recommended"],
+  eslintConfigPrettier,
+  eslintPluginPrettierRecommended,
   globalIgnores([
     "node_modules/*",
     "src/server/var/**/*",
@@ -29,9 +30,6 @@ export default defineConfig([
   {
     rules: {
       "react/react-in-jsx-scope": "off",
-      "@typescript-eslint/no-unused-imports": "error",
-      "@typescript-eslint/no-unused-vars": "error",
-      "@typescript-eslint/no-explicit-any": "warn",
     },
   },
 ]);

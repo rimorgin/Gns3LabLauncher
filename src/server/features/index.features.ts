@@ -1,8 +1,8 @@
-import { Express } from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import webSocketListener from './websocket/websocket.handler.ts';
+import { Express } from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import webSocketListener from "./websocket/websocket.handler.ts";
 
 /**
  * Dynamically registers all feature-based route modules found in the `/features` directory.
@@ -50,10 +50,8 @@ const registerFeatures = async (app: Express) => {
   }
 };
 
-
-
 export const registerWsFeature = () => {
-  webSocketListener()
-}
+  webSocketListener();
+};
 
 export default registerFeatures;

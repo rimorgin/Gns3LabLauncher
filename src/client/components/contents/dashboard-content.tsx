@@ -1,8 +1,8 @@
-import React from 'react'
-import { SectionCards } from '../common/section-cards';
-import { ChartAreaInteractive } from '../common/chart-area-interactive';
-import { data } from '@clnt/constants/data';
-import { DataTable } from '../common/data-table';
+import React from "react";
+import { SectionCards } from "../common/section-cards";
+import { ChartAreaInteractive } from "../common/chart-area-interactive";
+import { data } from "@clnt/constants/data";
+import { DataTable } from "../common/data-table";
 
 export default function DashboardContent() {
   return (

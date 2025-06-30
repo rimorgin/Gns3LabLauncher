@@ -1,12 +1,16 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import { createProject, deleteProjectById, updateProjectById } from "./projects.service.ts";
+import {
+  createProject,
+  deleteProjectById,
+  updateProjectById,
+} from "./projects.service.ts";
 import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
-
+import { prismaErrorCode } from "@srvr/utils/db/helpers.ts";
 
 /**
  * Retrieves a list of projects, optionally including classroom data or selecting specific fields.
- * 
+ *
  * If query parameters is present, it populates related (relations) classroom details.
  *
  * Query Parameters:
@@ -21,40 +25,43 @@ import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
  *  - 200 JSON array of projects
  *  - 500 Internal Server Error if fetching fails
  */
-export const getProjects = async (req: Request, res: Response): Promise<void> => {
+export const getProjects = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { classroom, only_ids, partial } = req.query;
   const projects = classroom
     ? await prisma.project.findMany({
         include: {
-          classroom: true
+          classroom: true,
         },
-    })
-    : only_ids 
-    ? await prisma.project.findMany({
-        select: {
-          id: true
-        }
       })
-    : partial 
-    ? await prisma.project.findMany({
-        select: {
-          id: true,
-          projectName: true,
-        }
-      }) 
-    : await prisma.project.findMany();
-  
+    : only_ids
+      ? await prisma.project.findMany({
+          select: {
+            id: true,
+          },
+        })
+      : partial
+        ? await prisma.project.findMany({
+            select: {
+              id: true,
+              projectName: true,
+            },
+          })
+        : await prisma.project.findMany();
+
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.projectsReturned,
-    projects: projects
-  })
-}
+    projects: projects,
+  });
+};
 
 /**
  * Retrieves a project by id, optionally populated with embedded classroom data.
  *
  * If query parameters is present, it populates related (relations) classroom details.
- * 
+ *
  *  * Query Parameters:
  *  - classroom: If present, includes related classroom details.
  *  - partial: If present, returns project ID and name only.
@@ -68,35 +75,38 @@ export const getProjects = async (req: Request, res: Response): Promise<void> =>
  *  - 200 JSON object of the project
  *  - 500 Internal Server Error if fetching fails
  */
-export const getProjectsById = async (req: Request, res: Response): Promise<void> => {
-  const { id: projectId }= req.params
+export const getProjectsById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { id: projectId } = req.params;
   const { classrooms, partial } = req.query;
 
-  const where = { where: { id: projectId }}
+  const where = { where: { id: projectId } };
   const project = classrooms
     ? await prisma.project.findUnique({
         ...where,
         include: {
-          classroom: true
+          classroom: true,
         },
-    })
+      })
     : partial
-    ? await prisma.project.findUnique({
-        ...where,
-        select: {
-          id: true,
-          projectName: true,
-        }
-      }) 
-    : await prisma.project.findUnique({
-        ...where,
-      });
-  
+      ? await prisma.project.findUnique({
+          ...where,
+          select: {
+            id: true,
+            projectName: true,
+          },
+        })
+      : await prisma.project.findUnique({
+          ...where,
+        });
+
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.projectReturned,
-    project: project
-  })
-}
+    project: project,
+  });
+};
 
 /**
  * Creates a new project after checking for uniqueness by name.
@@ -111,9 +121,14 @@ export const getProjectsById = async (req: Request, res: Response): Promise<void
  *  - 409 Conflict if a project with the same name already exists
  *  - 500 Internal Server Error if an exception occurs
  */
-export const postProjects = async (req: Request, res: Response): Promise<void> => {
+export const postProjects = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { projectName } = req.body;
-  const projectExists = await prisma.project.findUnique({ where: { projectName } });
+  const projectExists = await prisma.project.findUnique({
+    where: { projectName },
+  });
 
   if (projectExists) {
     res.status(409).json({ message: APP_RESPONSE_MESSAGE.projectDoesExist });
@@ -121,11 +136,20 @@ export const postProjects = async (req: Request, res: Response): Promise<void> =
   }
 
   try {
-    const newProject = await createProject(req.body)
-    res.status(201).json({ message: APP_RESPONSE_MESSAGE.projectCreated, newData: newProject });
-  } catch (error: any) {
-    res.status(500).json({ message: `Error creating Project: ${error.message}` });
+    const newProject = await createProject(req.body);
+    res.status(201).json({
+      message: APP_RESPONSE_MESSAGE.projectCreated,
+      newData: newProject,
+    });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -141,14 +165,19 @@ export const postProjects = async (req: Request, res: Response): Promise<void> =
  *  - 409 Conflict if project does not exist
  *  - 500 Internal Server Error if update fails
  */
-export const patchProject = async (req: Request, res: Response): Promise<void> => {
+export const patchProject = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { id } = req.params;
 
   try {
     const updatedProject = await updateProjectById(id, req.body);
 
     if (!updatedProject) {
-      res.status(409).json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
+      res
+        .status(409)
+        .json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
       return;
     }
 
@@ -156,9 +185,15 @@ export const patchProject = async (req: Request, res: Response): Promise<void> =
       message: APP_RESPONSE_MESSAGE.projectUpdated,
       newData: updatedProject,
     });
-  } catch (error: any) {
-    res.status(500).json({ message: `Error updating project: ${error.message}` });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -174,14 +209,19 @@ export const patchProject = async (req: Request, res: Response): Promise<void> =
  *  - 409 Conflict if project does not exist
  *  - 500 Internal Server Error if deletion fails
  */
-export const deleteProject = async (req: Request, res: Response): Promise<void> => {
+export const deleteProject = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { id } = req.params;
 
   try {
     const deletedProject = await deleteProjectById(id);
 
     if (!deletedProject) {
-      res.status(409).json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
+      res
+        .status(409)
+        .json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
       return;
     }
 
@@ -189,7 +229,13 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
       message: APP_RESPONSE_MESSAGE.projectDeleted,
       newData: deletedProject,
     });
-  } catch (error: any) {
-    res.status(500).json({ message: `Error deleting project: ${error.message}` });
+  } catch (error: unknown) {
+    const prismaErr = prismaErrorCode(error);
+    if (prismaErr) {
+      res.status(prismaErr.status).json({ message: prismaErr.message });
+      return;
+    }
   }
+
+  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };

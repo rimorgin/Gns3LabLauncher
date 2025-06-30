@@ -17,23 +17,20 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconCircleCheckFilled,
-  IconDotsVertical,
-  IconGripVertical,
-  IconLayoutColumns,
-  IconLoader,
-  IconPlus,
-  IconTrendingUp,
-} from "@tabler/icons-react";
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  GripVertical,
+  User,
+  UserCheck,
+} from "lucide-react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -45,20 +42,40 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-import { toast } from "sonner";
 import { z } from "zod";
-
-import { useIsMobile } from "@clnt/hooks/use-mobile";
-import { Badge } from "@clnt/components/ui/badge";
-import { Button } from "@clnt/components/ui/button";
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@clnt/components/ui/chart";
-import { Checkbox } from "@clnt/components/ui/checkbox";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
+import { Checkbox } from "../ui/checkbox";
+import { Tabs, TabsContent } from "../ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { Button } from "../ui/button";
+import {
+  IconChevronDown,
+  IconDotsVertical,
+  IconEdit,
+  IconEye,
+  IconLayoutColumns,
+  IconPencilX,
+  IconPlugConnected,
+  IconPlugConnectedX,
+  IconUserSearch,
+} from "@tabler/icons-react";
+import { Input } from "../ui/input";
+import { useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@clnt/hooks/use-mobile";
 import {
   Drawer,
   DrawerClose,
@@ -67,149 +84,10 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
-} from "@clnt/components/ui/drawer";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@clnt/components/ui/dropdown-menu";
-import { Input } from "@clnt/components/ui/input";
-import { Label } from "@clnt/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@clnt/components/ui/select";
-import { Separator } from "@clnt/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableDraggableRow,
-  TableDragHandle,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@clnt/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@clnt/components/ui/tabs";
-
-export const userSchema = z.object({
-  _id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  username: z.string(),
-  role: z.string(),
-  is_online: z.boolean(),
-  last_active_at: z.string().nullable(),
-  created_at: z.string(),
-  classes: z.array(z.any()),
-});
-
-const userColumns: ColumnDef<z.infer<typeof userSchema>>[] = [
-  {
-    id: "drag",
-    header: () => null,
-    cell: ({ row }) => <DragHandle id={row.original._id} />,
-  },
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ row }) => <div>{row.original.email}</div>,
-  },
-  {
-    accessorKey: "username",
-    header: "Username",
-    cell: ({ row }) => <div>{row.original.username}</div>,
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-    cell: ({ row }) => (
-      <Badge
-        variant={row.original.role === "student" ? "secondary" : "default"}
-      >
-        {row.original.role}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "is_online",
-    header: "Status",
-    cell: ({ row }) => (
-      <Badge variant={row.original.is_online ? "default" : "outline"}>
-        {row.original.is_online ? "Online" : "Offline"}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "created_at",
-    header: "Created At",
-    cell: ({ row }) => (
-      <div>{new Date(row.original.created_at).toLocaleDateString()}</div>
-    ),
-  },
-  {
-    id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            aria-label="Open menu"
-          >
-            <IconDotsVertical />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>View Profile</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-  },
-];
+} from "../ui/drawer";
+import { userDbSchema } from "@clnt/lib/validators/user-schema";
+import { UserUpdateForm } from "../forms/user/user-update-form";
+import { UserDeleteForm } from "../forms/user/user-delete-form";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -218,25 +96,302 @@ function DragHandle({ id }: { id: string }) {
   });
 
   return (
-    <Button
+    <button
       {...attributes}
       {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
+      className="text-gray-400 hover:text-gray-600 p-1 cursor-grab active:cursor-grabbing"
     >
-      <IconGripVertical className="text-muted-foreground size-3" />
+      <GripVertical className="h-4 w-4" />
       <span className="sr-only">Drag to reorder</span>
-    </Button>
+    </button>
+  );
+}
+
+const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
+  {
+    id: "drag",
+    header: () => null,
+    cell: ({ row }) => <DragHandle id={row.original.id} />,
+    size: 40,
+  },
+  {
+    id: "select",
+    header: ({ table }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="flex items-center justify-center">
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      </div>
+    ),
+    enableSorting: false,
+    enableHiding: false,
+    size: 40,
+  },
+  {
+    accessorKey: "name",
+    header: "Name",
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+            <User className="h-4 w-4 text-blue-600" />
+          </div>
+          <div>
+            <div className="font-medium">{row.original.name}</div>
+            <div className="text-sm">{row.original.username}</div>
+          </div>
+        </div>
+      );
+    },
+    enableHiding: false,
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
+    cell: ({ row }) => <p>{row.original.email}</p>,
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => (
+      <div className="inline-flex items-center gap-1">
+        {row.original.role === "student" ? (
+          <User className="h-4 w-4 text-green-500" />
+        ) : (
+          <UserCheck className="h-4 w-4 text-blue-500" />
+        )}
+        <span
+          className={`px-2 py-1 text-xs font-medium rounded-full ${
+            row.original.role === "student"
+              ? "bg-green-100 text-green-800"
+              : "bg-blue-100 text-blue-800"
+          }`}
+        >
+          {row.original.role.charAt(0).toUpperCase() +
+            row.original.role.slice(1)}
+        </span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "isOnline",
+    header: "Is Online",
+    cell: ({ row }) => {
+      const isOnline =
+        row.original.student?.isOnline === "true" ||
+        row.original.instructor?.isOnline === "true";
+      return (
+        <div className="inline-flex items-center gap-1">
+          {isOnline ? (
+            <IconPlugConnected color="green" />
+          ) : (
+            <IconPlugConnectedX color="red" />
+          )}
+          <span
+            className={`px-2 py-1 text-xs font-medium rounded-full ${
+              isOnline
+                ? "bg-green-100 text-green-800"
+                : "bg-red-100 text-red-800"
+            }`}
+          >
+            {isOnline ? "Connected" : "Disconnected"}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row, table }) => {
+      const [openDrawer, setOpenDrawer] = React.useState(false);
+      const [drawerMode, setDrawerMode] = React.useState<
+        "edit" | "view" | "delete"
+      >("edit");
+      return (
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon"
+              >
+                <IconDotsVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem
+                onClick={() => {
+                  setDrawerMode("edit");
+                  setOpenDrawer(true);
+                }}
+              >
+                <IconEdit />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setDrawerMode("view");
+                  setOpenDrawer(true);
+                }}
+              >
+                <IconEye />
+                View More
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => {
+                  setDrawerMode("delete");
+                  setOpenDrawer(true);
+                }}
+              >
+                <IconPencilX />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Drawer placed outside the dropdown, but controlled from it */}
+          <TableCellViewer
+            drawerMode={drawerMode}
+            item={
+              drawerMode === "edit" || drawerMode === "view"
+                ? row.original
+                : table.getSelectedRowModel().rows.length === 0
+                  ? row.original
+                  : table.getSelectedRowModel().rows.map((row) => row.original)
+            }
+            open={openDrawer}
+            setOpen={setOpenDrawer}
+          />
+        </>
+      );
+    },
+  },
+];
+
+function DraggableRow({ row }: { row: Row<z.infer<typeof userDbSchema>> }) {
+  const { transform, transition, setNodeRef, isDragging } = useSortable({
+    id: row.original.id,
+  });
+
+  return (
+    <TableRow
+      data-state={row.getIsSelected() && "selected"}
+      data-dragging={isDragging}
+      ref={setNodeRef}
+      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition,
+      }}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id} className="px-4 py-3">
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+}
+
+function TableCellViewer({
+  drawerMode,
+  item,
+  open,
+  setOpen,
+}: {
+  drawerMode: "edit" | "view" | "delete";
+  item: z.infer<typeof userDbSchema> | z.infer<typeof userDbSchema>[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
+  const isMobile = useIsMobile();
+  const isArray = Array.isArray(item);
+  const user = !isArray ? item : null;
+
+  const title = (() => {
+    if (drawerMode === "edit")
+      return isArray ? "Edit Users" : `Edit ${user?.name || "User"}`;
+    if (drawerMode === "view") return `View ${user?.name || "User"}`;
+    if (drawerMode === "delete")
+      return isArray
+        ? `Delete ${item.length} Users`
+        : `Delete ${user?.name || "User"}`;
+    return "";
+  })();
+
+  const destructiveButtonTitle = drawerMode === "view" ? "Back" : "Cancel";
+
+  const description = (() => {
+    switch (drawerMode) {
+      case "edit":
+        return "Edit user details";
+      case "view":
+        return "Viewing user details";
+      case "delete":
+        return isArray
+          ? "You're about to delete multiple users."
+          : "You're about to delete this user.";
+      default:
+        return "";
+    }
+  })();
+
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={setOpen}
+      direction={isMobile ? "bottom" : "right"}
+    >
+      <DrawerContent>
+        <DrawerHeader className="gap-1">
+          <DrawerTitle>{title}</DrawerTitle>
+          <DrawerDescription>{description}</DrawerDescription>
+        </DrawerHeader>
+
+        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+          {drawerMode === "edit" || drawerMode === "view" ? (
+            !isArray && user ? (
+              <UserUpdateForm mode={drawerMode} initialData={user} />
+            ) : null
+          ) : (
+            <UserDeleteForm initialData={item} />
+          )}
+        </div>
+
+        <DrawerFooter>
+          <DrawerClose asChild>
+            <Button variant="outline">{destructiveButtonTitle}</Button>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
 export function UserDataTable({
-  data: initialData,
+  data,
 }: {
-  data: z.infer<typeof userSchema>[];
+  data?: z.infer<typeof userDbSchema>[];
 }) {
-  const [data, setData] = React.useState(() => initialData);
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -248,21 +403,21 @@ export function UserDataTable({
     pageIndex: 0,
     pageSize: 10,
   });
-  const sortableId = React.useId();
+  const queryClient = useQueryClient();
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {}),
   );
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(() => {
-    if (!Array.isArray(data)) return [];
-    return data.map((item) => item._id);
-  }, [data]);
+  const dataIds = React.useMemo<UniqueIdentifier[]>(
+    () => data?.map(({ id }) => id) || [],
+    [data],
+  );
 
   const table = useReactTable({
-    data,
-    columns: userColumns,
+    data: data ?? [],
+    columns: columns,
     state: {
       sorting,
       columnVisibility,
@@ -270,7 +425,15 @@ export function UserDataTable({
       columnFilters,
       pagination,
     },
-    getRowId: (row) => row._id.toString(),
+    initialState: {
+      sorting: [
+        {
+          id: "name",
+          desc: false,
+        },
+      ],
+    },
+    getRowId: (row) => row.id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -288,10 +451,11 @@ export function UserDataTable({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
+      queryClient.setQueryData(["users"], (old) => {
+        const oldData = Array.isArray(old) ? [...old] : [];
+        const oldIndex = oldData.findIndex((u) => u.id === active.id);
+        const newIndex = oldData.findIndex((u) => u.id === over.id);
+        return arrayMove(oldData, oldIndex, newIndex);
       });
     }
   }
@@ -299,39 +463,55 @@ export function UserDataTable({
   return (
     <Tabs
       defaultValue="outline"
-      className="w-full flex-col justify-start gap-6"
+      className="w-full h-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-between px-4 lg:px-6">
-        <Label htmlFor="view-selector" className="sr-only">
-          View
-        </Label>
-        <Select defaultValue="outline">
-          <SelectTrigger
-            className="flex w-fit @4xl/main:hidden"
-            size="sm"
-            id="view-selector"
-          >
-            <SelectValue placeholder="Select a view" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="outline">Outline</SelectItem>
-            <SelectItem value="past-performance">Past Performance</SelectItem>
-            <SelectItem value="key-personnel">Key Personnel</SelectItem>
-            <SelectItem value="focus-documents">Focus Documents</SelectItem>
-          </SelectContent>
-        </Select>
-        <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-          <TabsTrigger value="outline">Outline</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger> {/* NEW TAB */}
-          <TabsTrigger value="past-performance">
-            Past Performance <Badge variant="secondary">3</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="key-personnel">
-            Key Personnel <Badge variant="secondary">2</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="focus-documents">Focus Documents</TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between px-6 pt-6">
+        <div>
+          <IconUserSearch className="absolute m-1.5" />
+          <Input
+            type="text"
+            placeholder="Search users..."
+            className="pl-9"
+            onChange={(e) => {
+              table?.setGlobalFilter(e.target.value);
+            }}
+          />
+        </div>
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <IconDotsVertical />
+                <span className="hidden lg:inline">
+                  {String(
+                    table.getColumn("role")?.getFilterValue() ?? "Select Role",
+                  )}
+                </span>
+                <IconChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <DropdownMenuItem
+                onClick={() => table.getColumn("role")?.setFilterValue("")}
+              >
+                All Roles
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  table.getColumn("role")?.setFilterValue("student")
+                }
+              >
+                Students
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() =>
+                  table.getColumn("role")?.setFilterValue("instructor")
+                }
+              >
+                Instructor
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -365,150 +545,129 @@ export function UserDataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Add Section</span>
-          </Button>
         </div>
       </div>
+      {/* Table */}
       <TabsContent
-        value="users"
+        value="outline"
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
-        <div className="overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </TableHead>
+        <div className="overflow-hidden rounded-lg border h-full">
+          <DndContext
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={handleDragEnd}
+            sensors={sensors}
+          >
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted sticky top-0 z-10">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          className="px-4 py-3 text-left text-xs font-medium bg-muted uppercase tracking-wider"
+                          style={{ width: header.getSize() }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
                   ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
+                </TableHeader>
+                <TableBody className="**:data-[slot=table-cell]:first:w-8">
+                  {table.getRowModel().rows?.length ? (
+                    <SortableContext
+                      items={dataIds}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {table.getRowModel().rows.map((row) => (
+                        <DraggableRow key={row.id} row={row} />
+                      ))}
+                    </SortableContext>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="text-center py-8 align-middle"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                          <User className="w-8 h-8" />
+                          <p>No users found</p>
+                        </div>
                       </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={userColumns.length}
-                    className="text-center"
-                  >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </DndContext>
         </div>
+      </TabsContent>
 
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-4 py-3 border-t bg-muted">
+        <div className="flex items-center text-sm">
+          {table.getFilteredSelectedRowModel().rows.length} of{" "}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm">Rows per page:</label>
+            <select
+              className="border rounded px-2 py-1 text-sm"
+              value={table.getState().pagination.pageSize}
+              onChange={(e) => table.setPageSize(Number(e.target.value))}
+            >
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <option key={pageSize} value={pageSize}>
+                  {pageSize}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
+          <div className="text-sm">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </button>
+            <button
+              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+            <button
+              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
-      </TabsContent>
-      <TabsContent
-        value="past-performance"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+      </div>
     </Tabs>
   );
 }

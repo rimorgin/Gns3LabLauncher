@@ -26,8 +26,10 @@ export const APP_RESPONSE_MESSAGE = {
   // User messages
   userDoesExist: "User already exists",
   userDoesntExist: "User does not exist",
-  userUnauthorized: "Unauthorized: You must be logged in to access this resource.",
-  userDoesntHavePerms: "Unauthorized: You do not have permission to access this resource.",
+  userUnauthorized:
+    "Unauthorized: You must be logged in to access this resource.",
+  userDoesntHavePerms:
+    "Unauthorized: You do not have permission to access this resource.",
   invalidCredentials: "Invalid user email or password",
   invalidCsrfToken: "Invalid CSRF token. Please refresh and try again.",
   userReturned: "User returned successfully",
@@ -37,6 +39,16 @@ export const APP_RESPONSE_MESSAGE = {
   userDeleted: "User deleted successfully",
   userLoggedIn: "Logged in successfully",
   userLoggedOut: "Logged out successufully",
+
+  // UserGroup messages
+
+  userGroupReturned: "User group returned successfully",
+  userGroupsReturned: "User groups returned successfully",
+  userGroupCreated: "User group created successfully",
+  userGroupUpdated: "User group updated successfully",
+  userGroupDeleted: "User group deleted successfully",
+  userGroupDoesExist: "User group already exists",
+  userGroupDoesntExist: "User group does not exist",
 
   // Classroom messages
   classroomReturned: "Classroom returned successfully",

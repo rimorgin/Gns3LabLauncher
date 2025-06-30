@@ -46,6 +46,7 @@ export type InstructorUserInput = IUserBaseInput & {
 export type StudentUserInput = IUserBaseInput & {
   role: "student";
   student: {
+    groupIds: string[];
     classroomIds: string[];
   };
 };
@@ -58,6 +59,7 @@ export type IUserWithRoleInput =
 export type IUserWithRoleOutput = IUserBaseOutput & {
   student?: {
     userId: string;
+    groupIds?: string[];
     classroomIds?: string[];
     isOnline?: boolean;
     lastActiveAt?: Date | null;
@@ -79,8 +81,14 @@ export type IUserWithRoleOutput = IUserBaseOutput & {
 export interface IStudentUser {
   userId: string;
   isOnline: boolean;
-  lastActiveAt: Date
+  lastActiveAt: Date;
   classrooms: [];
+  userGroups: [];
+}
+
+export interface IUserGroup {
+  groupName: string;
+  studentIds: string[];
 }
 
 /**
@@ -92,7 +100,7 @@ export interface IStudentUser {
 export interface ICourse {
   courseCode: string;
   courseName: string | null;
-  classroomIds?: string [];
+  classroomIds?: string[];
 }
 
 /**
@@ -105,7 +113,7 @@ export interface ICourse {
  * @property {string[]} projectIds - An array of project IDs assigned in this classroom.
  * @property {"active" | "expired"} status - The current status of the classroom.
  */
-export interface IClassroom  {
+export interface IClassroom {
   classroomName: string;
   status: ClassroomStatusEnum;
   courseId: string;

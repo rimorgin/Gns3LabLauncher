@@ -1,21 +1,20 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios";
-import { ProjectFormData } from "../validators/projects-schema.ts";
 
 // GET /projects
 const getProjects = async ({
-  includes = 'none',
+  includes = "none",
   only_ids = false,
-  partial = false
+  partial = false,
 }: {
-  includes?: "classrooms" | "none",
-  only_ids?: boolean,
-  partial?: boolean
+  includes?: "classrooms" | "none";
+  only_ids?: boolean;
+  partial?: boolean;
 }) => {
   const params = new URLSearchParams();
 
-  if (includes === 'classrooms') {
-    params.append('classrooms', 'true');
+  if (includes === "classrooms") {
+    params.append("classrooms", "true");
   }
 
   if (only_ids) params.append("only_ids", "true");
@@ -30,16 +29,15 @@ const getProjects = async ({
 
 // Queries
 export const useProjectsQuery = ({
-  includes = 'none',
-  only_ids = false, 
-  partial = false
+  includes = "none",
+  only_ids = false,
+  partial = false,
 }: {
-  includes?: "classrooms" | "none", 
-  only_ids?: boolean, 
-  partial?: boolean
+  includes?: "classrooms" | "none";
+  only_ids?: boolean;
+  partial?: boolean;
 }) =>
   useQuery({
-    queryKey: ["projects",{ includes: includes, only_ids, partial }],
-    queryFn: () => getProjects({includes, only_ids, partial}),
+    queryKey: ["projects", { includes: includes, only_ids, partial }],
+    queryFn: () => getProjects({ includes, only_ids, partial }),
   });
-

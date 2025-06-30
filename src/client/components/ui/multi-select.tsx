@@ -133,6 +133,7 @@ export const MultiSelect = React.forwardRef<
       animation = 0,
       maxCount = 3,
       modalPopover = false,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       asChild = false,
       className,
       ...props
@@ -202,7 +203,7 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              "flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between dark:bg-input/30 [&_svg]:pointer-events-auto",
+              "flex w-full p-1 rounded-md border min-h-fit h-auto items-center justify-between bg-input/30 hover:bg-input/80 [&_svg]:pointer-events-auto",
               className,
             )}
           >

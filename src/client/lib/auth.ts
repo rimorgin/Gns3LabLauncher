@@ -1,35 +1,24 @@
 import axios from "@clnt/lib/axios";
-import { User } from "@prisma/client";
-import { configureAuth } from 'react-query-auth';
+import { configureAuth } from "react-query-auth";
 import { useAppStateStore } from "./store/app-state-store";
-import { useQueryClient } from "@tanstack/react-query";
-
-export interface IUser extends User {
-  permissions: string[];
-}
-
-export interface LoginFormValues {
-  email: string;
-  password: string;
-}
-
+import { IUser, LoginFormValues } from "@clnt/types/auth-types";
 
 const login = async ({ email, password }: LoginFormValues): Promise<IUser> => {
   const res = await axios.post("/auth/login-local", { email, password });
-  return res.data
+  return res.data;
 };
 const register = async (): Promise<never> => {
   throw new Error("Not implemented");
 };
 
 const logout = async (): Promise<void> => {
-  useAppStateStore.getState().resetAppState()
+  useAppStateStore.getState().resetAppState();
   await axios.post("/auth/logout");
 };
 
 const loadUser = async (): Promise<IUser | null> => {
   try {
-    const res = await axios.get("/auth/user");
+    const res = await axios.get("/auth/me");
     const permRes = await axios.get("/auth/permissions");
     return {
       ...(res.data.user ?? {}),
@@ -40,9 +29,10 @@ const loadUser = async (): Promise<IUser | null> => {
   }
 };
 
-export const { useUser, useLogin, useRegister, useLogout, AuthLoader } = configureAuth({
-  userFn: loadUser,
-  loginFn: login,
-  registerFn: register,
-  logoutFn: logout,
-});
+export const { useUser, useLogin, useRegister, useLogout, AuthLoader } =
+  configureAuth({
+    userFn: loadUser,
+    loginFn: login,
+    registerFn: register,
+    logoutFn: logout,
+  });

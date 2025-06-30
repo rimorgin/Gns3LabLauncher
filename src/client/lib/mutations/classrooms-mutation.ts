@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ClassroomFormData } from "../validators/classroom-schema";
-import axios from '@clnt/lib/axios.ts'
+import axios from "@clnt/lib/axios.ts";
 
 // POST /classroom (create a classroom)
 export const postClassroom = async (data: ClassroomFormData) => {
@@ -14,25 +14,27 @@ export const useClassroomsPost = () => {
   return useMutation({
     mutationFn: postClassroom,
     // When mutate is called:
-    onMutate: async (newTodo) => {
+    onMutate: async (newClassroom) => {
       // Cancel any outgoing refetches
       // (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['classrooms'] })
+      await queryClient.cancelQueries({ queryKey: ["classrooms"] });
 
       // Snapshot the previous value
-      const previousTodos = queryClient.getQueryData(['classrooms'])
+      const previousClassrooms = queryClient.getQueryData(["classrooms"]);
 
       // Optimistically update to the new value
-      queryClient.setQueryData(['classrooms'], (old) => Array.isArray(old) ? [...old, newTodo] : [newTodo])
+      queryClient.setQueryData(["classrooms"], (old) =>
+        Array.isArray(old) ? [...old, newClassroom] : [newClassroom],
+      );
 
       // Return a context object with the snapshotted value
-      return { previousTodos }
+      return { previousClassrooms };
     },
     // If the mutation fails,
     // use the context returned from onMutate to roll back
     onError: (err, newTodo, context) => {
       if (context) {
-        queryClient.setQueryData(['classrooms'], context.previousTodos);
+        queryClient.setQueryData(["classrooms"], context.previousClassrooms);
       }
     },
     /* onSuccess: (newData) => {
@@ -42,7 +44,8 @@ export const useClassroomsPost = () => {
       );
     }, */
     // Always refetch after error or success:
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ['classrooms'] })
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] }),
   });
 };
 
@@ -64,18 +67,18 @@ export const useClassroomPatch = () => {
     mutationFn: patchClassroom,
 
     onMutate: async (updatedClassroom) => {
-      await queryClient.cancelQueries({ queryKey: ['classrooms'] });
+      await queryClient.cancelQueries({ queryKey: ["classrooms"] });
 
-      const previousClassrooms = queryClient.getQueryData(['classrooms']);
+      const previousClassrooms = queryClient.getQueryData(["classrooms"]);
 
-      queryClient.setQueryData(['classrooms'], (old: any) =>
+      queryClient.setQueryData(["classrooms"], (old: ClassroomFormData) =>
         Array.isArray(old)
           ? old.map((item) =>
               item.id === updatedClassroom.id
                 ? { ...item, ...updatedClassroom.data }
-                : item
+                : item,
             )
-          : old
+          : old,
       );
 
       return { previousClassrooms };
@@ -83,12 +86,12 @@ export const useClassroomPatch = () => {
 
     onError: (err, variables, context) => {
       if (context?.previousClassrooms) {
-        queryClient.setQueryData(['classrooms'], context.previousClassrooms);
+        queryClient.setQueryData(["classrooms"], context.previousClassrooms);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['classrooms'] });
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
     },
   });
 };
@@ -105,14 +108,12 @@ export const useClassroomDelete = () => {
     mutationFn: deleteClassroom,
 
     onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['classrooms'] });
+      await queryClient.cancelQueries({ queryKey: ["classrooms"] });
 
-      const previousClassrooms = queryClient.getQueryData(['classrooms']);
+      const previousClassrooms = queryClient.getQueryData(["classrooms"]);
 
-      queryClient.setQueryData(['classrooms'], (old: any) =>
-        Array.isArray(old)
-          ? old.filter((item) => item.id !== id)
-          : old
+      queryClient.setQueryData(["classrooms"], (old: ClassroomFormData) =>
+        Array.isArray(old) ? old.filter((item) => item.id !== id) : old,
       );
 
       return { previousClassrooms };
@@ -120,12 +121,12 @@ export const useClassroomDelete = () => {
 
     onError: (err, id, context) => {
       if (context?.previousClassrooms) {
-        queryClient.setQueryData(['classrooms'], context.previousClassrooms);
+        queryClient.setQueryData(["classrooms"], context.previousClassrooms);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['classrooms'] });
+      queryClient.invalidateQueries({ queryKey: ["classrooms"] });
     },
   });
 };

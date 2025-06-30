@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import {
   Permission,
   Role,
@@ -5,6 +6,7 @@ import {
   RolesCollection,
 } from "@srvr/types/auth.type.ts";
 import bcrypt from "bcrypt";
+import { generate } from "random-words";
 
 /**
  * Checks whether a given role has a specific permission.
@@ -35,7 +37,6 @@ export function getRolePermissions(
   return role?.permissions ?? [];
 }
 
-
 /**
  * Capitalizes the first letter of each word in the given string.
  *
@@ -48,10 +49,9 @@ export function getRolePermissions(
  * @example
  * capitalizedString("john doe") // "John Doe"
  */
-export function capitalizedString(
-  text: string
-) {
-  return text.toLowerCase()
+export function capitalizedString(text: string) {
+  return text
+    .toLowerCase()
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
@@ -73,9 +73,53 @@ export function capitalizedString(
  * @example
  * const hashed = await hashString("myPassword");
  */
-export async function hashString(
-  text: string,
-  saltRounds: number = 12
-) {
+export async function hashString(text: string, saltRounds: number = 12) {
   return await bcrypt.hash(text, saltRounds);
+}
+
+export function randomWords(
+  wordsMaxLength: number = 5,
+  wordsPerString: number = 2,
+  separator: string = "-",
+  exactly: number = 1,
+) {
+  return generate({
+    exactly: exactly,
+    minLength: wordsMaxLength,
+    separator: separator,
+    wordsPerString: wordsPerString,
+  });
+}
+
+export function prismaErrorCode(
+  error: unknown,
+): { status: number; message: string } | undefined {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    let status: number;
+
+    switch (error.code) {
+      case "P2002": // Unique constraint
+        status = 409;
+        break;
+
+      case "P2025": // Record not found
+        status = 404;
+        break;
+
+      case "P2003": // Foreign key constraint
+        status = 400;
+        break;
+
+      default:
+        status = 400;
+        break;
+    }
+
+    return {
+      status,
+      message: error.message,
+    };
+  }
+
+  return undefined;
 }

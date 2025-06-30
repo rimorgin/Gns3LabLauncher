@@ -21,12 +21,12 @@ export default function vpnOnlyMiddleware(
 
   try {
     parsedIp = ipaddr.parse(clientIp);
-  } catch (err) {
+  } catch {
     res.status(400).json({
       error: "Invalid IP",
       message: `The provided IP address "${clientIp}" is not valid.`,
     });
-    return
+    return;
   }
 
   // Reject public IPs
@@ -35,7 +35,7 @@ export default function vpnOnlyMiddleware(
       error: "Access Denied",
       message: "Your IP address is not on the internal network.",
     });
-    return
+    return;
   }
 
   // Check if IP is within allowed subnet
@@ -43,12 +43,15 @@ export default function vpnOnlyMiddleware(
   const subnetIp = ipaddr.parse(subnetIpStr);
   const maskLength = parseInt(subnetMask, 10);
 
-  if (!(parsedIp instanceof ipaddr.IPv4) || !subnetIp.match(parsedIp, maskLength)) {
+  if (
+    !(parsedIp instanceof ipaddr.IPv4) ||
+    !subnetIp.match(parsedIp, maskLength)
+  ) {
     res.status(403).json({
       error: "Access Denied",
       message: `IP ${clientIp} is not within the allowed subnet`,
     });
-    return
+    return;
   }
 
   next();

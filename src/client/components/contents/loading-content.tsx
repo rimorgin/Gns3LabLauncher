@@ -1,4 +1,4 @@
-import { Skeleton } from '../ui/skeleton';
+import { Skeleton } from "../ui/skeleton";
 
 export default function LoadingContent() {
   return (
@@ -20,6 +20,5 @@ export default function LoadingContent() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

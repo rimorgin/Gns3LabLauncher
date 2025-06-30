@@ -7,7 +7,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
  * @function createClassroom
  *
  * @param {IClassroom} props - The classroom properties used to create the new classroom.
- * @param {ObjectId} props.courseid - The ID of the course this classroom belongs to.
+ * @param {ObjectId} props.courseId - The ID of the course this classroom belongs to.
  * @param {string} props.classname - The name/identifier of the classroom.
  * @param {string} props.instructor - The instructor assigned to the classroom.
  * @param {string} props.status - The current status of the classroom (e.g., active, inactive).
@@ -17,8 +17,10 @@ import prisma from "@srvr/utils/db/prisma.ts";
  * @throws {Error} If creating the classroom fails.
  */
 export const createClassroom = async (
-  props: IClassroom
+  props: IClassroom,
 ): Promise<IClassroom> => {
+  console.log("🚀 ~ props:", props);
+  console.log("🚀 ~ props.students:", props.studentIds);
   const classroom = await prisma.classroom.create({
     data: {
       courseId: props.courseId,
@@ -27,14 +29,18 @@ export const createClassroom = async (
       status: props.status,
 
       students: {
-        connect: (props.studentIds ?? []).map((id) => ({ userId: id }))
+        connect: (props.studentIds ?? []).map((id) => ({ userId: id })),
       },
       projects: {
-        connect:  (props.projectIds ?? []).map((id) => ({ id }))
-      }
-    }
+        connect: (props.projectIds ?? []).map((id) => ({ id })),
+      },
+    },
   });
-  return classroom;
+  return {
+    ...classroom,
+    courseId: classroom.courseId ?? "",
+    instructorId: classroom.instructorId ?? "",
+  };
 };
 
 /**
@@ -46,15 +52,15 @@ export const createClassroom = async (
  */
 export const updateClassroomById = async (
   id: string,
-  updates: Partial<IClassroom>
+  updates: Partial<IClassroom>,
 ): Promise<Partial<IClassroom> | null> => {
   const updatedClassroom = await prisma.classroom.update({
     where: { id },
     data: updates,
     select: {
-      classroomName: true
-    }
-  })
+      classroomName: true,
+    },
+  });
   return updatedClassroom;
 };
 /**
@@ -64,13 +70,13 @@ export const updateClassroomById = async (
  * @returns {Promise<Partial<IClassroom> | null>} A promise that resolves to the deleted classroom instance, or null if not found, and then return classroomName.
  */
 export const deleteClassroomById = async (
-  id: string
+  id: string,
 ): Promise<Partial<IClassroom> | null> => {
   const deletedClassroom = await prisma.classroom.delete({
     where: { id },
     select: {
-      classroomName: true
-    }
-  })
+      classroomName: true,
+    },
+  });
   return deletedClassroom;
 };

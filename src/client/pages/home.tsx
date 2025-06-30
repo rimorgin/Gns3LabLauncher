@@ -26,7 +26,9 @@ function HomePageContent() {
   );
 }
 
-const LazyHomePageContent = React.lazy(() => Promise.resolve({ default: HomePageContent }));
+const LazyHomePageContent = React.lazy(() =>
+  Promise.resolve({ default: HomePageContent }),
+);
 
 export default function HomePage() {
   return (

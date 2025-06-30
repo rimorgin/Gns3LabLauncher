@@ -1,20 +1,24 @@
-import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
+import {
+  checkAuthentication,
+  checkPermission,
+} from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
-import { deleteUser, getUsers, patchUser, postUsers } from "./users.controller.ts";
+import {
+  deleteUser,
+  deleteUsersMany,
+  getUsers,
+  patchUser,
+  postUsers,
+} from "./users.controller.ts";
 
-const router = Router()
+const router = Router();
 
 /**
  * @route   GET /users
  * @desc    Fetch list of users filtered by optional query parameter `role`.
  * @access  Authenticated users with 'read_users' permission
  */
-router.get(
-  "/",
-  checkAuthentication,
-  checkPermission(["read_users"]),
-  getUsers
-);
+router.get("/", checkAuthentication, checkPermission(["read_users"]), getUsers);
 
 /**
  * @route   POST /users
@@ -25,7 +29,7 @@ router.post(
   "/",
   checkAuthentication,
   checkPermission(["create_users"]),
-  postUsers
+  postUsers,
 );
 
 /**
@@ -37,7 +41,19 @@ router.patch(
   "/:id",
   checkAuthentication,
   checkPermission(["update_users"]),
-  patchUser
+  patchUser,
+);
+
+/**
+ * @route   DELETE /users/many
+ * @desc    Delete a resources in user.
+ * @access  Authenticated users with 'delete_users' permission
+ */
+router.delete(
+  "/many",
+  checkAuthentication,
+  checkPermission(["delete_users"]),
+  deleteUsersMany,
 );
 
 /**
@@ -49,7 +65,7 @@ router.delete(
   "/:id",
   checkAuthentication,
   checkPermission(["delete_users"]),
-  deleteUser
+  deleteUser,
 );
 
 export default router;

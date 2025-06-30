@@ -1,6 +1,12 @@
+
 {
-  "semi": true,
-  "singleQuote": false,
-  "tabWidth": 2,
-  "trailingComma": "all"
+  "prettier/prettier": [
+    "error",
+    {
+      "semi": true,
+      "singleQuote": false,
+      "tabWidth": 2,
+      "trailingComma": "all"
+    }
+  ]
 }

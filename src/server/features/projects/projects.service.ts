@@ -16,9 +16,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
  *
  * @throws {Error} If creating the project fails.
  */
-export const createProject = async (
-  props: IProject
-): Promise<IProject> => {
+export const createProject = async (props: IProject): Promise<IProject> => {
   const project = await prisma.project.create({
     data: {
       projectName: props.projectName,
@@ -26,8 +24,8 @@ export const createProject = async (
       visible: props.visible,
       duration: props.duration,
       classroom: {
-        connect: (props.classroomIds ?? []).map((id) => ({id}))
-      }
+        connect: (props.classroomIds ?? []).map((id) => ({ id })),
+      },
     },
   });
   return project;
@@ -42,15 +40,15 @@ export const createProject = async (
  */
 export const updateProjectById = async (
   id: string,
-  updates: Partial<IProject>
+  updates: Partial<IProject>,
 ): Promise<Partial<IProject> | null> => {
   const updatedProject = await prisma.project.update({
     where: { id },
     data: updates,
     select: {
-      projectName: true
-    }
-  })
+      projectName: true,
+    },
+  });
   return updatedProject;
 };
 /**
@@ -59,12 +57,14 @@ export const updateProjectById = async (
  * @param {string} id - The ID of the project to delete.
  * @returns {Promise<Partial<IProject> | null>} A promise that resolves to the deleted project instance, or null if not found, and then return projectName.
  */
-export const deleteProjectById = async (id: string): Promise<IProject | null> => {
+export const deleteProjectById = async (
+  id: string,
+): Promise<IProject | null> => {
   const deletedProject = await prisma.project.delete({
     where: { id },
     select: {
-      projectName: true
-    }
-  })
+      projectName: true,
+    },
+  });
   return deletedProject;
 };

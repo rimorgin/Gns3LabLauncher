@@ -26,18 +26,16 @@ import {
   useSidebar,
 } from "@clnt/components/ui/sidebar";
 import { toast } from "sonner";
-import { Skeleton } from "../ui/skeleton";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { IUser, useLogout } from "@clnt/lib/auth";
+import { IUser } from "@clnt/types/auth-types";
+import { useLogout } from "@clnt/lib/auth";
 
 export default function NavUser({
   user,
 }: {
   user?: (IUser & { avatar?: string }) | null; // Optional avatar override
 }) {
-  const logoutUser = useLogout()
+  const logoutUser = useLogout();
   const { isMobile } = useSidebar();
-  const { isAppLoading } = useAppStateStore();
 
   const initials = user?.name
     ? user?.name
@@ -47,48 +45,34 @@ export default function NavUser({
     : "";
 
   const handleLogout = async () => {
-    try {
-      await logoutUser.mutate({});
-    } catch {
-      return;
-    }
-    return toast.error("Logout successful");
+    toast.promise(() => logoutUser.mutateAsync({}), {
+      loading: "Logging out...",
+      success: "Logged out successfully!",
+      error: "Failed to log out.",
+    });
   };
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild disabled={isAppLoading}>
+          <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              {isAppLoading ? (
-                <Skeleton className="h-8 w-8 rounded-sm" />
-              ) : (
-                <Avatar className="h-8 w-8 rounded-lg grayscale">
-                  <AvatarImage src={user?.avatar} alt={user?.name ?? 'alt'} />
-                  <AvatarFallback className="rounded-lg">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-              )}
+              <Avatar className="h-8 w-8 rounded-lg grayscale">
+                <AvatarImage src={user?.avatar} alt={user?.name ?? "alt"} />
+                <AvatarFallback className="rounded-lg">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
 
               <div className="grid flex-1 text-left text-sm leading-tight">
-                {isAppLoading ? (
-                  <>
-                    <Skeleton className="h-4 w-2/3 rounded-lg my-1" />{" "}
-                    <Skeleton className="h-4 w-auto rounded-lg my-1" />{" "}
-                  </>
-                ) : (
-                  <>
-                    <span className="truncate font-medium">{user?.name}</span>
-                    <span className="text-muted-foreground truncate text-xs">
-                      {user?.email}
-                    </span>
-                  </>
-                )}
+                <span className="truncate font-medium">{user?.name}</span>
+                <span className="text-muted-foreground truncate text-xs">
+                  {user?.email}
+                </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -102,7 +86,7 @@ export default function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user?.avatar} alt={user?.name ?? 'alt'} />
+                  <AvatarImage src={user?.avatar} alt={user?.name ?? "alt"} />
                   <AvatarFallback className="rounded-lg">
                     {initials}
                   </AvatarFallback>
