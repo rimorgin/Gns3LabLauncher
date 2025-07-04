@@ -21,7 +21,7 @@ const pgTransport = new PostgresTransport<MyLogTable>({
   connectionString: envPostgresUrl,
   maxPool: 10,
   level: "info",
-  tableName: "logs",
+  tableName: "Logs",
   tableColumns: [
     { name: "id", dataType: "SERIAL", primaryKey: true },
     { name: "level", dataType: "VARCHAR" },
@@ -29,8 +29,8 @@ const pgTransport = new PostgresTransport<MyLogTable>({
     { name: "message", dataType: "TEXT" },
     { name: "context", dataType: "VARCHAR" },
     { name: "stack", dataType: "JSON" },
-    { name: "statusCode", dataType: "SERIAL" },
-    { name: "durationMs", dataType: "SERIAL" },
+    { name: "statusCode", dataType: "INT4" },
+    { name: "durationMs", dataType: "INT4" },
     { name: "ip", dataType: "VARCHAR" },
   ],
 });

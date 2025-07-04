@@ -7,11 +7,21 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { Input } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
 import { Switch } from "../ui/switch";
@@ -21,6 +31,9 @@ import { useProjectsPost } from "@clnt/lib/mutations/projects-mutation";
 import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { Skeleton } from "../ui/skeleton";
+import { DateTimePicker } from "../ui/date-time-picker";
+import { useState } from "react";
+import { getRandomImage } from "@clnt/lib/utils";
 
 export function ProjectForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -31,8 +44,11 @@ export function ProjectForm() {
       projectDescription: "",
       visible: true,
       classroomIds: [],
+      tags: undefined,
     },
   });
+  const [isProjectDurationEnabled, setIsProjectDurationEnabled] =
+    useState(false);
 
   const {
     data: classroomsQry = [],
@@ -42,10 +58,11 @@ export function ProjectForm() {
   const { mutateAsync, status } = useProjectsPost();
 
   const onSubmit = async (data: ProjectFormData) => {
+    //console.log("🚀 ~ onSubmit ~ data:", data);
     toast.promise(mutateAsync(data), {
       loading: "Creating Project...",
       success: (message) => {
-        console.log("Success:", message);
+        //console.log("Success:", message);
         form.reset();
         toggleQuickCreateDialog(); // Close dialog
         return message;
@@ -121,7 +138,7 @@ export function ProjectForm() {
           name="visible"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Make Project Visible?</FormLabel>
+              <FormLabel optional>Make Project Visible?</FormLabel>
               <FormControl>
                 <Switch
                   checked={field.value}
@@ -150,6 +167,79 @@ export function ProjectForm() {
               <FormMessage />
             </FormItem>
           )}
+        />
+
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Tag</FormLabel>
+              {/* allow fallback for reset */}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("tags")}
+                  >
+                    <SelectValue placeholder="e.g. Networking" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Project Tags</SelectLabel>
+                    <SelectItem id="networking" value="networking">
+                      Networking
+                    </SelectItem>
+                    <SelectItem id="cybersecurity" value="cybersecurity">
+                      Cybersecurity
+                    </SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="duration" // adjust this to your schema
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel optional>Project Duration</FormLabel>
+              <FormDescription className="text-xs">
+                {isProjectDurationEnabled
+                  ? `Project duration is on. Will expire at ${form.getValues("duration")}`
+                  : "Project duration is off. No expiration, unlimited time."}
+              </FormDescription>
+              <Switch
+                checked={isProjectDurationEnabled}
+                onCheckedChange={setIsProjectDurationEnabled}
+              />
+              {isProjectDurationEnabled && (
+                <FormControl>
+                  <DateTimePicker
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+              )}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Set imageUrl programmatically with hidden input */}
+        <input
+          type="hidden"
+          {...form.register("imageUrl")}
+          value={getRandomImage("projects", form.getValues("tags") as string)}
         />
 
         <Button type="submit" className="w-full">

@@ -7,6 +7,7 @@ export const courseFormSchema = z.object({
     .max(20, "Course code must be under 20 characters"),
   courseName: z.string().min(2, "Course name is required"),
   classroomIds: z.array(z.string()).optional(),
+  imageUrl: z.string().optional(),
 });
 
 export type CourseFormData = z.infer<typeof courseFormSchema>;

@@ -167,9 +167,6 @@ export const updateUserById = async (
   const updatedUser = await prisma.user.update({
     where: { id },
     data: userData,
-    select: {
-      username: true,
-    },
   });
   return updatedUser;
 };

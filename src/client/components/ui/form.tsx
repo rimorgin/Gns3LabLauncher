@@ -13,6 +13,7 @@ import {
 
 import { cn } from "@clnt/lib/utils";
 import { Label } from "@clnt/components/ui/label";
+import { IconAsterisk } from "@tabler/icons-react";
 
 const Form = FormProvider;
 
@@ -101,8 +102,10 @@ function FormLabel({
         htmlFor={formItemId}
         {...props}
       />
-      {optional && (
-        <span className="text-muted-foreground">{"(optional)"}</span>
+      {optional ? (
+        <span className="text-muted-foreground text-sm ">{"(optional)"}</span>
+      ) : (
+        <IconAsterisk color="red" size={8} />
       )}
     </div>
   );

@@ -15,7 +15,7 @@ export const checkAuthentication = (
 ): void => {
   if (!req.isAuthenticated?.()) {
     res.status(HttpStatusCode.UNAUTHORIZED).json({
-      message: APP_RESPONSE_MESSAGE.userUnauthorized,
+      message: APP_RESPONSE_MESSAGE.user.userUnauthorized,
     });
     return;
   }
@@ -30,8 +30,8 @@ export const checkPermission = (requiredPermissions: Permission[]) => {
     const hasPermissions = requiredPermissions.every((p) => perms.includes(p));
 
     if (!hasPermissions) {
-      res.status(403).json({
-        message: APP_RESPONSE_MESSAGE.userDoesntHavePerms,
+      res.status(HttpStatusCode.UNAUTHORIZED).json({
+        message: APP_RESPONSE_MESSAGE.user.userDoesntHavePerms,
       });
       return;
     }

@@ -26,6 +26,9 @@ import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
 import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
 import webSocketListener from "./features/websocket/websocket.handler.ts";
 
+// CRON JOBS
+import "./cron";
+
 const app = express();
 let server;
 

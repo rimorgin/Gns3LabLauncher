@@ -6,8 +6,10 @@ import {
 } from "./classrooms.service.ts";
 import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
-import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
-import { prismaErrorCode } from "@srvr/utils/db/helpers.ts";
+import {
+  APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "@srvr/configs/constants.config.ts";
 
 /**
  * Retrieves a list of classrooms.
@@ -41,8 +43,32 @@ export const getClassrooms = async (
   const includeOptions: Prisma.ClassroomSelect | undefined = {
     course: isCourse,
     courseId: isCourseId,
-    students: isStudents,
-    instructor: isInstructor,
+    students: isStudents
+      ? {
+          select: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                username: true,
+              },
+            },
+          },
+        }
+      : false,
+    instructor: isInstructor
+      ? {
+          select: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                username: true,
+              },
+            },
+          },
+        }
+      : false,
     projects: isProjects,
   };
   const classrooms = isOnlyIds
@@ -57,6 +83,7 @@ export const getClassrooms = async (
           id: true,
           classroomName: true,
           status: true,
+          imageUrl: true,
           createdAt: true,
           updatedAt: true,
           ...includeOptions,
@@ -64,8 +91,8 @@ export const getClassrooms = async (
       });
 
   //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
-  res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.classroomsReturned,
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: APP_RESPONSE_MESSAGE.classroom.classroomsReturned,
     classrooms: classrooms,
   });
 };
@@ -110,6 +137,7 @@ export const getClassroomById = async (
       id: true,
       classroomName: true,
       status: true,
+      imageUrl: true,
       createdAt: true,
       updatedAt: true,
       ...includeOptions,
@@ -117,8 +145,8 @@ export const getClassroomById = async (
   });
 
   //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
-  res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.classroomsReturned,
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: APP_RESPONSE_MESSAGE.classroom.classroomsReturned,
     classrooms: classrooms,
   });
 };
@@ -156,26 +184,24 @@ export const postClassroom = async (
     },
   });
   if (isClassroomExists) {
-    res.status(409).json({ message: APP_RESPONSE_MESSAGE.classroomDoesExist });
+    res
+      .status(HTTP_RESPONSE_CODE.CONFLICT)
+      .json({ message: APP_RESPONSE_MESSAGE.classroom.classroomDoesExist });
     return;
   }
   try {
     const newClassroom = await createClassroom(req.body);
     //console.log("🚀 ~ postCourses ~ courses:", courses)
-    res.status(201).json({
-      message: APP_RESPONSE_MESSAGE.classroomCreated,
+    res.status(HTTP_RESPONSE_CODE.CREATED).json({
+      message: APP_RESPONSE_MESSAGE.classroom.classroomCreated,
       newData: newClassroom,
     });
-    return;
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
+      message: APP_RESPONSE_MESSAGE.serverError,
+    });
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+  return;
 };
 
 /**
@@ -201,25 +227,22 @@ export const patchClassroom = async (
     const updatedClassroom = await updateClassroomById(id, req.body);
 
     if (!updatedClassroom) {
-      res
-        .status(404)
-        .json({ message: APP_RESPONSE_MESSAGE.classroomDoesntExist });
+      res.status(HTTP_RESPONSE_CODE.NOT_FOUND).json({
+        message: APP_RESPONSE_MESSAGE.classroom.classroomDoesntExist,
+      });
       return;
     }
 
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.classroomUpdated,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.classroom.classroomUpdated,
       newData: updatedClassroom,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -245,23 +268,20 @@ export const deleteClassroom = async (
     const deletedClassroom = await deleteClassroomById(id);
 
     if (!deletedClassroom) {
-      res
-        .status(404)
-        .json({ message: APP_RESPONSE_MESSAGE.classroomDoesntExist });
+      res.status(HTTP_RESPONSE_CODE.NOT_FOUND).json({
+        message: APP_RESPONSE_MESSAGE.classroom.classroomDoesntExist,
+      });
       return;
     }
 
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.classroomDeleted,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.classroom.classroomDeleted,
       newData: deletedClassroom,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };

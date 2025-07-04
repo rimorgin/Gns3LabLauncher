@@ -18,7 +18,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "error",
+    path: "/*",
     Component: ErrorPage,
   },
 ]);

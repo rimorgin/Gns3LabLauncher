@@ -1,6 +1,7 @@
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import LoadingContent from "@clnt/components/contents/loading-content";
 import { Suspense, lazy } from "react";
+import { prismaStudioUrl } from "@clnt/constants/api";
 
 // Lazy imports
 const DashboardContent = lazy(
@@ -8,6 +9,9 @@ const DashboardContent = lazy(
 );
 const UsersContent = lazy(
   () => import("@clnt/components/contents/users-content"),
+);
+const UserGroupsContent = lazy(
+  () => import("@clnt/components/contents/user-groups-content"),
 );
 const ClassroomsContent = lazy(
   () => import("@clnt/components/contents/classrooms-content"),
@@ -20,9 +24,7 @@ const CalendarContent = lazy(
 );
 
 export default function DynamicContent() {
-  const { isAppLoading, activeNavName } = useAppStateStore();
-
-  if (isAppLoading) return <LoadingContent />;
+  const { activeNavName } = useAppStateStore();
 
   const renderContent = () => {
     switch (activeNavName) {
@@ -30,7 +32,9 @@ export default function DynamicContent() {
         return <DashboardContent />;
       case "Users":
         return <UsersContent />;
-      case "Classrooms":
+      case "User Groups":
+        return <UserGroupsContent />;
+      case "Classroom":
         return <ClassroomsContent />;
       case "Projects":
         return <ProjectsContent />;
@@ -46,8 +50,8 @@ export default function DynamicContent() {
       case "Data Library":
         return (
           <iframe
-            src={"http://localhost:5555/"}
-            style={{ width: "100%", height: "100%", border: "none" }}
+            src={prismaStudioUrl}
+            className="rounded-lg w-full h-full"
             title="Data Library"
           />
         );
@@ -62,5 +66,9 @@ export default function DynamicContent() {
     }
   };
 
-  return <Suspense fallback={<LoadingContent />}>{renderContent()}</Suspense>;
+  return (
+    <Suspense fallback={<LoadingContent />}>
+      <div className="w-full h-full p-4 lg:p-6">{renderContent()}</div>
+    </Suspense>
+  );
 }

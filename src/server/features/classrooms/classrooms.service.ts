@@ -19,8 +19,6 @@ import prisma from "@srvr/utils/db/prisma.ts";
 export const createClassroom = async (
   props: IClassroom,
 ): Promise<IClassroom> => {
-  console.log("🚀 ~ props:", props);
-  console.log("🚀 ~ props.students:", props.studentIds);
   const classroom = await prisma.classroom.create({
     data: {
       courseId: props.courseId,
@@ -34,6 +32,7 @@ export const createClassroom = async (
       projects: {
         connect: (props.projectIds ?? []).map((id) => ({ id })),
       },
+      imageUrl: props.imageUrl,
     },
   });
   return {
@@ -57,11 +56,12 @@ export const updateClassroomById = async (
   const updatedClassroom = await prisma.classroom.update({
     where: { id },
     data: updates,
-    select: {
-      classroomName: true,
-    },
   });
-  return updatedClassroom;
+  return {
+    ...updatedClassroom,
+    courseId: updatedClassroom.courseId ?? undefined,
+    instructorId: updatedClassroom.instructorId ?? undefined,
+  };
 };
 /**
  * Deletes a classroom by its ID.

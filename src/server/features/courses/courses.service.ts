@@ -22,6 +22,7 @@ export const createCourse = async (props: ICourse): Promise<ICourse> => {
       classrooms: {
         connect: (props.classroomIds ?? []).map((id) => ({ id })),
       },
+      imageUrl: props.imageUrl,
     },
   });
   return course;
@@ -41,9 +42,6 @@ export const updateCourseById = async (
   const updatedCourse = await prisma.course.update({
     where: { id },
     data: updates,
-    select: {
-      courseCode: true,
-    },
   });
   return updatedCourse;
 };

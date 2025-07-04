@@ -1,4 +1,8 @@
-import { ClassroomStatusEnum, UserRolesEnum } from "@prisma/client";
+import {
+  ClassroomStatusEnum,
+  ProjectTagsEnum,
+  UserRolesEnum,
+} from "@prisma/client";
 
 /**
  * Represents a base user profile in the system.
@@ -88,7 +92,9 @@ export interface IStudentUser {
 
 export interface IUserGroup {
   groupName: string;
+  classroomId: string;
   studentIds: string[];
+  imageUrl: string | null;
 }
 
 /**
@@ -101,6 +107,7 @@ export interface ICourse {
   courseCode: string;
   courseName: string | null;
   classroomIds?: string[];
+  imageUrl: string | null;
 }
 
 /**
@@ -111,11 +118,12 @@ export interface ICourse {
  * @property {string} instructorId - The ID of the instructor managing this classroom.
  * @property {string[]} studentsIds - An array of student user IDs enrolled in this classroom.
  * @property {string[]} projectIds - An array of project IDs assigned in this classroom.
- * @property {"active" | "expired"} status - The current status of the classroom.
+ * @property {"active" | "expired" | "archived" | "locked"} status - The current status of the classroom.
  */
 export interface IClassroom {
   classroomName: string;
   status: ClassroomStatusEnum;
+  imageUrl: string | null; // Always included
   courseId: string;
   instructorId?: string | null;
   projectIds?: string[];
@@ -129,12 +137,16 @@ export interface IClassroom {
  * @property {string} description - A detailed description of the project requirements and goals.
  * @property {string[]} classroomId - An array of classroom IDs where this project is visible or assigned.
  * @property {boolean} visible - Indicates whether the project is currently visible to students.
- * @propert {Date} duration - indicates when will the project expire
+ * @property {Date} duration - indicates when will the project expire
+ * @property {string} imageUrl - indicates url path on the frontend side
+ * @property {Enum<"networking" | "cyberscurity">} enum of networking or cybersecurity
  */
 export interface IProject {
   projectName: string;
   projectDescription?: string | null;
   visible?: boolean | null;
+  imageUrl: string | null; // Always included
   duration?: Date | null;
+  tags?: ProjectTagsEnum | null; // Change this line to allow string or null
   classroomIds?: string[] | null;
 }

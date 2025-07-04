@@ -4,10 +4,12 @@ model Classroom {
   status        ClassroomStatusEnum @default(active)
   courseId      String?
   instructorId  String?
+  imageUrl      String?
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
   course        Course?             @relation("ClassroomCourse", fields: [courseId], references: [id])
   instructor    Instructor?         @relation("ClassroomInstructor", fields: [instructorId], references: [userId])
+  studentGroups UserGroups[]        @relation("ClassroomStudentGroups")
   projects      Project[]           @relation("ClassroomProjects")
   students      Student[]           @relation("ClassroomStudents")
 

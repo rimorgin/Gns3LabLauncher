@@ -9,7 +9,6 @@ import {
   SidebarMenuItem,
 } from "@clnt/components/ui/sidebar";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import RBACWrapper from "./rbac-wrapper";
 
 export default function NavMain({
   items,
@@ -29,7 +28,7 @@ export default function NavMain({
           {items.map((item) => {
             const isActive = item.title === activeNavName;
 
-            const content = (
+            return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
@@ -51,20 +50,6 @@ export default function NavMain({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );
-
-            if (item.title.toLowerCase() === "users") {
-              return (
-                <RBACWrapper
-                  key={item.title}
-                  requiredPermissions="read_users"
-                  requiredRoles={["administrator", "instructor"]}
-                >
-                  {content}
-                </RBACWrapper>
-              );
-            }
-
-            return content;
           })}
         </SidebarMenu>
       </SidebarGroupContent>

@@ -145,6 +145,18 @@ export const MultiSelect = React.forwardRef<
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
 
+    React.useEffect(() => {
+      if (props.value) {
+        if (Array.isArray(props.value)) {
+          setSelectedValues(props.value as string[]);
+        } else if (typeof props.value === "string") {
+          setSelectedValues([props.value]);
+        } else {
+          setSelectedValues([]);
+        }
+      }
+    }, [props.value]);
+
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>,
     ) => {
@@ -203,7 +215,7 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              "flex w-full p-1 rounded-md border min-h-fit h-auto items-center justify-between bg-input/30 hover:bg-input/80 [&_svg]:pointer-events-auto",
+              "flex w-full p-1 rounded-md border min-h-10 max-h-fit h-auto items-center justify-between bg-input/30 hover:bg-input/80 [&_svg]:pointer-events-auto",
               className,
             )}
           >

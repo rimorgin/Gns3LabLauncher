@@ -6,7 +6,6 @@ import {
   updateProjectById,
 } from "./projects.service.ts";
 import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
-import { prismaErrorCode } from "@srvr/utils/db/helpers.ts";
 
 /**
  * Retrieves a list of projects, optionally including classroom data or selecting specific fields.
@@ -52,7 +51,7 @@ export const getProjects = async (
         : await prisma.project.findMany();
 
   res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.projectsReturned,
+    message: APP_RESPONSE_MESSAGE.project.projectsReturned,
     projects: projects,
   });
 };
@@ -103,7 +102,7 @@ export const getProjectsById = async (
         });
 
   res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.projectReturned,
+    message: APP_RESPONSE_MESSAGE.project.projectReturned,
     project: project,
   });
 };
@@ -131,25 +130,23 @@ export const postProjects = async (
   });
 
   if (projectExists) {
-    res.status(409).json({ message: APP_RESPONSE_MESSAGE.projectDoesExist });
+    res
+      .status(409)
+      .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesExist });
     return;
   }
-
   try {
     const newProject = await createProject(req.body);
     res.status(201).json({
-      message: APP_RESPONSE_MESSAGE.projectCreated,
+      message: APP_RESPONSE_MESSAGE.project.projectCreated,
       newData: newProject,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res.status(500).json({
+      message: APP_RESPONSE_MESSAGE.serverError,
+    });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -177,23 +174,18 @@ export const patchProject = async (
     if (!updatedProject) {
       res
         .status(409)
-        .json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
+        .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
       return;
     }
 
     res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.projectUpdated,
+      message: APP_RESPONSE_MESSAGE.project.projectUpdated,
       newData: updatedProject,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -221,21 +213,16 @@ export const deleteProject = async (
     if (!deletedProject) {
       res
         .status(409)
-        .json({ message: APP_RESPONSE_MESSAGE.projectDoesntExist });
+        .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
       return;
     }
 
     res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.projectDeleted,
+      message: APP_RESPONSE_MESSAGE.project.projectDeleted,
       newData: deletedProject,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };

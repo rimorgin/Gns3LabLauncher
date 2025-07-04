@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { UserDbData } from "./validators/user-schema";
+import { data } from "@clnt/constants/data";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -59,3 +60,22 @@ export function deepEqual(a: unknown, b: unknown): boolean {
     ),
   );
 }
+
+export const getRandomImage = (
+  imageType: "projects" | "courses" | "classrooms" | "userGroups",
+  tag?: string,
+): string => {
+  let images;
+  if (imageType === "projects") {
+    images = tag
+      ? data.images.projectImages.filter((img) => img.tags === tag)
+      : data.images.projectImages;
+    if (!images.length) images = data.images.projectImages;
+  } else if (imageType === "userGroups") {
+    images = data.images.userGroupImages;
+  } else {
+    images = data.images.courseImages;
+  }
+  const randomIndex = Math.floor(Math.random() * images.length);
+  return images[randomIndex].src;
+};

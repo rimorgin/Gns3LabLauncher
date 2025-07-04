@@ -14,7 +14,7 @@ export const useUserGroupPost = () => {
   return useMutation({
     mutationFn: postUserGroup,
     // When mutate is called:
-    onMutate: async (newUserGroup) => {
+    onMutate: async (newData) => {
       // Cancel any outgoing refetches
       // (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ["user-groups"] });
@@ -24,7 +24,7 @@ export const useUserGroupPost = () => {
 
       // Optimistically update to the new value
       queryClient.setQueryData(["user-groups"], (old) =>
-        Array.isArray(old) ? [...old, newUserGroup] : [newUserGroup],
+        Array.isArray(old) ? [...old, newData] : [newData],
       );
 
       // Return a context object with the snapshotted value

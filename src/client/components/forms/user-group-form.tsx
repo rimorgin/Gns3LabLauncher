@@ -20,12 +20,25 @@ import {
 } from "@clnt/lib/validators/user-group-schema";
 import { useUsersByRoleQuery } from "@clnt/lib/queries/user-query";
 import { useUserGroupPost } from "@clnt/lib/mutations/user-group-mutation";
+import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Student, StudentOption } from "@clnt/types/student-types";
+import { getRandomImage } from "@clnt/lib/utils";
 
 export function UserGroupForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
   const form = useForm<UserGroupFormData>({
     resolver: zodResolver(userGroupFormSchema),
     defaultValues: {
+      classroomId: undefined,
       groupName: undefined,
       studentIds: [],
     },
@@ -35,10 +48,20 @@ export function UserGroupForm() {
     data: userStudentsQry = [],
     isLoading: isUserStudentsLoading,
     error: errorOnUserStudents,
-  } = useUsersByRoleQuery({ role: "student" });
+  } = useUsersByRoleQuery({
+    includeRoleData: true,
+    includeRoleRelations: true,
+    role: "student",
+  });
+  const {
+    data: classroomsQry = [],
+    isLoading: isClassroomsLoading,
+    error: errorOnClassrooms,
+  } = useClassroomsQuery({ includes: ["course"] });
 
   const { mutateAsync, status } = useUserGroupPost();
   const onSubmit = async (data: UserGroupFormData) => {
+    //console.log("🚀 ~ onSubmit ~ data:", data);
     toast.promise(mutateAsync(data), {
       loading: "Creating course...",
       success: (message) => {
@@ -50,7 +73,7 @@ export function UserGroupForm() {
     });
   };
 
-  if (isUserStudentsLoading)
+  if (isUserStudentsLoading && isClassroomsLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -59,14 +82,22 @@ export function UserGroupForm() {
         <Skeleton className="w-full h-8" />
       </>
     );
-  if (errorOnUserStudents) return <div>Failed to load resources</div>;
+  if (errorOnUserStudents && errorOnClassrooms)
+    return <div>Failed to load resources</div>;
 
-  const studentOptions = userStudentsQry.map(
-    (student: { id: string; name: string }) => ({
+  const selectedClassroomId = form.watch("classroomId");
+  const studentOptions: StudentOption[] = userStudentsQry
+    ?.filter(
+      (student: Student) =>
+        !student.student.classrooms?.some(
+          (cls: { id: string; classroomName: string }) =>
+            cls.id === selectedClassroomId,
+        ),
+    )
+    ?.map((student: Student) => ({
       value: student.id,
       label: student.name,
-    }),
-  );
+    }));
 
   return (
     <Form {...form}>
@@ -91,6 +122,50 @@ export function UserGroupForm() {
 
         <FormField
           control={form.control}
+          name="classroomId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Assign this Group to Classroom</FormLabel>
+              {/* allow fallback for reset */}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("classroomId")}
+                  >
+                    <SelectValue placeholder="e.g. AM1" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Classrooms</SelectLabel>
+                    {classroomsQry.map(
+                      (cls: {
+                        id: string;
+                        classroomName: string;
+                        status: string;
+                        course?: { id: string; courseCode: string };
+                      }) => (
+                        <SelectItem key={cls.id} value={cls.id}>
+                          {`${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="studentIds"
           render={({ field }) => (
             <FormItem>
@@ -107,6 +182,12 @@ export function UserGroupForm() {
               <FormMessage />
             </FormItem>
           )}
+        />
+        {/* Set imageUrl programmatically with hidden input */}
+        <input
+          type="hidden"
+          {...form.register("imageUrl")}
+          value={getRandomImage("userGroups")}
         />
 
         <Button type="submit" className="w-full">

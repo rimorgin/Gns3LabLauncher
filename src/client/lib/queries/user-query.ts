@@ -11,35 +11,22 @@ export const getUsers = async (filters?: {
   const response = await axios.get("/users", {
     params: filters,
   });
-  console.log(response);
+  //console.log(response);
   return response.data.users;
 };
 
 // ---- Queries ----
 
-export const useUsersQuery = ({
-  includeRoleData = false,
-  includeRoleRelations = false,
-}: {
-  includeRoleData?: boolean;
-  includeRoleRelations?: boolean;
-}) =>
-  useQuery({
-    queryKey: ["users", { includeRoleData, includeRoleRelations }],
-    queryFn: () => getUsers({ includeRoleData, includeRoleRelations }),
-  });
-
 export const useUsersByRoleQuery = ({
-  role = "both",
+  role,
   includeRoleData = false,
   includeRoleRelations = false,
 }: {
-  role: "student" | "instructor" | "both";
+  role?: "student" | "instructor" | undefined;
   includeRoleData?: boolean;
   includeRoleRelations?: boolean;
 }) =>
   useQuery({
     queryKey: ["users", { role, includeRoleData, includeRoleRelations }],
-    queryFn: () => getUsers({ role }),
-    enabled: !!role,
+    queryFn: () => getUsers({ role, includeRoleData, includeRoleRelations }),
   });

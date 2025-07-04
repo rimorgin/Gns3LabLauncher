@@ -8,6 +8,7 @@ import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import roles from "@srvr/configs/roles.config.ts";
 import {
   APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
   HttpStatusCode,
 } from "@srvr/configs/constants.config.ts";
 import { logger } from "@srvr/middlewares/logger.middleware.ts";
@@ -80,10 +81,20 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
   const user = await prisma.user.findUnique({
     where: { id: userSessionId },
+    include: {
+      student: {
+        include: {
+          classrooms: true,
+          userGroups: true,
+        },
+      },
+    },
     omit: { password: true },
   });
   if (!user) {
-    res.status(404).json({ message: APP_RESPONSE_MESSAGE.userDoesntExist });
+    res
+      .status(HTTP_RESPONSE_CODE.NOT_FOUND)
+      .json({ message: APP_RESPONSE_MESSAGE.user.userDoesntExist });
     return;
   }
 
@@ -114,6 +125,7 @@ export const postLoginLocal = (
       user: IUserBaseInput | false,
       info: { message?: string } = {},
     ) => {
+      const start = Date.now();
       if (err) return next(err);
       if (!user) {
         return res
@@ -124,19 +136,22 @@ export const postLoginLocal = (
       req.login(user, async (loginErr) => {
         if (loginErr) return next(loginErr);
 
+        const duration = Date.now() - start;
         logger.info(`Request completed with status ${res.statusCode}`, {
           context: user.username,
           message: `User ${user.username} logged in`,
           stack: {
             userAgent: req.headers["user-agent"],
           },
+          statusCode: res.statusCode,
+          durationMs: duration,
           ip: req.ip?.replace("::ffff:", ""),
         });
 
         res.json({
           user: req.session.passport?.user, // This will be serialized user
           session: true,
-          message: APP_RESPONSE_MESSAGE.userLoggedIn,
+          message: APP_RESPONSE_MESSAGE.user.userLoggedIn,
         });
       });
     },
@@ -196,7 +211,7 @@ export const postLogout = (
         await redisClient.del(`gns3labuser:session:${userSessionId}`);
       console.log("req.logout session destroyed");
       res.json({
-        message: APP_RESPONSE_MESSAGE.userLoggedOut,
+        message: APP_RESPONSE_MESSAGE.user.userLoggedOut,
       });
     });
   });

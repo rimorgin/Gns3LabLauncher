@@ -7,7 +7,10 @@ import {
   deleteUserById,
   updateUserById,
 } from "./users.service.ts";
-import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
+import {
+  APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "@srvr/configs/constants.config.ts";
 
 /**
  * Fetches a list of users filtered by role (excluding administrators by default).
@@ -77,13 +80,13 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
     });
 
     res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.usersReturned,
+      message: APP_RESPONSE_MESSAGE.user.usersReturned,
       users: users,
     });
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch {
+    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
   }
+  return;
 };
 
 /**
@@ -118,15 +121,22 @@ export const postUsers = async (req: Request, res: Response): Promise<void> => {
       .filter(Boolean)
       .join(" and ");
     res
-      .status(409)
-      .json({ message: `${msg} ${APP_RESPONSE_MESSAGE.userDoesExist}` });
+      .status(HTTP_RESPONSE_CODE.CONFLICT)
+      .json({ message: `${msg} ${APP_RESPONSE_MESSAGE.user.userDoesExist}` });
     return;
   }
-
-  const newUser = await createUser(req.body);
-  res
-    .status(201)
-    .json({ message: APP_RESPONSE_MESSAGE.userCreated, newData: newUser });
+  try {
+    const newUser = await createUser(req.body);
+    res.status(HTTP_RESPONSE_CODE.CREATED).json({
+      message: APP_RESPONSE_MESSAGE.user.userCreated,
+      newData: newUser,
+    });
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+  }
+  return;
 };
 
 /**
@@ -146,10 +156,18 @@ export const postUsers = async (req: Request, res: Response): Promise<void> => {
 export const patchUser = async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
 
-  const updatedUser = await updateUserById(id, req.body);
-  res
-    .status(200)
-    .json({ message: APP_RESPONSE_MESSAGE.userUpdated, newData: updatedUser });
+  try {
+    const updatedUser = await updateUserById(id, req.body);
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.user.userUpdated,
+      newData: updatedUser,
+    });
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+  }
+  return;
 };
 
 /**
@@ -171,15 +189,14 @@ export const deleteUser = async (
   res: Response,
 ): Promise<void> => {
   const id = req.params.id;
-  console.log("🚀 ~ id:", id);
   try {
     const deletedUser = await deleteUserById(id);
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.userDeleted,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.user.userDeleted,
       newData: deletedUser,
     });
   } catch {
-    res.status(500).json({
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
       message: APP_RESPONSE_MESSAGE.serverError,
     });
   }
@@ -195,19 +212,21 @@ export const deleteUsersMany = async (
 
     if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) {
       res
-        .status(400)
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
         .json({ message: "Invalid 'ids' format. Expected string array." });
       return;
     }
 
     const deletedUsers = await deleteManyUsersById(ids);
 
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.userDeleted,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.user.userDeleted,
       newData: deletedUsers,
     });
   } catch {
-    res.status(500).json({ message: "Failed to delete users." });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: "Failed to delete users." });
   }
   return;
 };

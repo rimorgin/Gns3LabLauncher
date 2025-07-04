@@ -1,4 +1,4 @@
-import notFoundSvg from "@clnt/assets/not-found.svg";
+import { NotFoundIcon } from "@clnt/components/common/svg-icons";
 import { Button } from "@clnt/components/ui/button";
 import { useNavigate } from "react-router";
 
@@ -7,7 +7,7 @@ export default function ErrorPage() {
   const handleBack = () => navigate("/");
   return (
     <div className="w-full min-h-screen flex flex-col justify-center items-center">
-      <img src={notFoundSvg} alt="not-found" />
+      <NotFoundIcon />
       <Button className="scale-150" onClick={handleBack}>
         Go Back
       </Button>

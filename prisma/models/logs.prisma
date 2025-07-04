@@ -5,7 +5,7 @@ model Logs {
   message    String?
   context    String?   @db.VarChar
   stack      Json?     @db.Json
-  statusCode Int       @default(autoincrement())
-  durationMs Int       @default(autoincrement())
+  statusCode Int
+  durationMs Int
   ip         String?   @db.VarChar
 }

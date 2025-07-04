@@ -84,6 +84,10 @@ const roles: RolesCollection = {
         "read_users",
         "update_users",
         "delete_users",
+        "create_user-groups",
+        "read_user-groups",
+        "update_user-groups",
+        "delete_user-groups",
         "create_classrooms",
         "read_classrooms",
         "update_classrooms",
@@ -107,6 +111,7 @@ const roles: RolesCollection = {
       name: "student",
       permissions: [
         "read_dashboard",
+        "read_user-groups",
         "read_lectures",
         "read_courses",
         "read_tasks",

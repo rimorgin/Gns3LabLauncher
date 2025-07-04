@@ -1,0 +1,12 @@
+model UserGroups {
+  id          String @id @default(uuid())
+  groupName   String
+  classroomId String
+  imageUrl    String?
+
+  classrooms  Classroom?   @relation("ClassroomStudentGroups", fields: [classroomId], references: [id])
+  student     Student[]    @relation("UserGroups")
+  submissions Submission[] @relation("GroupSubmissions")
+
+  @@unique([groupName, classroomId], name: "uniqueGroupPerClassroom")
+}

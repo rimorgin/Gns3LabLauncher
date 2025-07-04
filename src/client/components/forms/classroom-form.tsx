@@ -31,6 +31,7 @@ import { useProjectsQuery } from "@clnt/lib/queries/projects-query";
 import { useClassroomsPost } from "@clnt/lib/mutations/classrooms-mutation";
 import { MultiSelect } from "../ui/multi-select";
 import { Skeleton } from "../ui/skeleton";
+import { getRandomImage } from "@clnt/lib/utils";
 
 export function ClassroomForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -40,7 +41,7 @@ export function ClassroomForm() {
       courseId: "",
       classroomName: "",
       instructorId: "",
-      status: "active",
+      status: undefined,
       studentIds: [],
       projectIds: [],
     },
@@ -72,6 +73,7 @@ export function ClassroomForm() {
   const { mutateAsync, status } = useClassroomsPost();
 
   const onSubmit = async (data: ClassroomFormData) => {
+    //console.log("🚀 ~ onSubmit ~ data:", data);
     toast.promise(mutateAsync(data), {
       loading: "Creating classroom...",
       success: (message) => {
@@ -152,9 +154,13 @@ export function ClassroomForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Class Instructor</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value ?? ""}>
                 <FormControl>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("instructorId")}
+                  >
                     <SelectValue placeholder="e.g. Eric Blancaflor" />
                   </SelectTrigger>
                 </FormControl>
@@ -181,9 +187,13 @@ export function ClassroomForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel optional>Assign to Course</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value ?? ""}>
                 <FormControl>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("courseId")}
+                  >
                     <SelectValue placeholder="e.g. IT186-8L" />
                   </SelectTrigger>
                 </FormControl>
@@ -253,20 +263,35 @@ export function ClassroomForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              {/* allow fallback for reset */}
+              <Select value={field.value ?? ""} onValueChange={field.onChange}>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
+                  <SelectTrigger
+                    value={field.value}
+                    onReset={() => form.resetField("status")}
+                  >
+                    <SelectValue placeholder="Select Classroom Status" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel>Statuses</SelectLabel>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="expired">Expired</SelectItem>
+                    <SelectItem value="archived">Archive</SelectItem>
+                    <SelectItem value="locked">Locked</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
+        />
+        {/* Set imageUrl programmatically with hidden input */}
+        <input
+          type="hidden"
+          {...form.register("imageUrl")}
+          value={getRandomImage("classrooms")}
         />
 
         <Button type="submit" className="w-full">

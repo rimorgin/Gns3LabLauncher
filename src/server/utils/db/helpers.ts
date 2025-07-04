@@ -1,5 +1,9 @@
 import { Prisma } from "@prisma/client";
 import {
+  APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "@srvr/configs/constants.config.ts";
+import {
   Permission,
   Role,
   RoleName,
@@ -91,35 +95,68 @@ export function randomWords(
   });
 }
 
-export function prismaErrorCode(
-  error: unknown,
-): { status: number; message: string } | undefined {
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    let status: number;
+type ModelKeys = keyof typeof APP_RESPONSE_MESSAGE;
 
-    switch (error.code) {
-      case "P2002": // Unique constraint
-        status = 409;
-        break;
+// Helper to get dynamic message like `userDoesExist`, `projectDoesntExist`, etc.
+function getMessage(
+  model: ModelKeys,
+  suffix: "DoesExist" | "DoesntExist",
+): string | undefined {
+  const base = model.slice(0, -1); // crude singularization (e.g., "users" -> "user")
+  const key =
+    `${base}${suffix}` as keyof (typeof APP_RESPONSE_MESSAGE)[ModelKeys];
 
-      case "P2025": // Record not found
-        status = 404;
-        break;
+  const group = APP_RESPONSE_MESSAGE[model];
 
-      case "P2003": // Foreign key constraint
-        status = 400;
-        break;
-
-      default:
-        status = 400;
-        break;
-    }
-
-    return {
-      status,
-      message: error.message,
-    };
+  if (typeof group === "object" && group !== null && key in group) {
+    return group[key];
   }
 
   return undefined;
+}
+
+export function prismaErrorCode(
+  error: unknown,
+): { status: number; message: string } | undefined {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError))
+    return undefined;
+  const raw = error.meta?.modelName as string | undefined;
+  if (!raw) return undefined;
+
+  const rawKey = raw === "UserGroups" ? "userGroup" : raw.toLowerCase();
+  const modelKey = (Object.keys(APP_RESPONSE_MESSAGE) as ModelKeys[]).find(
+    (key) => key === rawKey,
+  );
+  const isValidKey = modelKey && modelKey in APP_RESPONSE_MESSAGE;
+
+  switch (error.code) {
+    case "P2002":
+      return {
+        status: HTTP_RESPONSE_CODE.CONFLICT,
+        message: isValidKey
+          ? (getMessage(modelKey, "DoesExist") ??
+            APP_RESPONSE_MESSAGE.serverError)
+          : APP_RESPONSE_MESSAGE.serverError,
+      };
+
+    case "P2025":
+      return {
+        status: HTTP_RESPONSE_CODE.NOT_FOUND,
+        message: isValidKey
+          ? (getMessage(modelKey, "DoesntExist") ??
+            APP_RESPONSE_MESSAGE.serverError)
+          : APP_RESPONSE_MESSAGE.serverError,
+      };
+    case "P2003":
+      return {
+        status: HTTP_RESPONSE_CODE.BAD_REQUEST,
+        message: "Foreign key constraint failed",
+      };
+
+    default:
+      return {
+        status: HTTP_RESPONSE_CODE.SERVER_ERROR,
+        message: APP_RESPONSE_MESSAGE.serverError,
+      };
+  }
 }

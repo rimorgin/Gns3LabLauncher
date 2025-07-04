@@ -29,7 +29,7 @@ router.get(
  * @desc    Fetches the currently authenticated user's data from the session
  * @access  Private (User must be logged in)
  */
-router.get("/me", checkAuthentication, redisCache({ withUserId: true }), getMe);
+router.get("/me", checkAuthentication, getMe);
 
 /**
  * @route   GET /session/check

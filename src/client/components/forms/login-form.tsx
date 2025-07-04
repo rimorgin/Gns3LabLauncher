@@ -8,8 +8,9 @@ import {
   IconEye,
   IconEyeClosed,
 } from "@tabler/icons-react";
-import { LoginFormValues, useLogin } from "@clnt/lib/auth";
+import { useLogin } from "@clnt/lib/auth";
 import { toast } from "sonner";
+import { LoginFormValues } from "@clnt/types/auth-types";
 
 export function LoginForm({
   className,

@@ -16,7 +16,6 @@ export const getClassrooms = async ({
 
   if (only_ids) params.append("only_ids", "true");
   const queryString = params.toString();
-  console.log("🚀 ~ queryString:", queryString);
   const response = await axios.get(`/classrooms?${queryString}`);
   return response.data.classrooms;
 };
@@ -28,7 +27,7 @@ export const useClassroomsQuery = ({
   only_ids = false,
 }: {
   includes?: Array<
-    "course" | "courseId" | "projects" | "students" | "instructors"
+    "course" | "courseId" | "projects" | "students" | "instructor"
   >;
   only_ids?: boolean;
 }) =>

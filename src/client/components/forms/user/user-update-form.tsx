@@ -86,7 +86,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
     isLoading: isUserGroupLoading,
     error: errorOnUserGroup,
     // EMBED DATA with boolean option TRUE
-  } = useUserGroupsQuery();
+  } = useUserGroupsQuery({});
   const { mutateAsync, status } = useUserPatch();
   //console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
 
@@ -116,7 +116,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
         Object.keys(payload).length === 1 &&
         Object.keys(payload)[0] === "role"
       ) {
-        toast.info("Aborting... You have not made any changes at all");
+        return toast.info("Aborting... You have not made any changes at all");
       }
       console.log("🚀 ~ handleUpdate ~ payload:", payload);
 

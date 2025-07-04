@@ -10,7 +10,9 @@ import { Button } from "@clnt/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@clnt/components/ui/select";
@@ -29,6 +31,7 @@ import { toast } from "sonner";
 import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { Skeleton } from "@clnt/components/ui/skeleton";
 import { useUserGroupsQuery } from "@clnt/lib/queries/user-groups-query";
+import { useEffect } from "react";
 
 export function UserCreateForm() {
   const { toggleQuickCreateDialog } = useAppStateStore();
@@ -39,7 +42,7 @@ export function UserCreateForm() {
       email: "",
       username: "",
       password: "",
-      role: "student",
+      role: undefined,
     },
   });
 
@@ -55,7 +58,7 @@ export function UserCreateForm() {
     isLoading: isUserGroupLoading,
     error: errorOnUserGroup,
     // EMBED DATA with boolean option TRUE
-  } = useUserGroupsQuery();
+  } = useUserGroupsQuery({ includes: ["classroom"] });
   const { mutateAsync, status } = useUserPost();
   //console.log("🚀 ~ UserForm ~ classesQry:", classroomQry);
 
@@ -73,6 +76,29 @@ export function UserCreateForm() {
     });
     //console.log("🚀 ~ onSubmit ~ newData:", newData);
   };
+
+  const groupIds = form.watch("student.groupIds");
+  const role = form.watch("role");
+
+  useEffect(() => {
+    if (role !== "student" || !groupIds?.length) return;
+
+    const classroomIds = new Set(
+      groupIds
+        .map((groupId) => {
+          const matchedGroup = userGroupQry.find(
+            (grp: { id: string }) => grp.id === groupId,
+          );
+          return matchedGroup?.classroomId;
+        })
+        .filter(Boolean),
+    );
+
+    form.setValue("student.classroomIds", Array.from(classroomIds), {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [groupIds, role]);
 
   if (isClassroomsLoading && isUserGroupLoading)
     return (
@@ -105,9 +131,13 @@ export function UserCreateForm() {
   );
 
   const userGroupOptions = userGroupQry?.map(
-    (group: { id: string; groupName: string }) => ({
+    (group: {
+      id: string;
+      groupName: string;
+      classrooms: { classroomName: string };
+    }) => ({
       value: group.id,
-      label: group.groupName,
+      label: `${group.groupName} (${group.classrooms.classroomName})`,
     }),
   );
 
@@ -176,28 +206,34 @@ export function UserCreateForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Role</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value ?? ""}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger
+                    value={field.value}
+                    onReset={() => form.resetField("role")}
+                  >
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="instructor">Instructor</SelectItem>
-                  <SelectItem value="student">Student</SelectItem>
+                  <SelectGroup>
+                    <SelectLabel>Roles</SelectLabel>
+                    <SelectItem value="instructor">Instructor</SelectItem>
+                    <SelectItem value="student">Student</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        {form.watch("role") === "instructor" ? (
+        {form.watch("role") === "instructor" && (
           <FormField
             control={form.control}
             name="instructor.expertise"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Instructor Expertise</FormLabel>
+                <FormLabel optional>Instructor Expertise</FormLabel>
                 <FormControl>
                   <StringArrayInput
                     value={(field.value ?? []).filter(
@@ -211,16 +247,14 @@ export function UserCreateForm() {
               </FormItem>
             )}
           />
-        ) : (
+        )}
+        {form.watch("role") === "student" && (
           <FormField
             control={form.control}
             name="student.groupIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Select Groups
-                  <span className="text-muted-foreground">{"(optional)"}</span>
-                </FormLabel>
+                <FormLabel optional>Select Groups</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={userGroupOptions}
@@ -241,12 +275,10 @@ export function UserCreateForm() {
           name={`${form.watch("role")}.classroomIds`}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Select Classrooms
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Select Classrooms</FormLabel>
               <FormControl>
                 <MultiSelect
+                  key={(field.value ?? []).join("-")}
                   options={classroomOptions}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}

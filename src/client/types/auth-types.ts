@@ -5,14 +5,30 @@ type User = {
   id: string;
   username: string;
   email: string;
-  password: string;
   role: "administrator" | "instructor" | "student";
   createdAt: Date;
   updatedAt: Date;
 };
 
+type Classroom = {
+  classroomName: string;
+  instructorId: string;
+  status: "active" | "expired" | "archived" | "locked";
+  courseId?: string | undefined;
+};
+
+type Groups = {
+  id: string;
+  groupName: string;
+  classroomId: string;
+};
+
 export interface IUser extends User {
   permissions: Permission[];
+  student: {
+    classrooms?: Classroom[];
+    userGroups?: Groups[];
+  };
 }
 
 export interface LoginFormValues {

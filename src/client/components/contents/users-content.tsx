@@ -1,20 +1,23 @@
-import { useUsersQuery } from "@clnt/lib/queries/user-query";
+import { useUsersByRoleQuery } from "@clnt/lib/queries/user-query";
 import React from "react";
-import { Skeleton } from "../ui/skeleton";
-import { UserDataTable } from "../common/user-data-table";
+import { Skeleton } from "@clnt/components/ui/skeleton";
+import { UserDataTable } from "@clnt/components/tables/user-data-table";
 
 export default function UsersContent() {
   const {
     isLoading: isUserLoading,
     error: isUserError,
     data: userQry,
-  } = useUsersQuery({ includeRoleData: true, includeRoleRelations: true });
+  } = useUsersByRoleQuery({
+    includeRoleData: true,
+    includeRoleRelations: true,
+  });
   return isUserLoading ? (
     <div className="mt-8 px-4 lg:px-6">
       <Skeleton className="h-100 w-auto rounded-xl" />
     </div>
   ) : isUserError ? (
-    <div className="px-4 lg:px-6">
+    <div className="px-4 lg:px-6 content-center">
       <p>Something breaks!...</p>
     </div>
   ) : (

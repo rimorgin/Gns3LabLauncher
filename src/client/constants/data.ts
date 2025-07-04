@@ -6,13 +6,38 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
-  IconBrandMongodb,
   IconHeartCog,
   IconCheckupList,
   IconCalendarWeekFilled,
   IconChalkboardTeacher,
   IconMessage2Code,
+  IconUsersGroup,
+  IconDatabase,
 } from "@tabler/icons-react";
+
+// Define NavConfig type if not imported from elsewhere
+export type NavConfig = {
+  main: Array<{ title: string; icon: React.FC }>;
+  reports: Array<{ title: string; icon: React.FC }>;
+  system: Array<{ title: string; icon: React.FC }>;
+  secondary: Array<{ title: string; url: string; icon: React.FC }>;
+};
+
+export type ImagesConfig = {
+  courseImages: {
+    name: string;
+    src: string;
+  }[];
+  userGroupImages: {
+    name: string;
+    src: string;
+  }[];
+  projectImages: {
+    name: string;
+    src: string;
+    tags: string;
+  }[];
+};
 
 export const data = {
   nav: {
@@ -24,6 +49,10 @@ export const data = {
       {
         title: "Users",
         icon: IconUsers,
+      },
+      {
+        title: "User Groups",
+        icon: IconUsersGroup,
       },
       {
         title: "Course",
@@ -68,7 +97,7 @@ export const data = {
     system: [
       {
         title: "Data Library",
-        icon: IconBrandMongodb,
+        icon: IconDatabase,
       },
       {
         title: "System Health",
@@ -96,7 +125,164 @@ export const data = {
         icon: IconSearch,
       },
     ],
+  } satisfies NavConfig,
+
+  navItemsByRole: {
+    administrator: [
+      "Dashboard",
+      "Users",
+      "User Groups",
+      "Course",
+      "Classroom",
+      "Projects",
+      "Completions",
+      "Calendar",
+      "Data Library",
+      "System Health",
+      "System Logs",
+    ],
+    instructor: [
+      "Dashboard",
+      "Users",
+      "User Groups",
+      "Course",
+      "Classroom",
+      "Projects",
+      "Completions",
+      "Calender",
+    ],
+    student: ["Dashboard", "Classroom", "Projects", "Completions", "Calendar"],
   },
+
+  images: {
+    courseImages: [
+      {
+        name: "alpine-forest",
+        src: "src/client/assets/courses/9f9c813d-d96a-46dc-bd19-6f7b658d218e.jpg",
+      },
+      {
+        name: "azure-sky",
+        src: "src/client/assets/courses/b146bd30-776a-4052-afab-24103530d50b.jpg",
+      },
+      {
+        name: "crimson-sunset",
+        src: "src/client/assets/courses/b899dcd9-9d1b-4a19-97c0-6c2e0d157f5e.jpg",
+      },
+      {
+        name: "emerald-lake",
+        src: "src/client/assets/courses/fb608910-bafe-43d4-87a0-2a47e81356ef.jpg",
+      },
+      {
+        name: "golden-meadow",
+        src: "src/client/assets/courses/4c4e0c3b-bf85-4081-989b-8e3ea4a57bd5.jpg",
+      },
+      {
+        name: "silent-harbor",
+        src: "src/client/assets/courses/721cb2f0-5168-409a-b178-79728ed92e37.jpg",
+      },
+      {
+        name: "misty-mountain",
+        src: "src/client/assets/courses/156008b4-1855-4d09-ade4-07e4082eb333.jpg",
+      },
+      {
+        name: "silver-river",
+        src: "src/client/assets/courses/f86c62db-cfd6-4a02-b5b3-1d078fc4445c.jpg",
+      },
+      {
+        name: "autumn-valley",
+        src: "src/client/assets/courses/9b10ab1d-ea21-4d94-8af4-013ce21624cf.jpg",
+      },
+      {
+        name: "frosty-peak",
+        src: "src/client/assets/courses/6ecc0531-e6d0-453e-8fe7-750cd018f88a.jpg",
+      },
+      {
+        name: "sunny-hills",
+        src: "src/client/assets/courses/f95ab719-ed40-44c0-b248-2952c4118eee.jpg",
+      },
+      {
+        name: "quiet-cove",
+        src: "src/client/assets/courses/936ef989-53d2-4dfc-b7ce-7254ec2ff936.jpg",
+      },
+      {
+        name: "hidden-grove",
+        src: "src/client/assets/courses/e75380af-8b60-4c26-a676-8868f6645965.jpg",
+      },
+      {
+        name: "willow-creek",
+        src: "src/client/assets/courses/e75380af-8b60-4c26-a676-8868f6645965.jpg",
+      },
+      {
+        name: "pine-ridge",
+        src: "src/client/assets/courses/4a4118ab-b27d-44ae-90ba-b1e48be85f79.jpg",
+      },
+    ],
+    userGroupImages: [
+      {
+        name: "crazy-groups",
+        src: "src/client/assets/groups/6ddaf776-ebf9-4cae-91cd-1a1b95b89857.jpg",
+      },
+      {
+        name: "azure-groups",
+        src: "src/client/assets/groups/794e9a10-dd3b-4e75-97e9-dd8500fcc073.jpg",
+      },
+      {
+        name: "groups-sunset",
+        src: "src/client/assets/groups/0917a030-8ec5-44db-bc5f-623382437bec.jpg",
+      },
+      {
+        name: "emerald-group",
+        src: "src/client/assets/groups/c256245f-e63a-402b-81a3-688b57c28bda.jpg",
+      },
+    ],
+    projectImages: [
+      {
+        name: "physical-topology",
+        src: "src/client/assets/projects/1751433310.png",
+        tags: "networking",
+      },
+      {
+        name: "data-center",
+        src: "src/client/assets/projects/4335662a-470a-42cc-af9b-7cd6b604b9de.jpg",
+        tags: "networking",
+      },
+      {
+        name: "data-center-2",
+        src: "src/client/assets/projects/37bd2db6-bbd0-4524-93bc-ff5511f96f09.jpg",
+        tags: "networking",
+      },
+      {
+        name: "routers-and-switches",
+        src: "src/client/assets/projects/8ba2115e-f708-4f8e-830e-9eb0d2da5332.jpg",
+        tags: "networking",
+      },
+      {
+        name: "routers-and-switches-2",
+        src: "src/client/assets/projects/6c78003d-dbea-402d-99f2-9aac39e8ebb4.jpg",
+        tags: "networking",
+      },
+      {
+        name: "routers-and-switches-3",
+        src: "src/client/assets/projects/7df2a902-d302-44ab-934d-abcd290ae2a1.jpg",
+        tags: "networking",
+      },
+      {
+        name: "hacking-guy",
+        src: "src/client/assets/projects/dc31b93e-be9d-4d32-bafc-39fbb759cdf9.jpg",
+        tags: "cybersecurity",
+      },
+      {
+        name: "security-engineer",
+        src: "src/client/assets/projects/b46c0a05-53a0-4a4a-932b-13502e5c96ef.jpg",
+        tags: "cyberscurity",
+      },
+      {
+        name: "malicious-attacker",
+        src: "src/client/assets/projects/7e4efece-6b33-4fc8-a421-9c3bcfb79f25.jpg",
+        tags: "cybersecurity",
+      },
+    ],
+  } satisfies ImagesConfig,
 
   table: [
     {

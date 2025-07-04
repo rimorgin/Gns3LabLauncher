@@ -50,9 +50,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import { Checkbox } from "../ui/checkbox";
-import { Tabs, TabsContent } from "../ui/tabs";
+} from "@clnt/components/ui/table";
+import { Checkbox } from "@clnt/components/ui/checkbox";
+import { Tabs, TabsContent } from "@clnt/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -60,9 +60,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
+} from "@clnt/components/ui/dropdown-menu";
+import { Button } from "@clnt/components/ui/button";
 import {
+  IconAt,
   IconChevronDown,
   IconDotsVertical,
   IconEdit,
@@ -73,7 +74,7 @@ import {
   IconPlugConnectedX,
   IconUserSearch,
 } from "@tabler/icons-react";
-import { Input } from "../ui/input";
+import { Input } from "@clnt/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@clnt/hooks/use-mobile";
 import {
@@ -84,10 +85,10 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from "../ui/drawer";
+} from "@clnt/components/ui/drawer";
 import { userDbSchema } from "@clnt/lib/validators/user-schema";
-import { UserUpdateForm } from "../forms/user/user-update-form";
-import { UserDeleteForm } from "../forms/user/user-delete-form";
+import { UserUpdateForm } from "@clnt/components/forms/user/user-update-form";
+import { UserDeleteForm } from "@clnt/components/forms/user/user-delete-form";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -162,7 +163,16 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
   {
     accessorKey: "email",
     header: "Email",
-    cell: ({ row }) => <p>{row.original.email}</p>,
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+            <IconAt className="h-4 w-4 text-blue-600" />
+          </div>
+          <div className="font-medium">{row.original.email}</div>
+        </div>
+      );
+    },
   },
   {
     accessorKey: "role",
@@ -465,7 +475,7 @@ export function UserDataTable({
       defaultValue="outline"
       className="w-full h-full flex-col justify-start gap-6"
     >
-      <div className="flex items-center justify-between px-6 pt-6">
+      <div className="flex items-center justify-between">
         <div>
           <IconUserSearch className="absolute m-1.5" />
           <Input
@@ -550,7 +560,7 @@ export function UserDataTable({
       {/* Table */}
       <TabsContent
         value="outline"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
+        className="relative flex flex-col gap-4 overflow-auto"
       >
         <div className="overflow-hidden rounded-lg border h-full">
           <DndContext
@@ -612,7 +622,7 @@ export function UserDataTable({
       </TabsContent>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3 border-t bg-muted">
+      <div className="flex items-center justify-between px-4 py-3 border-t bg-muted rounded-lg">
         <div className="flex items-center text-sm">
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.

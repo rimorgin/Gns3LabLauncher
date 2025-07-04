@@ -5,8 +5,10 @@ import {
   deleteCourseById,
   updateCourseById,
 } from "./courses.service.ts";
-import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
-import { prismaErrorCode } from "@srvr/utils/db/helpers.ts";
+import {
+  APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "@srvr/configs/constants.config.ts";
 
 /**
  * Retrieves a list of all courses.
@@ -35,8 +37,8 @@ export const getCourses = async (
       })
     : await prisma.course.findMany();
 
-  res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.coursesReturned,
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: APP_RESPONSE_MESSAGE.course.coursesReturned,
     courses: courses,
   });
 };
@@ -63,8 +65,8 @@ export const getCourseById = async (
     select: { id: true },
   });
 
-  res.status(200).json({
-    message: APP_RESPONSE_MESSAGE.courseReturned,
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: APP_RESPONSE_MESSAGE.course.courseReturned,
     course: course,
   });
 };
@@ -94,26 +96,25 @@ export const postCourses = async (
     where: { courseCode },
   });
   if (isCourseExists) {
-    res.status(409).json({ message: APP_RESPONSE_MESSAGE.courseDoesExist });
+    res
+      .status(HTTP_RESPONSE_CODE.CONFLICT)
+      .json({ message: APP_RESPONSE_MESSAGE.course.courseDoesExist });
     return;
   }
   try {
     const newCourse = await createCourse(req.body);
     //console.log("🚀 ~ postCourses ~ courses:", courses)
-    res.status(201).json({
-      message: APP_RESPONSE_MESSAGE.courseCreated,
+    res.status(HTTP_RESPONSE_CODE.CREATED).json({
+      message: APP_RESPONSE_MESSAGE.course.courseCreated,
       newData: newCourse,
     });
     return;
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
+      message: APP_RESPONSE_MESSAGE.serverError,
+    });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -139,23 +140,22 @@ export const patchCourse = async (
     const updatedCourse = await updateCourseById(id, req.body);
 
     if (!updatedCourse) {
-      res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
+      res
+        .status(HTTP_RESPONSE_CODE.NOT_FOUND)
+        .json({ message: APP_RESPONSE_MESSAGE.course.courseDoesntExist });
       return;
     }
 
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.courseUpdated,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.course.courseUpdated,
       newData: updatedCourse,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };
 
 /**
@@ -181,21 +181,20 @@ export const deleteCourse = async (
     const deleted = await deleteCourseById(id);
 
     if (!deleted) {
-      res.status(404).json({ message: APP_RESPONSE_MESSAGE.courseDoesntExist });
+      res
+        .status(HTTP_RESPONSE_CODE.NOT_FOUND)
+        .json({ message: APP_RESPONSE_MESSAGE.course.courseDoesntExist });
       return;
     }
 
-    res.status(200).json({
-      message: APP_RESPONSE_MESSAGE.courseDeleted,
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.course.courseDeleted,
       newData: deleted,
     });
-  } catch (error: unknown) {
-    const prismaErr = prismaErrorCode(error);
-    if (prismaErr) {
-      res.status(prismaErr.status).json({ message: prismaErr.message });
-      return;
-    }
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
   }
-
-  res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
 };

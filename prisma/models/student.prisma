@@ -1,8 +1,12 @@
 model Student {
-  userId       String      @id
-  isOnline     Boolean     @default(false)
+  userId       String    @id
+  isOnline     Boolean   @default(false)
   lastActiveAt DateTime?
-  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userGroups   UserGroups[] @relation("UserGroups")
-  classrooms   Classroom[] @relation("ClassroomStudents")
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userGroups  UserGroups[] @relation("UserGroups")
+  classrooms  Classroom[]  @relation("ClassroomStudents")
+  submissions Submission[] @relation("StudentSubmissions")
+
+  SubmissionFile SubmissionFile[]
 }

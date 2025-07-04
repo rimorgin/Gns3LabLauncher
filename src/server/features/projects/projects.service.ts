@@ -1,3 +1,4 @@
+import { ProjectTagsEnum } from "@prisma/client";
 import { IProject } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 
@@ -11,6 +12,8 @@ import prisma from "@srvr/utils/db/prisma.ts";
  * @param {string} props.description - A brief description of the project.
  * @param {string[]} props.classroomIds - The IDs of the classroom this project is associated with.
  * @param {boolean} props.visible - Whether the project should be visible to students.
+ * @param {string} props.imageUrl - url path of the image and should always included in the payload
+ * @param {Enum<"networking" | "cyberscurity">} props.tags should be networking or cybersecurity
  *
  * @returns {Promise<IProjects>} A promise that resolves to the newly created project instance.
  *
@@ -23,12 +26,17 @@ export const createProject = async (props: IProject): Promise<IProject> => {
       projectDescription: props.projectDescription,
       visible: props.visible,
       duration: props.duration,
+      tags: props.tags as ProjectTagsEnum | null,
+      imageUrl: props.imageUrl,
       classroom: {
         connect: (props.classroomIds ?? []).map((id) => ({ id })),
       },
     },
   });
-  return project;
+  return {
+    ...project,
+    tags: project.tags as ProjectTagsEnum | null | undefined,
+  };
 };
 
 /**
@@ -45,11 +53,11 @@ export const updateProjectById = async (
   const updatedProject = await prisma.project.update({
     where: { id },
     data: updates,
-    select: {
-      projectName: true,
-    },
   });
-  return updatedProject;
+  return {
+    ...updatedProject,
+    tags: updatedProject.tags as ProjectTagsEnum | null | undefined,
+  };
 };
 /**
  * Deletes a project by its ID.
@@ -59,7 +67,7 @@ export const updateProjectById = async (
  */
 export const deleteProjectById = async (
   id: string,
-): Promise<IProject | null> => {
+): Promise<Partial<IProject> | null> => {
   const deletedProject = await prisma.project.delete({
     where: { id },
     select: {
