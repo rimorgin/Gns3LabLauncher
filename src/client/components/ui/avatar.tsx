@@ -36,13 +36,32 @@ function AvatarImage({
 
 function AvatarFallback({
   className,
+  randomizeBg,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: React.ComponentProps<typeof AvatarPrimitive.Fallback> & {
+  randomizeBg?: boolean;
+}) {
+  const colors = [
+    { bg: "bg-purple-100", text: "text-purple-600" },
+    { bg: "bg-blue-100", text: "text-blue-600" },
+    { bg: "bg-green-100", text: "text-green-600" },
+    { bg: "bg-yellow-100", text: "text-yellow-600" },
+    { bg: "bg-pink-100", text: "text-pink-600" },
+    { bg: "bg-red-100", text: "text-red-600" },
+    { bg: "bg-indigo-100", text: "text-indigo-600" },
+  ];
+
+  const randomColor = randomizeBg
+    ? colors[Math.floor(Math.random() * colors.length)]
+    : undefined;
+
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
         "bg-muted flex size-full items-center justify-center rounded-full",
+        randomColor?.bg,
+        randomColor?.text,
         className,
       )}
       {...props}

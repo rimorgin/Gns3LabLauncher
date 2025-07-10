@@ -202,14 +202,32 @@ export const postLogout = (
   next: NextFunction,
 ): void => {
   const userSessionId = req.session?.passport?.user;
-  console.log("🚀 ~ req.logout ~ userId:", userSessionId);
+  const userRole = req.user?.role;
 
   req.logout(function (err: Error | null) {
     if (err) return next(err);
     req.session.destroy(async () => {
       if (userSessionId)
         await redisClient.del(`gns3labuser:session:${userSessionId}`);
-      console.log("req.logout session destroyed");
+      //console.log("req.logout session destroyed");
+      if (userRole === "instructor") {
+        await prisma.instructor.update({
+          where: { userId: userSessionId },
+          data: {
+            isOnline: false,
+          },
+        });
+      } else if (userRole === "student") {
+        await prisma.student.update({
+          where: { userId: userSessionId },
+          data: {
+            isOnline: false,
+          },
+        });
+      }
+
+      console.log("🚀 ~ req.logout ~ userId:", userSessionId);
+      console.log("🚀 ~ req.session.destroy ~ userRole:", userRole);
       res.json({
         message: APP_RESPONSE_MESSAGE.user.userLoggedOut,
       });

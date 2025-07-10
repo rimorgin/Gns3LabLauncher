@@ -22,12 +22,11 @@ export const createUserGroup = async (
   const user_group = await prisma.userGroups.create({
     data: {
       groupName: groupName,
-      ...(props.classroomId && { classroomId: props.classroomId }),
-      ...(props.studentIds && {
-        student: {
-          connect: (props.studentIds ?? []).map((id) => ({ userId: id })),
-        },
-      }),
+      classroomId: props.classroomId,
+      limit: props.limit,
+      student: {
+        connect: (props.studentIds ?? []).map((id) => ({ userId: id })),
+      },
       imageUrl: props.imageUrl,
     },
   });
@@ -46,7 +45,7 @@ export const updateUserGroupById = async (
   id: string,
   updates: Partial<IUserGroup>,
 ): Promise<Partial<IUserGroup> | null> => {
-  const { studentIds, ...rest } = updates;
+  const { studentIds, ...rest } = updates as IUserGroup;
 
   const updatedUserGroup = await prisma.userGroups.update({
     where: { id },
@@ -54,10 +53,12 @@ export const updateUserGroupById = async (
       ...rest,
       ...(studentIds && {
         student: {
-          set: [],
-          connect: studentIds.map((id) => ({ userId: id })),
+          set: (studentIds ?? []).map((id) => ({ userId: id })),
         },
       }),
+    },
+    include: {
+      student: true,
     },
   });
 
@@ -80,4 +81,24 @@ export const deleteUserGroupById = async (
     },
   });
   return deletedUserGroup;
+};
+
+/**
+ * Deletes many user group by their ID.
+ *
+ * @param {string[]} ids - The IDs of the user group to delete.
+ * @returns {Promise<Partial<IUserBaseOutput> | null>} A promise that resolves to the deleted user group instance, or null if not found, and returns a username as a  result.
+ */
+export const deleteManyUserGroupsById = async (
+  ids: string[],
+): Promise<Partial<IUserGroup>[]> => {
+  const deletedUserGroups = await prisma.$transaction(
+    ids.map((id) =>
+      prisma.userGroups.delete({
+        where: { id },
+        select: { groupName: true },
+      }),
+    ),
+  );
+  return deletedUserGroups;
 };

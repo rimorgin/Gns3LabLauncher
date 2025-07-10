@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios";
 
-// Example: course=courseinstructor=instructor
 export const getClassrooms = async ({
   includes = [],
   only_ids = false,
@@ -32,6 +31,6 @@ export const useClassroomsQuery = ({
   only_ids?: boolean;
 }) =>
   useQuery({
-    queryKey: ["classrooms", { includes: includes.sort(), only_ids }, includes],
+    queryKey: ["classrooms", { includes: includes, only_ids }],
     queryFn: () => getClassrooms({ includes, only_ids }),
   });

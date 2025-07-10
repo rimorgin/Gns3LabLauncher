@@ -1,12 +1,16 @@
 model UserGroups {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   groupName   String
   classroomId String
+  limit       Int         
   imageUrl    String?
+  createdAt    DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   classrooms  Classroom?   @relation("ClassroomStudentGroups", fields: [classroomId], references: [id])
   student     Student[]    @relation("UserGroups")
   submissions Submission[] @relation("GroupSubmissions")
+  progress    Progress[]   @relation("GroupProgresses")
 
   @@unique([groupName, classroomId], name: "uniqueGroupPerClassroom")
 }

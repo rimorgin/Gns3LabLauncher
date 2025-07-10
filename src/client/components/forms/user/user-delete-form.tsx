@@ -1,20 +1,24 @@
 import { Button } from "@clnt/components/ui/button";
 import { Input } from "@clnt/components/ui/input";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { useUserDelete } from "@clnt/lib/mutations/user/user-delete-mutation";
 import { UserDbData } from "@clnt/lib/validators/user-schema";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@clnt/components/ui/avatar";
+import { useQuickDrawerStore } from "@clnt/lib/store/quick-drawer-store";
 
 interface UserDeleteProps {
   initialData: Partial<UserDbData> | Array<Partial<UserDbData>>;
 }
 
 export function UserDeleteForm({ initialData }: UserDeleteProps) {
-  const { toggleQuickEditDrawer } = useAppStateStore();
+  const toggleQuickDrawer = useQuickDrawerStore(
+    (state) => state.toggleQuickDrawer,
+  );
   const { mutateAsync, status } = useUserDelete();
 
   const isArray = Array.isArray(initialData);
   const dataList = isArray ? initialData : [initialData];
+  console.log("🚀 ~ UserDeleteForm ~ dataList:", dataList);
   const firstUser = dataList[0]; // Used for showing name/email/username
 
   const onDelete = async () => {
@@ -28,7 +32,7 @@ export function UserDeleteForm({ initialData }: UserDeleteProps) {
     toast.promise(mutateAsync(ids), {
       loading: ids.length > 1 ? "Deleting users..." : "Deleting user...",
       success: () => {
-        toggleQuickEditDrawer();
+        toggleQuickDrawer();
         return ids.length > 1 ? "Users deleted." : "User deleted.";
       },
       error: (err) =>
@@ -44,7 +48,7 @@ export function UserDeleteForm({ initialData }: UserDeleteProps) {
       }}
       className="space-y-4"
     >
-      {!isArray && (
+      {(!isArray || dataList.length === 1) && (
         <>
           <div>
             <label className="block text-sm font-medium">Name</label>
@@ -64,11 +68,32 @@ export function UserDeleteForm({ initialData }: UserDeleteProps) {
       )}
 
       {isArray && (
-        <div className="text-sm text-muted-foreground">
-          You are about to delete <strong>{dataList.length}</strong> users.
+        <div>
+          {dataList.map((user, index) => (
+            <div
+              key={user.id || user.email}
+              className="flex items-center gap-2 py-2 text-md"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-blue-100 text-blue-600">
+                  {`${index + 1}`}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-medium">{user.name}</span>
+                <span className="text-muted-foreground">{user.email}</span>
+              </div>
+            </div>
+          ))}
         </div>
       )}
-
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p className="text-sm text-red-800">
+          {isArray
+            ? `This will permanently delete ${dataList.length} users and all associated data.`
+            : "This will permanently delete this user and all associated data."}
+        </p>
+      </div>
       <div className="w-full px-4 absolute bottom-17 right-0">
         <Button
           type="submit"

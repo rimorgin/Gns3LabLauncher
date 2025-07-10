@@ -28,8 +28,12 @@ import {
   User,
   BookOpen,
   Calendar,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
 } from "lucide-react";
 import {
+  Column,
   ColumnDef,
   ColumnFiltersState,
   Row,
@@ -89,38 +93,33 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@clnt/components/ui/avatar";
+import { UserGroupDbData } from "@clnt/lib/validators/user-group-schema";
+import { stringInitials } from "@clnt/lib/utils";
+import moment from "moment";
+import { UserGroupUpdateForm } from "../forms/usergroup/user-group-update-form";
+import { UserGroupDeleteForm } from "../forms/usergroup/user-group-delete-form";
 
-// Define the types based on your UserGroupData structure
-type User = {
-  id: string;
-  name?: string | null;
-  username: string;
-  email: string;
-};
+function LimitListCell({ userGroup }: { userGroup: UserGroupDbData }) {
+  const totalUsers = userGroup?.student?.length || 0;
+  const userGroupLimit = userGroup.limit;
+  if (userGroupLimit === 0) {
+    return (
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Users className="h-4 w-4" />
+        <span className="text-sm">No user group limit</span>
+      </div>
+    );
+  }
 
-type Student = {
-  id: string;
-  user: User;
-};
-
-type Classroom = {
-  id: string;
-  classroomName: string;
-  course?: {
-    courseCode: string;
-    courseName: string;
-  };
-};
-
-type UserGroupData = {
-  id: string;
-  groupName: string;
-  classroom?: Classroom;
-  imageUrl: string;
-  students?: Student[];
-  createdAt: string;
-  updatedAt: string;
-};
+  return (
+    <div className="flex items-center gap-2">
+      <Users className="h-4 w-4 text-muted-foreground" />
+      <span className="text-sm">
+        {totalUsers}/{userGroupLimit} students
+      </span>
+    </div>
+  );
+}
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -140,7 +139,40 @@ function DragHandle({ id }: { id: string }) {
   );
 }
 
-const columns: ColumnDef<UserGroupData>[] = [
+// Sortable header component
+function SortableHeader({
+  column,
+  children,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: Column<any, unknown>;
+  children: React.ReactNode;
+}) {
+  if (!column.getCanSort()) {
+    return <div className="flex items-center gap-2">{children}</div>;
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2 px-0 h-auto font-medium hover:bg-transparent"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {children}
+      <div className="flex flex-col">
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="h-4 w-4 opacity-50" />
+        )}
+      </div>
+    </Button>
+  );
+}
+
+const columns: ColumnDef<UserGroupDbData>[] = [
   {
     id: "drag",
     header: () => null,
@@ -176,7 +208,9 @@ const columns: ColumnDef<UserGroupData>[] = [
   },
   {
     accessorKey: "groupName",
-    header: "Group Name",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Group Name</SortableHeader>
+    ),
     cell: ({ row }) => {
       const group = row.original;
       return (
@@ -200,10 +234,11 @@ const columns: ColumnDef<UserGroupData>[] = [
   },
   {
     accessorKey: "classroom",
-    header: "Classroom",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Classroom</SortableHeader>
+    ),
     cell: ({ row }) => {
-      const classroom = row.original.classroom;
-
+      const classroom = row.original.classrooms;
       if (!classroom) {
         return (
           <div className="text-sm text-muted-foreground">
@@ -231,16 +266,25 @@ const columns: ColumnDef<UserGroupData>[] = [
       );
     },
     sortingFn: (rowA, rowB) => {
-      const a = rowA.original.classroom?.classroomName || "";
-      const b = rowB.original.classroom?.classroomName || "";
+      const a = rowA.original.classrooms?.classroomName || "";
+      const b = rowB.original.classrooms?.classroomName || "";
       return a.localeCompare(b);
     },
   },
   {
+    accessorKey: "limit",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Limit</SortableHeader>
+    ),
+    cell: ({ row }) => <LimitListCell userGroup={row.original} />,
+  },
+  {
     accessorKey: "students",
-    header: "Students",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Students</SortableHeader>
+    ),
     cell: ({ row }) => {
-      const students = row.original.students || [];
+      const students = row.original.student || [];
       const studentCount = students.length;
 
       return (
@@ -254,20 +298,39 @@ const columns: ColumnDef<UserGroupData>[] = [
       );
     },
     sortingFn: (rowA, rowB) => {
-      const a = rowA.original.students?.length || 0;
-      const b = rowB.original.students?.length || 0;
+      const a = rowA.original.student?.length || 0;
+      const b = rowB.original.student?.length || 0;
       return a - b;
     },
   },
   {
     accessorKey: "createdAt",
-    header: "Created",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Created</SortableHeader>
+    ),
     cell: ({ row }) => {
-      const date = new Date(row.original.createdAt);
       return (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{date.toLocaleDateString()}</span>
+          <span className="text-sm">
+            {moment(row.original.createdAt).format("L")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Updated At</SortableHeader>
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">
+            {moment(row.original.updatedAt).format("L")}
+          </span>
         </div>
       );
     },
@@ -276,7 +339,7 @@ const columns: ColumnDef<UserGroupData>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const [openDrawer, setOpenDrawer] = React.useState(false);
+      const [isDrawerOpen, toggleDrawer] = React.useState(false);
       const [drawerMode, setDrawerMode] = React.useState<
         "edit" | "view" | "delete"
       >("edit");
@@ -298,7 +361,7 @@ const columns: ColumnDef<UserGroupData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("edit");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEdit />
@@ -307,7 +370,7 @@ const columns: ColumnDef<UserGroupData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("view");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEye />
@@ -318,7 +381,7 @@ const columns: ColumnDef<UserGroupData>[] = [
                 variant="destructive"
                 onClick={() => {
                   setDrawerMode("delete");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconPencilX />
@@ -336,8 +399,8 @@ const columns: ColumnDef<UserGroupData>[] = [
                   ? row.original
                   : table.getSelectedRowModel().rows.map((row) => row.original)
             }
-            open={openDrawer}
-            setOpen={setOpenDrawer}
+            open={isDrawerOpen}
+            setOpen={toggleDrawer}
           />
         </>
       );
@@ -345,7 +408,7 @@ const columns: ColumnDef<UserGroupData>[] = [
   },
 ];
 
-function DraggableRow({ row }: { row: Row<UserGroupData> }) {
+function DraggableRow({ row }: { row: Row<UserGroupDbData> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
@@ -377,7 +440,7 @@ function TableCellViewer({
   setOpen,
 }: {
   drawerMode: "edit" | "view" | "delete";
-  item: UserGroupData | UserGroupData[];
+  item: UserGroupDbData | UserGroupDbData[];
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -434,7 +497,7 @@ function TableCellViewer({
               <div className="flex items-center gap-3">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={group.imageUrl} alt={group.groupName} />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">
+                  <AvatarFallback randomizeBg>
                     <Users className="h-6 w-6" />
                   </AvatarFallback>
                 </Avatar>
@@ -447,53 +510,52 @@ function TableCellViewer({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Students</label>
-                  <p className="mt-1">{group.students?.length || 0} members</p>
+                  <p className="mt-1">{group.student?.length || 0} members</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Classroom</label>
                   <p className="mt-1">
-                    {group.classroom?.classroomName || "No classroom assigned"}
+                    {group.classrooms?.classroomName || "No classroom assigned"}
                   </p>
                 </div>
               </div>
 
-              {group.classroom && (
-                <div>
-                  <label className="text-sm font-medium">Course Details</label>
-                  <div className="mt-1 space-y-1">
-                    <p className="font-medium">
-                      {group.classroom.classroomName}
-                    </p>
-                    {group.classroom.course && (
-                      <>
-                        <p className="text-sm text-muted-foreground">
-                          {group.classroom.course.courseCode}
-                        </p>
-                        {group.classroom.course.courseName && (
-                          <p className="text-sm text-muted-foreground">
-                            {group.classroom.course.courseName}
-                          </p>
-                        )}
-                      </>
-                    )}
+              {group.classrooms && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">
+                      Course Details
+                    </label>
+                    <div className="mt-1 space-y-1">
+                      <p className="flex flex-row">
+                        {group.classrooms.classroomName}-
+                        {group.classrooms?.course?.courseCode}-
+                        {group.classrooms?.course?.courseName}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Group Limit</label>
+                    <div className="mt-1 space-y-1">
+                      <LimitListCell userGroup={group} />
+                    </div>
                   </div>
                 </div>
               )}
 
-              {group.students && group.students.length > 0 && (
+              {group.student && group.student.length > 0 && (
                 <div>
                   <label className="text-sm font-medium">Group Members</label>
                   <div className="mt-2 space-y-2">
-                    {group.students.map((student) => (
-                      <div key={student.id} className="flex items-center gap-2">
+                    {group.student.map((student) => (
+                      <div
+                        key={student.userId}
+                        className="flex items-center gap-2"
+                      >
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
+                          <AvatarFallback randomizeBg className="text-xs">
                             {student.user.name
-                              ? student.user.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")
-                                  .toUpperCase()
+                              ? stringInitials(student.user.name)
                               : student.user.username.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -510,39 +572,30 @@ function TableCellViewer({
                   </div>
                 </div>
               )}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Created</label>
+                  <p className="mt-1">
+                    {moment(group.createdAt).format("llll")}
+                  </p>
+                </div>
 
-              <div>
-                <label className="text-sm font-medium">Created</label>
-                <p className="mt-1">
-                  {new Date(group.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Last Updated</label>
-                <p className="mt-1">
-                  {new Date(group.updatedAt).toLocaleDateString()}
-                </p>
+                <div>
+                  <label className="text-sm font-medium">Last Updated</label>
+                  <p className="mt-1">
+                    {moment(group.updatedAt).format("llll")}
+                  </p>
+                </div>
               </div>
             </div>
           )}
 
           {drawerMode === "edit" && !isArray && group && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                User group edit form would go here. You can create a
-                UserGroupUpdateForm component similar to UserUpdateForm.
-              </p>
-            </div>
+            <UserGroupUpdateForm initialData={group} />
           )}
 
           {drawerMode === "delete" && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                User group delete form would go here. You can create a
-                UserGroupDeleteForm component similar to UserDeleteForm.
-              </p>
-            </div>
+            <UserGroupDeleteForm initialData={item} />
           )}
         </div>
 
@@ -556,14 +609,19 @@ function TableCellViewer({
   );
 }
 
-export function UserGroupDataTable({ data }: { data?: UserGroupData[] }) {
+export function UserGroupDataTable({ data }: { data?: UserGroupDbData[] }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ createdAt: false, updatedAt: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "groupName",
+      desc: false,
+    },
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -589,14 +647,6 @@ export function UserGroupDataTable({ data }: { data?: UserGroupData[] }) {
       rowSelection,
       columnFilters,
       pagination,
-    },
-    initialState: {
-      sorting: [
-        {
-          id: "groupName",
-          desc: false,
-        },
-      ],
     },
     getRowId: (row) => row.id,
     enableRowSelection: true,

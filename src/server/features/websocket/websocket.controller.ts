@@ -1,4 +1,5 @@
 import { redisClient } from "@srvr/database/redis.database.ts";
+import prisma from "@srvr/utils/db/prisma.ts";
 import {
   forceLogoutUserBySessionID,
   getSocket,
@@ -74,4 +75,24 @@ export const onSocketConnection = async (socket: Socket) => {
   socket.join(`active_user:${user.id}`);
 
   console.log(socket.rooms);
+
+  console.log("🚀 ~ onSocketConnection ~ user:", user);
+
+  if (user?.role === "instructor") {
+    await prisma.instructor.update({
+      where: { userId: user.id },
+      data: {
+        lastActiveAt: new Date(),
+        isOnline: true,
+      },
+    });
+  } else if (user?.role === "student") {
+    await prisma.student.update({
+      where: { userId: user.id },
+      data: {
+        lastActiveAt: new Date(),
+        isOnline: true,
+      },
+    });
+  }
 };

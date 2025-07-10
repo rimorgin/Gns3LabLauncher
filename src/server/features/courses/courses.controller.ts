@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import {
   createCourse,
   deleteCourseById,
+  deleteManyCoursesById,
   updateCourseById,
 } from "./courses.service.ts";
 import {
@@ -29,13 +30,26 @@ export const getCourses = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { only_ids } = req.query;
+  const { classrooms, only_ids } = req.query;
+
+  const isClassroomIncluded = classrooms ? true : false;
 
   const courses = only_ids
     ? await prisma.course.findMany({
-        select: { id: true },
+        select: {
+          id: true,
+          classrooms: isClassroomIncluded
+            ? { select: { id: true, classroomName: true, status: true } }
+            : false,
+        },
       })
-    : await prisma.course.findMany();
+    : await prisma.course.findMany({
+        include: {
+          classrooms: isClassroomIncluded
+            ? { select: { id: true, classroomName: true, status: true } }
+            : false,
+        },
+      });
 
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.course.coursesReturned,
@@ -179,6 +193,47 @@ export const deleteCourse = async (
 
   try {
     const deleted = await deleteCourseById(id);
+
+    if (!deleted) {
+      res
+        .status(HTTP_RESPONSE_CODE.NOT_FOUND)
+        .json({ message: APP_RESPONSE_MESSAGE.course.courseDoesntExist });
+      return;
+    }
+
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.course.courseDeleted,
+      newData: deleted,
+    });
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
+  }
+};
+
+/**
+ * Deletes an existing course by ID using the service method.
+ *
+ * @function deleteCourse
+ *
+ * @param {Request} req - Express request object containing `id` in the URL.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with deleted course data
+ *  - 404 Not Found if course does not exist
+ *  - 500 Internal Server Error if deletion fails
+ */
+export const deleteManyCourse = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const ids = req.body.ids;
+
+  try {
+    const deleted = await deleteManyCoursesById(ids);
 
     if (!deleted) {
       res

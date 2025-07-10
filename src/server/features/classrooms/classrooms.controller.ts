@@ -2,6 +2,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
 import {
   createClassroom,
   deleteClassroomById,
+  deleteManyClassroomsById,
   updateClassroomById,
 } from "./classrooms.service.ts";
 import { Request, Response } from "express";
@@ -46,6 +47,7 @@ export const getClassrooms = async (
     students: isStudents
       ? {
           select: {
+            userId: true,
             user: {
               select: {
                 name: true,
@@ -59,6 +61,7 @@ export const getClassrooms = async (
     instructor: isInstructor
       ? {
           select: {
+            userId: true,
             user: {
               select: {
                 name: true,
@@ -69,7 +72,18 @@ export const getClassrooms = async (
           },
         }
       : false,
-    projects: isProjects,
+    projects: isProjects
+      ? {
+          select: {
+            id: true,
+            projectName: true,
+            projectDescription: true,
+            visible: true,
+            duration: true,
+            submissions: true,
+          },
+        }
+      : false,
   };
   const classrooms = isOnlyIds
     ? await prisma.classroom.findMany({
@@ -284,4 +298,32 @@ export const deleteClassroom = async (
       .json({ message: APP_RESPONSE_MESSAGE.serverError });
     return;
   }
+};
+
+export const deleteClassroomMany = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const ids = req.body.ids;
+
+    if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) {
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ message: "Invalid 'ids' format. Expected string array." });
+      return;
+    }
+
+    const deletedUsers = await deleteManyClassroomsById(ids);
+
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.user.userDeleted,
+      newData: deletedUsers,
+    });
+  } catch {
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: "Failed to delete classrooms." });
+  }
+  return;
 };

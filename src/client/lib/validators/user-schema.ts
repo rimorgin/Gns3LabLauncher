@@ -53,9 +53,17 @@ export const userEditSchema = z.object({
 export const userDeleteSchema = z.array(z.string());
 
 // Database schema with proper role-based structure
+
+const courseSchema = z.object({
+  id: z.string(),
+  courseCode: z.string(),
+  courseName: z.string(),
+});
+
 const classroomSchema = z.object({
   id: z.string(),
   classroomName: z.string(),
+  course: courseSchema,
 });
 
 const userGroupSchema = z.object({
@@ -86,6 +94,8 @@ export const userDbSchema = z.object({
   role: z.enum(["student", "instructor"]),
   instructor: instructorDbDataSchema,
   student: studentDbDataSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 // Shared types

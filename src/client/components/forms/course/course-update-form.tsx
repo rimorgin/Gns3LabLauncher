@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   courseFormSchema,
   CourseFormData,
+  CourseDbData,
 } from "@clnt/lib/validators/course-schema";
 import { Input } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
@@ -14,21 +15,29 @@ import {
   FormLabel,
   FormMessage,
 } from "@clnt/components/ui/form";
-import { useCoursesPost } from "@clnt/lib/mutations/courses-mutation";
+import { useCoursePatch } from "@clnt/lib/mutations/course/course-update-mutation";
 import { toast } from "sonner";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
-import { Skeleton } from "../ui/skeleton";
-import { MultiSelect } from "../ui/multi-select";
+import { Skeleton } from "@clnt/components/ui/skeleton.tsx";
+import { MultiSelect } from "@clnt/components/ui/multi-select.tsx";
+import { safeIds } from "@clnt/lib/utils";
+import { deepEqual } from "fast-equals";
+import { useQuickDrawerStore } from "@clnt/lib/store/quick-drawer-store";
 
-export function CourseForm() {
-  const { toggleQuickCreateDialog } = useAppStateStore();
+interface CourseEditProps {
+  initialData?: Partial<CourseDbData>;
+}
+
+export function CourseUpdateForm({ initialData }: CourseEditProps) {
+  const toggleQuickDrawer = useQuickDrawerStore(
+    (state) => state.toggleQuickDrawer,
+  );
   const form = useForm<CourseFormData>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
-      courseCode: "",
-      courseName: "",
-      classroomIds: [],
+      courseCode: initialData?.courseCode || "",
+      courseName: initialData?.courseName || "",
+      classroomIds: safeIds(initialData?.classrooms?.map((c) => c.id)),
     },
   });
 
@@ -36,20 +45,40 @@ export function CourseForm() {
     data: classroomQry = [],
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
-    // EMBED DATA with boolean option TRUE
   } = useClassroomsQuery({ includes: ["courseId"] });
 
-  const { mutateAsync, status } = useCoursesPost();
+  const { mutateAsync, status } = useCoursePatch();
 
   const onSubmit = async (data: CourseFormData) => {
-    toast.promise(mutateAsync(data), {
-      loading: "Creating course...",
+    if (!initialData?.id) {
+      toast.error("Course ID is required for updating.");
+      return;
+    }
+
+    const defaultData = form.formState.defaultValues ?? {};
+    // Build payload, only if changed
+    const payload: CourseFormData = Object.fromEntries(
+      Object.entries(data).filter(([key, value]) => {
+        const prev = (defaultData as Record<string, unknown>)[key];
+        return !deepEqual(prev, value) && value !== undefined && value !== "";
+      }),
+    ) as CourseFormData;
+
+    if (Object.keys(payload).length === 0) {
+      toast.error(
+        "No changes detected. Please modify the form before submitting.",
+      );
+      return;
+    }
+
+    toast.promise(mutateAsync({ id: initialData.id, data: payload }), {
+      loading: "Updating course...",
       success: (message) => {
         form.reset();
-        toggleQuickCreateDialog(); // Close dialog
+        toggleQuickDrawer();
         return message;
       },
-      error: (error) => error.response.data.message,
+      error: (error) => error.response?.data?.message || "Failed to update",
     });
   };
 
@@ -64,12 +93,12 @@ export function CourseForm() {
     );
   if (errorOnClassrooms) return <div>Failed to load resources</div>;
 
-  const classroomOptions = classroomQry
-    ?.filter((cls: { courseId?: string }) => !cls.courseId)
-    .map((cls: { id: string; classroomName: string; status: string }) => ({
+  const classroomOptions = classroomQry?.map(
+    (cls: { id: string; classroomName: string; status: string }) => ({
       value: cls.id,
       label: `${cls.classroomName} (${cls.status})`,
-    }));
+    }),
+  );
 
   return (
     <Form {...form}>
@@ -128,9 +157,11 @@ export function CourseForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          {status === "pending" ? "Creating Course..." : "Create Course"}
-        </Button>
+        <div className="w-full px-4 absolute bottom-17 right-0">
+          <Button type="submit" className="w-full">
+            {status === "pending" ? "Updating Course..." : "Update Course"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

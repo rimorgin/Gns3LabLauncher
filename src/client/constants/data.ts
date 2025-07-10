@@ -151,7 +151,7 @@ export const data = {
       "Completions",
       "Calender",
     ],
-    student: ["Dashboard", "Classroom", "Projects", "Completions", "Calendar"],
+    student: ["Classroom", "Projects", "Completions", "Calendar"],
   },
 
   images: {

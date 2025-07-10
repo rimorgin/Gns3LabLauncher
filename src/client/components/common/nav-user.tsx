@@ -28,26 +28,27 @@ import {
 import { toast } from "sonner";
 import { IUser } from "@clnt/types/auth-types";
 import { useLogout } from "@clnt/lib/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { stringInitials } from "@clnt/lib/utils";
 
 export default function NavUser({
   user,
 }: {
   user?: (IUser & { avatar?: string }) | null; // Optional avatar override
 }) {
+  const queryClient = useQueryClient();
   const logoutUser = useLogout();
   const { isMobile } = useSidebar();
 
-  const initials = user?.name
-    ? user?.name
-        .split(" ")
-        .map((word) => word[0]?.toUpperCase())
-        .join("")
-    : "";
+  const initials = user?.name ? stringInitials(user?.name) : "";
 
   const handleLogout = async () => {
     toast.promise(() => logoutUser.mutateAsync({}), {
       loading: "Logging out...",
-      success: "Logged out successfully!",
+      success: () => {
+        queryClient.clear();
+        return "Logged out successfully!";
+      },
       error: "Failed to log out.",
     });
   };
@@ -61,9 +62,9 @@ export default function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user?.avatar} alt={user?.name ?? "alt"} />
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback randomizeBg className="rounded-lg">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -87,7 +88,7 @@ export default function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user?.avatar} alt={user?.name ?? "alt"} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback randomizeBg className="rounded-lg">
                     {initials}
                   </AvatarFallback>
                 </Avatar>

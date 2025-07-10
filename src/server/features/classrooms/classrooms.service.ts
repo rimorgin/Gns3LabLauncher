@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { IClassroom } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 
@@ -29,9 +30,9 @@ export const createClassroom = async (
       students: {
         connect: (props.studentIds ?? []).map((id) => ({ userId: id })),
       },
-      projects: {
+      /* ASSIGNING PROJECTS SHOULD BE IN THE PROJECTS SIDE projects: {
         connect: (props.projectIds ?? []).map((id) => ({ id })),
-      },
+      }, */
       imageUrl: props.imageUrl,
     },
   });
@@ -53,9 +54,28 @@ export const updateClassroomById = async (
   id: string,
   updates: Partial<IClassroom>,
 ): Promise<Partial<IClassroom> | null> => {
+  const updatedData: Prisma.ClassroomUpdateInput = {};
+  if (updates.classroomName) updatedData.classroomName = updates.classroomName;
+  if (updates.status) updatedData.status = updates.status;
+  if (updates.courseId)
+    updatedData.course = { connect: { id: updates.courseId } };
+  if (updates.projectIds)
+    updatedData.projects = {
+      set: updates.projectIds.map((projectId) => ({ id: projectId })),
+    };
+  if (updates.instructorId)
+    updatedData.instructor = {
+      connect: { userId: updates.instructorId },
+    };
+  if (updates.studentIds) {
+    updatedData.students = {
+      set: updates.studentIds.map((userId) => ({ userId })),
+    };
+  }
+
   const updatedClassroom = await prisma.classroom.update({
     where: { id },
-    data: updates,
+    data: updatedData,
   });
   return {
     ...updatedClassroom,
@@ -79,4 +99,25 @@ export const deleteClassroomById = async (
     },
   });
   return deletedClassroom;
+};
+
+/**
+ * Deletes multiple classroom by their IDs.
+ *
+ * @param {string[]} ids - The IDs of the classroom to delete.
+ * @returns {Promise<Array<Partial<IClassroom>>>} An array of deleted classrooms (partial), or empty if none were found.
+ */
+export const deleteManyClassroomsById = async (
+  ids: string[],
+): Promise<Partial<IClassroom>[]> => {
+  const deletedClassrooms = await prisma.$transaction(
+    ids.map((id) =>
+      prisma.classroom.delete({
+        where: { id },
+        select: { classroomName: true }, // select only needed fields
+      }),
+    ),
+  );
+
+  return deletedClassrooms;
 };

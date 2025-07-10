@@ -5,4 +5,7 @@ model Instructor {
   expertise    String[]
   classrooms   Classroom[] @relation("ClassroomInstructor")
   user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isOnline])
+  @@index([lastActiveAt])
 }

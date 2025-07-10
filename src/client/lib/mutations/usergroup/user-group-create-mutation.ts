@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios.ts";
-import { UserGroupFormData } from "../validators/user-group-schema";
+import { UserGroupFormData } from "@clnt/lib/validators/user-group-schema";
 
 // ---- Mutation ----
 
@@ -14,7 +14,7 @@ export const useUserGroupPost = () => {
   return useMutation({
     mutationFn: postUserGroup,
     // When mutate is called:
-    onMutate: async (newData) => {
+    onMutate: async (newUserGroup) => {
       // Cancel any outgoing refetches
       // (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ["user-groups"] });
@@ -24,7 +24,7 @@ export const useUserGroupPost = () => {
 
       // Optimistically update to the new value
       queryClient.setQueryData(["user-groups"], (old) =>
-        Array.isArray(old) ? [...old, newData] : [newData],
+        Array.isArray(old) ? [...old, newUserGroup] : [newUserGroup],
       );
 
       // Return a context object with the snapshotted value
@@ -38,10 +38,13 @@ export const useUserGroupPost = () => {
       }
     },
     /* onSuccess: (newData) => {
-      queryClient.setQueryData(["user-groups"], (oldData: UserGroupFormData[]) => {
-        if (!oldData) return [newData];
-        return [...oldData, newData];
-      });
+      queryClient.setQueryData(
+        ["user-groups"],
+        (oldData: UserGroupFormData[]) => {
+          if (!oldData) return [newData];
+          return [...oldData, newData];
+        },
+      );
     }, */
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: ["user-groups"] }),

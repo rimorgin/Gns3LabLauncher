@@ -31,8 +31,12 @@ import {
   Lock,
   CheckCircle,
   XCircle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
 } from "lucide-react";
 import {
+  Column,
   ColumnDef,
   ColumnFiltersState,
   Row,
@@ -86,6 +90,7 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
+  DrawerPortal,
   DrawerTitle,
 } from "@clnt/components/ui/drawer";
 import { Badge } from "@clnt/components/ui/badge";
@@ -94,24 +99,10 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@clnt/components/ui/avatar";
-
-// Define the ClassroomData type
-type ClassroomData = {
-  id: string;
-  classroomName: string;
-  status: "active" | "expired" | "archived" | "locked";
-  course: { courseCode: string; courseName?: string | null };
-  instructor: { user: { name: string; email: string; username: string } };
-  students: { user: { name: string; email: string; username: string } }[];
-  projects: {
-    projectName: string;
-    projectDescription: string;
-    visible: boolean;
-  }[];
-  imageUrl: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import { ClassroomDbData } from "@clnt/lib/validators/classroom-schema";
+import moment from "moment";
+import { ClassroomDeleteForm } from "@clnt/components/forms/classroom/classroom-delete-form";
+import { ClassroomUpdateForm } from "../forms/classroom/classroom-update-form";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -132,8 +123,8 @@ function DragHandle({ id }: { id: string }) {
 }
 
 // Status badge component
-function StatusBadge({ status }: { status: ClassroomData["status"] }) {
-  const getStatusConfig = (status: ClassroomData["status"]) => {
+function StatusBadge({ status }: { status: ClassroomDbData["status"] }) {
+  const getStatusConfig = (status: ClassroomDbData["status"]) => {
     switch (status) {
       case "active":
         return {
@@ -180,8 +171,39 @@ function StatusBadge({ status }: { status: ClassroomData["status"] }) {
     </Badge>
   );
 }
+function SortableHeader({
+  column,
+  children,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: Column<any, unknown>;
+  children: React.ReactNode;
+}) {
+  if (!column.getCanSort()) {
+    return <div className="flex items-center gap-2">{children}</div>;
+  }
 
-const columns: ColumnDef<ClassroomData>[] = [
+  return (
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2 px-0 h-auto font-medium hover:bg-transparent"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {children}
+      <div className="flex flex-col">
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="h-4 w-4 opacity-50" />
+        )}
+      </div>
+    </Button>
+  );
+}
+
+const columns: ColumnDef<ClassroomDbData>[] = [
   {
     id: "drag",
     header: () => null,
@@ -217,7 +239,9 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
   {
     accessorKey: "classroomName",
-    header: "Classroom",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Classroom</SortableHeader>
+    ),
     cell: ({ row }) => {
       const classroom = row.original;
       return (
@@ -248,7 +272,9 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Status</SortableHeader>
+    ),
     cell: ({ row }) => <StatusBadge status={row.original.status} />,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -256,7 +282,9 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
   {
     accessorKey: "instructor",
-    header: "Instructor",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Instructor</SortableHeader>
+    ),
     cell: ({ row }) => {
       const instructor = row.original.instructor.user;
       return (
@@ -279,10 +307,27 @@ const columns: ColumnDef<ClassroomData>[] = [
         </div>
       );
     },
+    sortingFn: (rowA, rowB) => {
+      const nameA = rowA.original.instructor.user.name.toLowerCase();
+      const nameB = rowB.original.instructor.user.name.toLowerCase();
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    },
+    filterFn: (row, columnId, filterValue) => {
+      const instructor = row.original.instructor.user;
+      const name = instructor.name?.toLowerCase() || "";
+      const email = instructor.email?.toLowerCase() || "";
+      const query = String(filterValue).toLowerCase();
+
+      return name.includes(query) || email.includes(query);
+    },
   },
   {
     accessorKey: "students",
-    header: "Students",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Students</SortableHeader>
+    ),
     cell: ({ row }) => {
       const students = row.original.students;
       const studentCount = students.length;
@@ -303,7 +348,9 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
   {
     accessorKey: "projects",
-    header: "Projects",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Projects</SortableHeader>
+    ),
     cell: ({ row }) => {
       const projects = row.original.projects;
       const projectsCount = projects.length;
@@ -324,9 +371,26 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: "Created",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Created At</SortableHeader>
+    ),
     cell: ({ row }) => {
       const date = new Date(row.original.createdAt);
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">{date.toLocaleDateString()}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Updated At</SortableHeader>
+    ),
+    cell: ({ row }) => {
+      const date = new Date(row.original.updatedAt);
       return (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -339,7 +403,8 @@ const columns: ColumnDef<ClassroomData>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const [openDrawer, setOpenDrawer] = React.useState(false);
+      const [isDrawerOpen, toggleDrawer] = React.useState(false);
+
       const [drawerMode, setDrawerMode] = React.useState<
         "edit" | "view" | "delete"
       >("edit");
@@ -361,7 +426,7 @@ const columns: ColumnDef<ClassroomData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("edit");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEdit />
@@ -370,7 +435,7 @@ const columns: ColumnDef<ClassroomData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("view");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEye />
@@ -381,7 +446,7 @@ const columns: ColumnDef<ClassroomData>[] = [
                 variant="destructive"
                 onClick={() => {
                   setDrawerMode("delete");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconPencilX />
@@ -399,8 +464,8 @@ const columns: ColumnDef<ClassroomData>[] = [
                   ? row.original
                   : table.getSelectedRowModel().rows.map((row) => row.original)
             }
-            open={openDrawer}
-            setOpen={setOpenDrawer}
+            open={isDrawerOpen}
+            setOpen={toggleDrawer}
           />
         </>
       );
@@ -408,7 +473,7 @@ const columns: ColumnDef<ClassroomData>[] = [
   },
 ];
 
-function DraggableRow({ row }: { row: Row<ClassroomData> }) {
+function DraggableRow({ row }: { row: Row<ClassroomDbData> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
@@ -440,7 +505,7 @@ function TableCellViewer({
   setOpen,
 }: {
   drawerMode: "edit" | "view" | "delete";
-  item: ClassroomData | ClassroomData[];
+  item: ClassroomDbData | ClassroomDbData[];
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -485,129 +550,175 @@ function TableCellViewer({
       onOpenChange={setOpen}
       direction={isMobile ? "bottom" : "right"}
     >
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{title}</DrawerTitle>
-          <DrawerDescription>{description}</DrawerDescription>
-        </DrawerHeader>
+      <DrawerPortal>
+        <DrawerContent>
+          <DrawerHeader className="gap-1">
+            <DrawerTitle>{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
 
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {drawerMode === "view" && !isArray && classroom && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage
-                    src={classroom.imageUrl}
-                    alt={classroom.classroomName}
-                  />
-                  <AvatarFallback className="bg-blue-100 text-blue-600">
-                    <BookOpen className="h-6 w-6" />
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold text-lg">
-                    {classroom.classroomName}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {classroom.course.courseCode}
-                  </p>
-                  {classroom.course.courseName && (
-                    <p className="text-sm text-muted-foreground">
-                      {classroom.course.courseName}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <div className="mt-1">
-                    <StatusBadge status={classroom.status} />
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Students</label>
-                  <p className="mt-1">{classroom.students.length} enrolled</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Instructor</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
-                      {classroom.instructor.user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            {drawerMode === "view" && !isArray && classroom && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage
+                      src={classroom.imageUrl}
+                      alt={classroom.classroomName}
+                    />
+                    <AvatarFallback className="bg-blue-100 text-blue-600">
+                      <BookOpen className="h-6 w-6" />
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">
-                      {classroom.instructor.user.name}
+                    <h3 className="font-semibold text-lg">
+                      {classroom.classroomName}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {classroom.course.courseCode}-
+                      {classroom.course.courseName}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {classroom.instructor.user.email}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Status</label>
+                    <div className="mt-1">
+                      <StatusBadge status={classroom.status} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Students</label>
+                    <p className="mt-1">{classroom.students.length} enrolled</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Instructor</label>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-purple-100 text-purple-600 text-xs">
+                        {classroom.instructor.user.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {classroom.instructor.user.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {classroom.instructor.user.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {classroom.projects && (
+                  <div>
+                    {classroom.projects.length > 1 ? (
+                      <>
+                        <label className="text-sm font-medium">
+                          Assigned to Projects
+                        </label>
+                        <ul className="mt-1 space-y-1">
+                          {classroom.projects.map((project, index) => (
+                            <li
+                              key={project.id}
+                              className="flex items-center gap-2"
+                            >
+                              <Avatar className="h-8 w-8  ">
+                                <AvatarFallback className="bg-blue-100 text-blue-600">
+                                  {index + 1}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-row gap-2 justify-between">
+                                <span className="text-sm font-medium">
+                                  {project.projectName}
+                                  <p className="text-sm text-muted-foreground">
+                                    {project.projectDescription}
+                                  </p>
+                                  {project.duration && (
+                                    <p className="text-red-200 text-sm">
+                                      until{" "}
+                                      {moment(project.duration).format("llll")}
+                                    </p>
+                                  )}
+                                </span>
+                              </div>
+                              <Badge
+                                className="h-6 ml-3"
+                                variant={
+                                  project.visible ? "default" : "destructive"
+                                }
+                              >
+                                {project.visible ? "visible" : "hidden"}
+                              </Badge>
+                            </li>
+                          ))}
+                        </ul>
+                      </>
+                    ) : (
+                      <label className="text-sm font-medium">
+                        No Projects Assigned
+                      </label>
+                    )}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Created</label>
+                    <p className="mt-1">
+                      {moment(classroom.createdAt).format("llll")}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Last Updated</label>
+                    <p className="mt-1">
+                      {moment(classroom.updatedAt).format("llll")}
                     </p>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div>
-                <label className="text-sm font-medium">Created</label>
-                <p className="mt-1">
-                  {new Date(classroom.createdAt).toLocaleDateString()}
-                </p>
-              </div>
+            {drawerMode === "edit" && !isArray && classroom && (
+              <ClassroomUpdateForm initialData={classroom} />
+            )}
 
-              <div>
-                <label className="text-sm font-medium">Last Updated</label>
-                <p className="mt-1">
-                  {new Date(classroom.updatedAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-          )}
+            {drawerMode === "delete" && (
+              <ClassroomDeleteForm initialData={item} />
+            )}
+          </div>
 
-          {drawerMode === "edit" && !isArray && classroom && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Classroom edit form would go here. You can create a
-                ClassroomUpdateForm component similar to UserUpdateForm.
-              </p>
-            </div>
-          )}
-
-          {drawerMode === "delete" && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Classroom delete form would go here. You can create a
-                ClassroomDeleteForm component similar to UserDeleteForm.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DrawerFooter>
-          <DrawerClose asChild>
-            <Button variant="outline">{destructiveButtonTitle}</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">{destructiveButtonTitle}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </DrawerPortal>
     </Drawer>
   );
 }
 
-export function ClassroomDataTable({ data }: { data?: ClassroomData[] }) {
+export function ClassroomDataTable({ data }: { data?: ClassroomDbData[] }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ createdAt: false, updatedAt: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "classroomName",
+      desc: false,
+    },
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -634,14 +745,6 @@ export function ClassroomDataTable({ data }: { data?: ClassroomData[] }) {
       columnFilters,
       pagination,
     },
-    initialState: {
-      sorting: [
-        {
-          id: "classroomName",
-          desc: false,
-        },
-      ],
-    },
     getRowId: (row) => row.id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
@@ -660,12 +763,22 @@ export function ClassroomDataTable({ data }: { data?: ClassroomData[] }) {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
-      queryClient.setQueryData(["classrooms"], (old) => {
-        const oldData = Array.isArray(old) ? [...old] : [];
-        const oldIndex = oldData.findIndex((c) => c.id === active.id);
-        const newIndex = oldData.findIndex((c) => c.id === over.id);
-        return arrayMove(oldData, oldIndex, newIndex);
-      });
+      queryClient.setQueryData(
+        [
+          "classrooms",
+          {
+            includes: ["course", "instructor", "projects", "students"],
+            only_ids: false,
+          },
+          ["course", "instructor", "projects", "students"],
+        ],
+        (old) => {
+          const oldData = Array.isArray(old) ? [...old] : [];
+          const oldIndex = oldData.findIndex((c) => c.id === active.id);
+          const newIndex = oldData.findIndex((c) => c.id === over.id);
+          return arrayMove(oldData, oldIndex, newIndex);
+        },
+      );
     }
   }
 

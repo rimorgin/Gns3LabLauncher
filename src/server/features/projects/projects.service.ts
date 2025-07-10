@@ -1,6 +1,7 @@
-import { ProjectTagsEnum } from "@prisma/client";
-import { IProject } from "@srvr/types/models.type.ts";
+import { Prisma, ProjectTagsEnum } from "@prisma/client";
+import { IProject, ProgressData } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import uuidv4 from "@srvr/utils/uuidv4.utils.ts";
 
 /**
  * Creates a new project linked to a specific classroom.
@@ -20,23 +21,78 @@ import prisma from "@srvr/utils/db/prisma.ts";
  * @throws {Error} If creating the project fails.
  */
 export const createProject = async (props: IProject): Promise<IProject> => {
+  const projectId = await uuidv4();
   const project = await prisma.project.create({
     data: {
+      id: projectId,
       projectName: props.projectName,
       projectDescription: props.projectDescription,
       visible: props.visible,
       duration: props.duration,
       tags: props.tags as ProjectTagsEnum | null,
       imageUrl: props.imageUrl,
-      classroom: {
+      classrooms: {
         connect: (props.classroomIds ?? []).map((id) => ({ id })),
+      },
+      // If your Submission model has a unique 'id' field, use it here. Adjust as needed for your schema.
+      submissions: {
+        connectOrCreate: {
+          where: { id: projectId },
+          create: {
+            status: "idle",
+          },
+        },
       },
     },
   });
-  return {
-    ...project,
-    tags: project.tags as ProjectTagsEnum | null | undefined,
-  };
+
+  // fetch students & groups in the classrooms
+  const classroomStudentsAndGroups = await prisma.classroom.findMany({
+    where: {
+      id: { in: props.classroomIds ?? [] },
+    },
+    select: {
+      id: true,
+      students: { select: { userId: true } },
+      studentGroups: { select: { id: true } },
+    },
+  });
+
+  const progressData: ProgressData[] = [];
+
+  for (const classroom of classroomStudentsAndGroups) {
+    const classroomId = classroom.id;
+
+    // student progress records
+    for (const student of classroom.students) {
+      progressData.push({
+        projectId,
+        classroomId,
+        studentId: student.userId,
+        percent: 0,
+        status: "not-started",
+      });
+    }
+
+    // group progress records
+    for (const group of classroom.studentGroups) {
+      progressData.push({
+        projectId,
+        classroomId,
+        groupId: group.id,
+        percent: 0,
+        status: "not-started",
+      });
+    }
+  }
+  // insert all progress records in bulk
+  if (progressData.length) {
+    await prisma.progress.createMany({
+      data: progressData,
+    });
+  }
+
+  return project;
 };
 
 /**
@@ -50,15 +106,28 @@ export const updateProjectById = async (
   id: string,
   updates: Partial<IProject>,
 ): Promise<Partial<IProject> | null> => {
+  const { classroomIds, ...rest } = updates as IProject;
+
+  const data: Prisma.ProjectUpdateInput = {
+    ...rest,
+  };
+
+  if (classroomIds) {
+    data.classrooms = {
+      connect: classroomIds.map((classroomId: string) => ({
+        id: classroomId,
+      })),
+    };
+  }
+
   const updatedProject = await prisma.project.update({
     where: { id },
-    data: updates,
+    data,
   });
-  return {
-    ...updatedProject,
-    tags: updatedProject.tags as ProjectTagsEnum | null | undefined,
-  };
+
+  return updatedProject;
 };
+
 /**
  * Deletes a project by its ID.
  *
@@ -74,5 +143,25 @@ export const deleteProjectById = async (
       projectName: true,
     },
   });
+  return deletedProject;
+};
+
+/**
+ * Deletes many projects by its ID.
+ *
+ * @param {string[]} ids - The IDs of the project to delete.
+ * @returns {Promise<Partial<IProject> | null>} A promise that resolves to the deleted project instance, or null if not found, and then return projectName.
+ */
+export const deleteManyProjectById = async (
+  ids: string[],
+): Promise<Partial<IProject>[]> => {
+  const deletedProject = await prisma.$transaction(
+    ids.map((id) =>
+      prisma.project.delete({
+        where: { id },
+        select: { projectName: true }, // select only needed fields
+      }),
+    ),
+  );
   return deletedProject;
 };

@@ -1,8 +1,6 @@
 import axios from "@clnt/lib/axios";
 import { configureAuth } from "react-query-auth";
-import { useAppStateStore } from "./store/app-state-store";
 import { IUser, LoginFormValues } from "@clnt/types/auth-types";
-
 const login = async ({ email, password }: LoginFormValues): Promise<IUser> => {
   const res = await axios.post("/auth/login-local", { email, password });
   return res.data;
@@ -12,7 +10,6 @@ const register = async (): Promise<never> => {
 };
 
 const logout = async (): Promise<void> => {
-  useAppStateStore.getState().resetAppState();
   await axios.post("/auth/logout");
 };
 

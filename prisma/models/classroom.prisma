@@ -12,6 +12,7 @@ model Classroom {
   studentGroups UserGroups[]        @relation("ClassroomStudentGroups")
   projects      Project[]           @relation("ClassroomProjects")
   students      Student[]           @relation("ClassroomStudents")
+  progress      Progress[]          @relation("ClassroomProgresses")
 
   @@unique([classroomName, courseId], name: "uniqueClassroomPerCourse")
 }

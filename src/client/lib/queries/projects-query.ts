@@ -3,25 +3,24 @@ import axios from "@clnt/lib/axios";
 
 // GET /projects
 const getProjects = async ({
-  includes = "none",
+  includes = [],
   only_ids = false,
   partial = false,
 }: {
-  includes?: "classrooms" | "none";
+  includes?: string[];
   only_ids?: boolean;
   partial?: boolean;
 }) => {
   const params = new URLSearchParams();
 
-  if (includes === "classrooms") {
-    params.append("classrooms", "true");
+  for (const include of includes) {
+    params.append(include, "true");
   }
 
   if (only_ids) params.append("only_ids", "true");
   if (partial) params.append("partial", "true");
 
   const queryString = params.toString();
-  console.log("🚀 ~ queryString:", queryString);
 
   const response = await axios.get(`/projects?${queryString}`);
   return response.data.projects;
@@ -29,11 +28,11 @@ const getProjects = async ({
 
 // Queries
 export const useProjectsQuery = ({
-  includes = "none",
+  includes = [],
   only_ids = false,
   partial = false,
 }: {
-  includes?: "classrooms" | "none";
+  includes?: Array<"classrooms" | "submissions">;
   only_ids?: boolean;
   partial?: boolean;
 }) =>

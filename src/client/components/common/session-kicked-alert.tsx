@@ -7,7 +7,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@clnt/components/ui/alert-dialog";
-import { useLogout } from "@clnt/lib/auth";
 
 type SessionExpiredAlertProps = {
   isOpen?: boolean;
@@ -18,7 +17,6 @@ export function SessionKickedAlert({
   isOpen = false,
   onOpenChange = () => {},
 }: SessionExpiredAlertProps) {
-  const logoutUser = useLogout();
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -32,7 +30,6 @@ export function SessionKickedAlert({
         <AlertDialogFooter>
           <AlertDialogAction
             onClick={async () => {
-              await logoutUser.mutateAsync({});
               onOpenChange(!isOpen);
             }}
           >

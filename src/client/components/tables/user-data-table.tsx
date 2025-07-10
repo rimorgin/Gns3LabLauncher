@@ -25,7 +25,12 @@ import {
   ChevronsRight,
   GripVertical,
   User,
+  User2,
   UserCheck,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Calendar,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -41,8 +46,8 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  Column,
 } from "@tanstack/react-table";
-import { z } from "zod";
 import {
   Table,
   TableBody,
@@ -84,11 +89,17 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
+  DrawerOverlay,
+  DrawerPortal,
   DrawerTitle,
 } from "@clnt/components/ui/drawer";
-import { userDbSchema } from "@clnt/lib/validators/user-schema";
+import { UserDbData } from "@clnt/lib/validators/user-schema";
 import { UserUpdateForm } from "@clnt/components/forms/user/user-update-form";
 import { UserDeleteForm } from "@clnt/components/forms/user/user-delete-form";
+import { Avatar, AvatarFallback } from "@clnt/components/ui/avatar";
+import { Badge } from "@clnt/components/ui/badge";
+import moment from "moment";
+import { capitalizeFirstLetter, stringInitials } from "@clnt/lib/utils";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -108,12 +119,46 @@ function DragHandle({ id }: { id: string }) {
   );
 }
 
-const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
+// Sortable header component
+function SortableHeader({
+  column,
+  children,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: Column<any, unknown>;
+  children: React.ReactNode;
+}) {
+  if (!column.getCanSort()) {
+    return <div className="flex items-center gap-2">{children}</div>;
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2 px-0 h-auto font-medium hover:bg-transparent"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {children}
+      <div className="flex flex-col">
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="h-4 w-4 opacity-50" />
+        )}
+      </div>
+    </Button>
+  );
+}
+
+const columns: ColumnDef<UserDbData>[] = [
   {
     id: "drag",
     header: () => null,
     cell: ({ row }) => <DragHandle id={row.original.id} />,
     size: 40,
+    enableSorting: false,
   },
   {
     id: "select",
@@ -144,7 +189,9 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Name</SortableHeader>
+    ),
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-2">
@@ -159,24 +206,30 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
       );
     },
     enableHiding: false,
+    sortingFn: "alphanumeric",
   },
   {
     accessorKey: "email",
-    header: "Email",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Email</SortableHeader>
+    ),
     cell: ({ row }) => {
       return (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-            <IconAt className="h-4 w-4 text-blue-600" />
+          <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+            <IconAt className="h-4 w-4 text-orange-600" />
           </div>
           <div className="font-medium">{row.original.email}</div>
         </div>
       );
     },
+    sortingFn: "alphanumeric",
   },
   {
     accessorKey: "role",
-    header: "Role",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Role</SortableHeader>
+    ),
     cell: ({ row }) => (
       <div className="inline-flex items-center gap-1">
         {row.original.role === "student" ? (
@@ -191,19 +244,20 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
               : "bg-blue-100 text-blue-800"
           }`}
         >
-          {row.original.role.charAt(0).toUpperCase() +
-            row.original.role.slice(1)}
+          {capitalizeFirstLetter(row.original.role)}
         </span>
       </div>
     ),
+    sortingFn: "alphanumeric",
   },
   {
     accessorKey: "isOnline",
-    header: "Is Online",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Status</SortableHeader>
+    ),
     cell: ({ row }) => {
       const isOnline =
-        row.original.student?.isOnline === "true" ||
-        row.original.instructor?.isOnline === "true";
+        row.original.student?.isOnline || row.original.instructor?.isOnline;
       return (
         <div className="inline-flex items-center gap-1">
           {isOnline ? (
@@ -223,12 +277,54 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
         </div>
       );
     },
+    sortingFn: (rowA, rowB) => {
+      const aOnline =
+        rowA.original.student?.isOnline || rowA.original.instructor?.isOnline;
+      const bOnline =
+        rowB.original.student?.isOnline || rowB.original.instructor?.isOnline;
+
+      if (aOnline && !bOnline) return 1;
+      if (!aOnline && bOnline) return -1;
+      return 0;
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Created</SortableHeader>
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">
+            {moment(row.original.createdAt).format("L")}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "updatedAt",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Updated At</SortableHeader>
+    ),
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm">
+            {moment(row.original.updatedAt).format("L")}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const [openDrawer, setOpenDrawer] = React.useState(false);
+      const [isDrawerOpen, toggleDrawer] = React.useState(false);
       const [drawerMode, setDrawerMode] = React.useState<
         "edit" | "view" | "delete"
       >("edit");
@@ -249,7 +345,7 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("edit");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEdit />
@@ -258,7 +354,7 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("view");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEye />
@@ -269,7 +365,7 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
                 variant="destructive"
                 onClick={() => {
                   setDrawerMode("delete");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconPencilX />
@@ -288,16 +384,17 @@ const columns: ColumnDef<z.infer<typeof userDbSchema>>[] = [
                   ? row.original
                   : table.getSelectedRowModel().rows.map((row) => row.original)
             }
-            open={openDrawer}
-            setOpen={setOpenDrawer}
+            open={isDrawerOpen}
+            setOpen={toggleDrawer}
           />
         </>
       );
     },
+    enableSorting: false,
   },
 ];
 
-function DraggableRow({ row }: { row: Row<z.infer<typeof userDbSchema>> }) {
+function DraggableRow({ row }: { row: Row<UserDbData> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
@@ -329,7 +426,7 @@ function TableCellViewer({
   setOpen,
 }: {
   drawerMode: "edit" | "view" | "delete";
-  item: z.infer<typeof userDbSchema> | z.infer<typeof userDbSchema>[];
+  item: UserDbData | UserDbData[];
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -371,44 +468,139 @@ function TableCellViewer({
       onOpenChange={setOpen}
       direction={isMobile ? "bottom" : "right"}
     >
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{title}</DrawerTitle>
-          <DrawerDescription>{description}</DrawerDescription>
-        </DrawerHeader>
+      <DrawerPortal>
+        <DrawerOverlay asChild className="fixed inset-0 bg-black/90" />
+        <DrawerContent>
+          <DrawerHeader className="gap-1">
+            <DrawerTitle>{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            {drawerMode === "view" && !isArray && user && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarFallback randomizeBg>
+                      {user?.name ? (
+                        stringInitials(user?.name)
+                      ) : (
+                        <User2 className="h-6 w-6" />
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{user.name}</h3>
+                    <p className="text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
 
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {drawerMode === "edit" || drawerMode === "view" ? (
-            !isArray && user ? (
-              <UserUpdateForm mode={drawerMode} initialData={user} />
-            ) : null
-          ) : (
-            <UserDeleteForm initialData={item} />
-          )}
-        </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Role</label>
+                    <p>{user.role}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Status</label>
+                    <div className="mt-1">
+                      <Badge
+                        className={`${
+                          user?.student?.isOnline || user?.instructor?.isOnline
+                            ? "text-green-200 bg-green-600"
+                            : "bg-destructive"
+                        }`}
+                      >
+                        {user?.student?.isOnline || user?.instructor?.isOnline
+                          ? "Online"
+                          : "Offline"}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+                {(user?.student?.classrooms ||
+                  user?.instructor?.classrooms) && (
+                  <div>
+                    <label className="text-sm font-medium">
+                      Assigned to{" "}
+                      {user.student
+                        ? user.student.classrooms.length > 1
+                          ? "Classrooms"
+                          : "Classroom"
+                        : user.instructor
+                          ? user.instructor.classrooms.length > 1
+                            ? "Classrooms"
+                            : "Classroom"
+                          : ""}
+                    </label>
+                    <ul className="mt-1 space-y-1">
+                      {(
+                        user.student?.classrooms ||
+                        user.instructor?.classrooms ||
+                        []
+                      ).map((classroom, index) => (
+                        <li
+                          key={classroom.id}
+                          className="flex items-center gap-2"
+                        >
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="bg-blue-100 text-blue-600">
+                              {index + 1}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">
+                            {`${classroom?.course?.courseCode}-${classroom?.course?.courseName}-${classroom?.classroomName}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Created</label>
+                    <p className="mt-1">
+                      {moment(user.createdAt).format("llll")}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Last Updated</label>
+                    <p className="mt-1">
+                      {moment(user.updatedAt).format("llll")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-        <DrawerFooter>
-          <DrawerClose asChild>
-            <Button variant="outline">{destructiveButtonTitle}</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
+            {drawerMode === "edit" && !isArray && user && (
+              <UserUpdateForm initialData={user} />
+            )}
+            {drawerMode === "delete" && <UserDeleteForm initialData={item} />}
+          </div>
+
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">{destructiveButtonTitle}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </DrawerPortal>
     </Drawer>
   );
 }
 
-export function UserDataTable({
-  data,
-}: {
-  data?: z.infer<typeof userDbSchema>[];
-}) {
+export function UserDataTable({ data }: { data?: UserDbData[] }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ createdAt: false, updatedAt: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "name",
+      desc: false,
+    },
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -434,14 +626,6 @@ export function UserDataTable({
       rowSelection,
       columnFilters,
       pagination,
-    },
-    initialState: {
-      sorting: [
-        {
-          id: "name",
-          desc: false,
-        },
-      ],
     },
     getRowId: (row) => row.id,
     enableRowSelection: true,
@@ -493,8 +677,11 @@ export function UserDataTable({
               <Button variant="outline" size="sm">
                 <IconDotsVertical />
                 <span className="hidden lg:inline">
-                  {String(
-                    table.getColumn("role")?.getFilterValue() ?? "Select Role",
+                  {capitalizeFirstLetter(
+                    typeof table.getColumn("role")?.getFilterValue() ===
+                      "string"
+                      ? (table.getColumn("role")?.getFilterValue() as string)
+                      : "Select Role",
                   )}
                 </span>
                 <IconChevronDown />

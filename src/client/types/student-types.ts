@@ -14,3 +14,13 @@ export interface StudentOption {
   value: string;
   label: string;
 }
+
+export interface UserGroup {
+  classroomId: string;
+}
+
+export interface StudentWithGroups extends Student {
+  student: Student["student"] & {
+    userGroups?: UserGroup[];
+  };
+}

@@ -26,15 +26,16 @@ import {
 import { useCoursesQuery } from "@clnt/lib/queries/courses-query";
 import { toast } from "sonner";
 import { useUsersByRoleQuery } from "@clnt/lib/queries/user-query";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { useProjectsQuery } from "@clnt/lib/queries/projects-query";
-import { useClassroomsPost } from "@clnt/lib/mutations/classrooms-mutation";
-import { MultiSelect } from "../ui/multi-select";
-import { Skeleton } from "../ui/skeleton";
+import { useClassroomsPost } from "@clnt/lib/mutations/classrooms/classroom-create-mutation";
+import { MultiSelect } from "@clnt/components/ui/multi-select";
+import { Skeleton } from "@clnt/components/ui/skeleton";
 import { getRandomImage } from "@clnt/lib/utils";
+import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 
-export function ClassroomForm() {
-  const { toggleQuickCreateDialog } = useAppStateStore();
+export function ClassroomCreateForm() {
+  const toggleQuickDialog = useQuickDialogStore(
+    (state) => state.toggleQuickDialog,
+  );
   const form = useForm<ClassroomFormData>({
     resolver: zodResolver(classroomFormSchema),
     defaultValues: {
@@ -43,7 +44,6 @@ export function ClassroomForm() {
       instructorId: "",
       status: undefined,
       studentIds: [],
-      projectIds: [],
     },
   });
 
@@ -51,13 +51,7 @@ export function ClassroomForm() {
     data: coursesQry = [],
     isLoading: isCoursesLoading,
     error: errorOnCourses,
-  } = useCoursesQuery();
-
-  const {
-    data: projectsQry = [],
-    isLoading: isProjectsLoading,
-    error: errorOnProjects,
-  } = useProjectsQuery({});
+  } = useCoursesQuery({});
 
   const {
     data: userStudentsQry = [],
@@ -78,19 +72,14 @@ export function ClassroomForm() {
       loading: "Creating classroom...",
       success: (message) => {
         form.reset();
-        toggleQuickCreateDialog(); // Close dialog
+        toggleQuickDialog(); // Close dialog
         return message;
       },
       error: (error) => error.response.data.message,
     });
   };
 
-  if (
-    isCoursesLoading &&
-    isProjectsLoading &&
-    isUserStudentsLoading &&
-    isUserInstructorLoading
-  )
+  if (isCoursesLoading && isUserStudentsLoading && isUserInstructorLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -106,20 +95,8 @@ export function ClassroomForm() {
       </>
     );
 
-  if (
-    errorOnCourses &&
-    errorOnUserStudents &&
-    errorOnUserInstructor &&
-    errorOnProjects
-  )
+  if (errorOnCourses && errorOnUserStudents && errorOnUserInstructor)
     return <div>Failed to load courses</div>;
-
-  const projectOptions = projectsQry.map(
-    (prjt: { id: string; projectName: string }) => ({
-      value: prjt.id,
-      label: prjt.projectName,
-    }),
-  );
 
   const studentOptions = userStudentsQry.map(
     (student: { id: string; name: string }) => ({
@@ -230,25 +207,6 @@ export function ClassroomForm() {
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
                   placeholder="Select Students"
-                  className="w-full"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="projectIds"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel optional>Assign to Projects</FormLabel>
-              <FormControl>
-                <MultiSelect
-                  options={projectOptions}
-                  value={(field.value ?? []).filter(Boolean) as string[]}
-                  onValueChange={field.onChange}
-                  placeholder="Select Projects"
                   className="w-full"
                 />
               </FormControl>

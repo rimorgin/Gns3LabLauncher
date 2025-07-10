@@ -50,11 +50,26 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         name: true,
         email: true,
         role: true,
+        createdAt: true,
+        updatedAt: true,
         student: includeRoleData
           ? {
               select: {
                 userGroups: includeRoleRelations ? true : false,
-                classrooms: includeRoleRelations ? true : false,
+                classrooms: includeRoleRelations
+                  ? {
+                      include: {
+                        course: {
+                          select: {
+                            courseCode: true,
+                            courseName: true,
+                          },
+                        },
+                      },
+                    }
+                  : false,
+                submissions: includeRoleRelations ? true : false,
+                progress: includeRoleRelations ? true : false,
                 isOnline: true,
                 lastActiveAt: true,
               },
@@ -63,7 +78,18 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
         instructor: includeRoleData
           ? {
               select: {
-                classrooms: includeRoleRelations ? true : false,
+                classrooms: includeRoleRelations
+                  ? {
+                      include: {
+                        course: {
+                          select: {
+                            courseCode: true,
+                            courseName: true,
+                          },
+                        },
+                      },
+                    }
+                  : false,
                 expertise: includeRoleRelations ? true : false,
                 isOnline: true,
                 lastActiveAt: true,

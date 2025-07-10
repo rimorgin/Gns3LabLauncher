@@ -2,10 +2,12 @@ import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
 import {
   createProject,
+  deleteManyProjectById,
   deleteProjectById,
   updateProjectById,
 } from "./projects.service.ts";
 import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
+import { Prisma } from "@prisma/client";
 
 /**
  * Retrieves a list of projects, optionally including classroom data or selecting specific fields.
@@ -28,27 +30,69 @@ export const getProjects = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { classroom, only_ids, partial } = req.query;
-  const projects = classroom
+  const { classrooms, submissions, only_ids, partial } = req.query;
+  // Convert query params to booleans
+  const isClassroom = classrooms === "true";
+  const isSubmission = submissions === "true";
+  const isOnlyIds = only_ids === "true";
+
+  const includeOptions: Prisma.ProjectSelect | undefined = {
+    classrooms: isClassroom
+      ? {
+          select: {
+            id: true,
+            classroomName: true,
+            course: {
+              select: {
+                courseCode: true,
+                courseName: true,
+              },
+            },
+          },
+        }
+      : false,
+    submissions: isSubmission
+      ? {
+          select: {
+            id: true,
+            student: true,
+            group: true,
+            grade: true,
+            feedback: true,
+            files: true,
+          },
+        }
+      : false,
+  };
+
+  const projects = isOnlyIds
     ? await prisma.project.findMany({
-        include: {
-          classroom: true,
+        select: {
+          id: true,
+          ...includeOptions,
         },
       })
-    : only_ids
+    : partial
       ? await prisma.project.findMany({
           select: {
             id: true,
+            projectName: true,
+            ...includeOptions,
           },
         })
-      : partial
-        ? await prisma.project.findMany({
-            select: {
-              id: true,
-              projectName: true,
-            },
-          })
-        : await prisma.project.findMany();
+      : await prisma.project.findMany({
+          select: {
+            projectName: true,
+            duration: true,
+            id: true,
+            visible: true,
+            tags: true,
+            createdAt: true,
+            updatedAt: true,
+            imageUrl: true,
+            ...includeOptions,
+          },
+        });
 
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.project.projectsReturned,
@@ -86,7 +130,7 @@ export const getProjectsById = async (
     ? await prisma.project.findUnique({
         ...where,
         include: {
-          classroom: true,
+          classrooms: true,
         },
       })
     : partial
@@ -209,6 +253,45 @@ export const deleteProject = async (
 
   try {
     const deletedProject = await deleteProjectById(id);
+
+    if (!deletedProject) {
+      res
+        .status(409)
+        .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
+      return;
+    }
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.project.projectDeleted,
+      newData: deletedProject,
+    });
+  } catch {
+    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    return;
+  }
+};
+
+/**
+ * Deletes an existing projects by ID using the service method.
+ *
+ * @function deleteProject
+ *
+ * @param {Request} req - Express request object containing `ids` in the req body.
+ * @param {Response} res - Express response object to return success or error messages.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON with deleted project data
+ *  - 409 Conflict if project does not exist
+ *  - 500 Internal Server Error if deletion fails
+ */
+export const deleteManyProjects = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const ids = req.body.ids;
+
+  try {
+    const deletedProject = await deleteManyProjectById(ids);
 
     if (!deletedProject) {
       res

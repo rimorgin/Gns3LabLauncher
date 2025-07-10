@@ -5,7 +5,11 @@ import { Skeleton } from "@clnt/components/ui/skeleton";
 import RBACWrapper from "@clnt/components/common/rbac-wrapper";
 
 export default function ProjectsContent() {
-  const { data: projectsQry = [], isLoading, error } = useProjectsQuery({});
+  const {
+    data: projectsQry = [],
+    isLoading,
+    error,
+  } = useProjectsQuery({ includes: ["classrooms", "submissions"] });
   return isLoading ? (
     <Skeleton className="h-100 w-auto rounded-xl" />
   ) : error ? (

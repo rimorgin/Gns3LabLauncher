@@ -1,0 +1,7 @@
+enum SubmissionAttempts {
+  one
+  two
+  three
+  four
+  five
+}

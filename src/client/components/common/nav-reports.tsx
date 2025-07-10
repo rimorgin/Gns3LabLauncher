@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@clnt/components/ui/sidebar";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
+import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
 
 export default function NavReports({
   items,
@@ -18,7 +18,8 @@ export default function NavReports({
     icon?: Icon;
   }[];
 }) {
-  const { activeNavName, setActiveNavName } = useAppStateStore();
+  const activeNavName = useSidebarStore((state) => state.activeNavName);
+  const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
 
   return (
     <SidebarGroup>

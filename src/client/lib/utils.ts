@@ -1,45 +1,41 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { UserDbData } from "./validators/user-schema";
 import { data } from "@clnt/constants/data";
+import { ClassroomDbData } from "./validators/classroom-schema";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function capitalizeFirstLetter(word: string) {
+  return word[0].toUpperCase() + word.slice(1);
+}
+
+export function stringInitials(word: string) {
+  return word
+    .split(" ")
+    .map((word) => word[0]?.toUpperCase())
+    .join("");
 }
 
 export function safeIds(input?: (string | undefined)[]): string[] {
   return (input ?? []).filter((id): id is string => typeof id === "string");
 }
 
-// Helper function to extract classroom IDs from database format
-export const extractClassroomIds = (user: Partial<UserDbData>) => {
-  if (user.role === "instructor" && user.instructor?.classrooms) {
-    return user.instructor.classrooms
-      .map((cls) => cls.id)
-      .filter(Boolean) as string[];
-  }
-  if (user.role === "student" && user.student?.classrooms) {
-    return user.student.classrooms
-      .map((cls) => cls.id)
+export const extractStudentIds = (classroom: Partial<ClassroomDbData>) => {
+  if (classroom.students && classroom.students.length !== 0) {
+    return classroom.students
+      .map((student) => student.userId)
       .filter(Boolean) as string[];
   }
   return [];
 };
 
-// Helper function to extract group IDs from database format
-export const extractGroupIds = (user: Partial<UserDbData>) => {
-  if (user.role === "student" && user.student?.userGroups) {
-    return user.student.userGroups
-      .map((grp) => grp.id)
+export const extractProjectIds = (classroom: Partial<ClassroomDbData>) => {
+  if (classroom.projects && classroom.projects.length !== 0) {
+    return classroom.projects
+      .map((project) => project.id)
       .filter(Boolean) as string[];
-  }
-  return [];
-};
-
-// Helper function to extract expertise from database format
-export const extractExpertise = (user: Partial<UserDbData>) => {
-  if (user.role === "instructor" && user.instructor?.expertise) {
-    return user.instructor.expertise.filter(Boolean) as string[];
   }
   return [];
 };
@@ -59,6 +55,19 @@ export function deepEqual(a: unknown, b: unknown): boolean {
       (b as Record<string, unknown>)[key],
     ),
   );
+}
+
+export function getChangedFields<T extends Record<string, unknown>>(
+  current: T,
+  original: T,
+): Partial<T> {
+  const changed: Partial<T> = {};
+  for (const key in current) {
+    if (!deepEqual(current[key], original[key])) {
+      changed[key] = current[key];
+    }
+  }
+  return changed;
 }
 
 export const getRandomImage = (

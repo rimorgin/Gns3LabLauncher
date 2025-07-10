@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   projectFormSchema,
   ProjectFormData,
+  ProjectDbData,
 } from "@clnt/lib/validators/projects-schema";
 import {
   Form,
@@ -21,54 +22,93 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "@clnt/components/ui/select";
 import { Input } from "@clnt/components/ui/input";
 import { Button } from "@clnt/components/ui/button";
-import { Switch } from "../ui/switch";
+import { Switch } from "@clnt/components/ui/switch";
 import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
-import { MultiSelect } from "../ui/multi-select";
-import { useProjectsPost } from "@clnt/lib/mutations/projects-mutation";
+import { MultiSelect } from "@clnt/components/ui/multi-select";
+import { useProjectPatch } from "@clnt/lib/mutations/project/project-update-mutation";
 import { toast } from "sonner";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { Skeleton } from "../ui/skeleton";
-import { DateTimePicker } from "../ui/date-time-picker";
-import { useState } from "react";
-import { getRandomImage } from "@clnt/lib/utils";
+import { Skeleton } from "@clnt/components/ui/skeleton";
+import { DateTimePicker } from "@clnt/components/ui/date-time-picker";
+import { useEffect, useState } from "react";
+import { deepEqual, safeIds } from "@clnt/lib/utils";
 
-export function ProjectForm() {
-  const { toggleQuickCreateDialog } = useAppStateStore();
+interface ProjectEditProps {
+  initialData?: Partial<ProjectDbData>;
+}
+
+export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
     defaultValues: {
-      projectName: "",
-      projectDescription: "",
-      visible: true,
-      classroomIds: [],
-      tags: undefined,
+      projectName: initialData?.projectName || "",
+      projectDescription: initialData?.projectDescription || "",
+      visible: initialData?.visible || false,
+      tags:
+        initialData?.tags === "networking" ||
+        initialData?.tags === "cybersecurity"
+          ? initialData.tags
+          : "networking",
+      ...(initialData?.classrooms && {
+        classroomIds: safeIds(initialData?.classrooms?.map((c) => c.id)),
+      }),
+      duration: initialData?.duration
+        ? new Date(initialData.duration)
+        : undefined,
     },
   });
   const [isProjectDurationEnabled, setIsProjectDurationEnabled] =
-    useState(false);
+    useState<boolean>(initialData?.duration ? true : false);
+
+  useEffect(() => {
+    if (!isProjectDurationEnabled) {
+      //console.log("this fired");
+      form.setValue("duration", null);
+    }
+  }, [isProjectDurationEnabled]);
 
   const {
     data: classroomsQry = [],
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
   } = useClassroomsQuery({ includes: ["course"] });
-  const { mutateAsync, status } = useProjectsPost();
+  const { mutateAsync, status } = useProjectPatch();
 
   const onSubmit = async (data: ProjectFormData) => {
-    //console.log("🚀 ~ onSubmit ~ data:", data);
-    toast.promise(mutateAsync(data), {
-      loading: "Creating Project...",
-      success: (message) => {
-        //console.log("Success:", message);
-        form.reset();
-        toggleQuickCreateDialog(); // Close dialog
-        return message;
-      },
-      error: (error) => error.response.data.message,
-    });
+    try {
+      if (!initialData?.id) {
+        toast.error("Project ID is missing. Cannot update user.");
+        return;
+      }
+      const defaultData = form.formState.defaultValues ?? {};
+      // Build payload, only if changed
+      const payload: ProjectFormData = Object.fromEntries(
+        Object.entries(data).filter(([key, value]) => {
+          const prev = (defaultData as Record<string, unknown>)[key];
+          return !deepEqual(prev, value) && value !== undefined && value !== "";
+        }),
+      ) as ProjectFormData;
+
+      if (Object.keys(payload).length === 0) {
+        return toast.info("Aborting... You have not made any changes at all");
+      }
+      //console.log("🚀 ~ handleUpdate ~ payload:", payload);
+
+      toast.promise(mutateAsync({ id: initialData.id, data: payload }), {
+        loading: "Updating project...",
+        success: (message) => {
+          form.reset();
+          return message;
+        },
+        error: (err) =>
+          err?.response?.data?.message || "Failed to update project",
+      });
+      return;
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
   };
 
   if (isClassroomsLoading)
@@ -158,6 +198,7 @@ export function ProjectForm() {
               <FormControl>
                 <MultiSelect
                   options={classroomOptions}
+                  defaultValue={form.getValues().classroomIds}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
                   placeholder="Select Classrooms"
@@ -225,7 +266,7 @@ export function ProjectForm() {
               {isProjectDurationEnabled && (
                 <FormControl>
                   <DateTimePicker
-                    value={field.value}
+                    value={field.value ?? undefined}
                     onChange={field.onChange}
                   />
                 </FormControl>
@@ -235,16 +276,11 @@ export function ProjectForm() {
           )}
         />
 
-        {/* Set imageUrl programmatically with hidden input */}
-        <input
-          type="hidden"
-          {...form.register("imageUrl")}
-          value={getRandomImage("projects", form.getValues("tags") as string)}
-        />
-
-        <Button type="submit" className="w-full">
-          {status === "pending" ? "Creating Project..." : "Create Project"}
-        </Button>
+        <div className="w-full px-4 absolute bottom-17 right-0">
+          <Button type="submit" className="w-full">
+            {status === "pending" ? "Updating Project..." : "Update Project"}
+          </Button>
+        </div>
       </form>
     </Form>
   );

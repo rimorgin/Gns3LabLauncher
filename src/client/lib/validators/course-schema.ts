@@ -10,4 +10,19 @@ export const courseFormSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+export const courseDbSchema = z.object({
+  id: z.string(),
+  courseCode: z.string(),
+  courseName: z.string(),
+  classrooms: z.array(
+    z.object({
+      id: z.string(),
+      classroomName: z.string(),
+      status: z.string(),
+    }),
+  ),
+  imageUrl: z.string().optional(),
+});
+
 export type CourseFormData = z.infer<typeof courseFormSchema>;
+export type CourseDbData = z.infer<typeof courseDbSchema>;

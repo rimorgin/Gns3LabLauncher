@@ -93,6 +93,7 @@ export interface IStudentUser {
 export interface IUserGroup {
   groupName: string;
   classroomId: string;
+  limit: number;
   studentIds: string[];
   imageUrl: string | null;
 }
@@ -147,6 +148,15 @@ export interface IProject {
   visible?: boolean | null;
   imageUrl: string | null; // Always included
   duration?: Date | null;
-  tags?: ProjectTagsEnum | null; // Change this line to allow string or null
+  tags: ProjectTagsEnum | null; // Change this line to allow string or null
   classroomIds?: string[] | null;
+}
+
+export interface ProgressData {
+  projectId: string;
+  classroomId: string;
+  studentId?: string;
+  groupId?: string;
+  percent: number;
+  status: string;
 }

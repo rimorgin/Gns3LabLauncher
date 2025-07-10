@@ -3,12 +3,12 @@ import { AppSidebar } from "@clnt/components/common/app-sidebar";
 import PageMeta from "@clnt/components/common/page-meta";
 import { SiteHeader } from "@clnt/components/common/site-header";
 import { SidebarInset, SidebarProvider } from "@clnt/components/ui/sidebar";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import DynamicContent from "@clnt/components/common/dynamic-content";
 import Loader from "@clnt/components/common/loader";
+import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
 
 function HomePageContent() {
-  const { activeNavName } = useAppStateStore();
+  const activeNavName = useSidebarStore((state) => state.activeNavName);
   return (
     <>
       <PageMeta

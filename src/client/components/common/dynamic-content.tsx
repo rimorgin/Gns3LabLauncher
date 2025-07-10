@@ -1,7 +1,9 @@
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import LoadingContent from "@clnt/components/contents/loading-content";
 import { Suspense, lazy } from "react";
 import { prismaStudioUrl } from "@clnt/constants/api";
+import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
+import CoursesContent from "../contents/courses-content";
+import CompletionsContent from "../contents/completions-content";
 
 // Lazy imports
 const DashboardContent = lazy(
@@ -24,7 +26,7 @@ const CalendarContent = lazy(
 );
 
 export default function DynamicContent() {
-  const { activeNavName } = useAppStateStore();
+  const activeNavName = useSidebarStore((state) => state.activeNavName);
 
   const renderContent = () => {
     switch (activeNavName) {
@@ -36,25 +38,24 @@ export default function DynamicContent() {
         return <UserGroupsContent />;
       case "Classroom":
         return <ClassroomsContent />;
+      case "Course":
+        return <CoursesContent />;
       case "Projects":
         return <ProjectsContent />;
-      case "Reports":
-        return (
-          <div className="px-4 lg:px-6 text-muted-foreground">
-            <h2 className="text-lg font-semibold">Reports View</h2>
-            {/* Replace with your report view */}
-          </div>
-        );
+      case "Completions":
+        return <CompletionsContent />;
       case "Calendar":
         return <CalendarContent />;
-      case "Data Library":
+      case "Data Library": {
         return (
           <iframe
+            id="studio-iframe"
             src={prismaStudioUrl}
-            className="rounded-lg w-full h-full"
+            className="rounded-lg w-full h-full bg-background text-foreground"
             title="Data Library"
           />
         );
+      }
       default:
         return (
           <div className="px-4 lg:px-6 text-muted-foreground">

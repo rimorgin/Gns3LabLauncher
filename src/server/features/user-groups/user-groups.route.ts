@@ -4,6 +4,7 @@ import {
 } from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
 import {
+  deleteManyUserGroup,
   deleteUserGroup,
   getUserGroupById,
   getUserGroups,
@@ -52,7 +53,7 @@ router.post(
 /**
  * @route   PATCH /user-group/:id
  * @desc    Update a resource in user.
- * @access  Authenticated users with 'update_users' permission
+ * @access  Authenticated users with 'update_user-group' permission
  */
 router.patch(
   "/:id",
@@ -62,9 +63,20 @@ router.patch(
 );
 
 /**
+ * @route   DELETE /user-group/many
+ * @desc    Deletes many resource in usergroup.
+ * @access  Authenticated users with 'delete_user-group' permission
+ */
+router.delete(
+  "/many",
+  checkAuthentication,
+  checkPermission(["delete_users"]),
+  deleteManyUserGroup,
+);
+/**
  * @route   DELETE /user-group/:id
  * @desc    Delete a resource in user.
- * @access  Authenticated users with 'delete_users' permission
+ * @access  Authenticated users with 'delete_user-group' permission
  */
 router.delete(
   "/:id",

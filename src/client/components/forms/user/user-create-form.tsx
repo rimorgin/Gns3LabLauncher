@@ -28,13 +28,15 @@ import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
 import { MultiSelect } from "@clnt/components/ui/multi-select";
 import { useUserPost } from "@clnt/lib/mutations/user/user-create-mutation";
 import { toast } from "sonner";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { Skeleton } from "@clnt/components/ui/skeleton";
 import { useUserGroupsQuery } from "@clnt/lib/queries/user-groups-query";
 import { useEffect } from "react";
+import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 
 export function UserCreateForm() {
-  const { toggleQuickCreateDialog } = useAppStateStore();
+  const toggleQuickDialog = useQuickDialogStore(
+    (state) => state.toggleQuickDialog,
+  );
   const form = useForm<UserCreateData>({
     resolver: zodResolver(userCreateSchema),
     defaultValues: {
@@ -69,7 +71,7 @@ export function UserCreateForm() {
       loading: "Creating user...",
       success: (message) => {
         form.reset();
-        toggleQuickCreateDialog(); // Close dialog
+        toggleQuickDialog(); // Close dialog
         return message;
       },
       error: (error) => error.response.data.message,

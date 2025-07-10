@@ -1,0 +1,19 @@
+model Progress {
+  id          String   @id @default(uuid())
+  studentId   String? // if individual
+  groupId     String? // if group
+  projectId   String // the project being tracked
+  classroomId String? // optionally, to scope it to a classroom
+  percent     Float    @default(0) // e.g. 0–100%
+  status      String? // e.g. "in-progress", "completed", "not-started"
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  student   Student?    @relation("StudentProgresses", fields: [studentId], references: [userId], onDelete: Cascade)
+  group     UserGroups? @relation("GroupProgresses", fields: [groupId], references: [id], onDelete: Cascade)
+  project   Project     @relation("ProjectProgresses", fields: [projectId], references: [id], onDelete: Cascade)
+  classroom Classroom?  @relation("ClassroomProgresses", fields: [classroomId], references: [id])
+
+  @@unique([studentId, projectId], name: "uniqueStudentProjectProgress")
+  @@unique([groupId, projectId], name: "uniqueGroupProjectProgress")
+}

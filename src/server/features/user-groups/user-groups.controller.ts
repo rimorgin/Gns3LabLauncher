@@ -2,6 +2,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
 import {
   createUserGroup,
+  deleteManyUserGroupsById,
   deleteUserGroupById,
   updateUserGroupById,
 } from "./user-groups.service.ts";
@@ -28,7 +29,6 @@ export const getUserGroups = async (
   const { student, classroom, ids } = req.query;
 
   const include: Prisma.UserGroupsInclude = {};
-
   if (student) {
     include.student = {
       include: {
@@ -207,9 +207,31 @@ export const deleteUserGroup = async (
   res: Response,
 ): Promise<void> => {
   const id = req.params.id;
-  const deletedUser = await deleteUserGroupById(id);
+  const deletedUserGroup = await deleteUserGroupById(id);
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.userGroup.userGroupDeleted,
-    newData: deletedUser,
+    newData: deletedUserGroup,
+  });
+};
+
+/**
+ * Deletes a user group by its ID.
+ *
+ * @function deleteUserGroup
+ * @param {Request} req - Express request object containing the `id` in params.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} Sends:
+ *  - 201 JSON indicating successful deletion.
+ *  - 500 Internal Server Error on failure.
+ */
+export const deleteManyUserGroup = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const ids = req.body.ids;
+  const deletedUserGroups = await deleteManyUserGroupsById(ids);
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: APP_RESPONSE_MESSAGE.userGroup.userGroupDeleted,
+    newData: deletedUserGroups,
   });
 };

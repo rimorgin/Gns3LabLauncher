@@ -26,25 +26,19 @@ import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
 import { MultiSelect } from "@clnt/components/ui/multi-select";
 import { useUserPatch } from "@clnt/lib/mutations/user/user-update-mutation";
 import { toast } from "sonner";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import { Skeleton } from "@clnt/components/ui/skeleton";
-import {
-  deepEqual,
-  extractClassroomIds,
-  extractExpertise,
-  extractGroupIds,
-  safeIds,
-} from "@clnt/lib/utils";
+import { deepEqual, safeIds } from "@clnt/lib/utils";
 import { useUserGroupsQuery } from "@clnt/lib/queries/user-groups-query";
+import { useQuickDrawerStore } from "@clnt/lib/store/quick-drawer-store";
 
 interface UserEditProps {
-  mode: "edit" | "view";
   initialData: Partial<UserDbData>;
 }
 
-export function UserUpdateForm({ mode, initialData }: UserEditProps) {
-  const viewOnly = mode === "view";
-  const { toggleQuickEditDrawer } = useAppStateStore();
+export function UserUpdateForm({ initialData }: UserEditProps) {
+  const toggleQuickDrawer = useQuickDrawerStore(
+    (state) => state.toggleQuickDrawer,
+  );
   const form = useForm<UserEditData>({
     resolver: zodResolver(userEditSchema),
     defaultValues: {
@@ -55,20 +49,22 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
       ...(initialData.role === "instructor"
         ? {
             instructor: {
-              expertise: extractExpertise(initialData || {}),
-              classroomIds:
-                initialData?.role === "instructor"
-                  ? extractClassroomIds(initialData || {})
-                  : [],
+              expertise: initialData.instructor?.expertise.filter(
+                Boolean,
+              ) as string[],
+              classroomIds: safeIds(
+                initialData.instructor?.classrooms.map((c) => c.id),
+              ),
             },
           }
         : {
             student: {
-              classroomIds:
-                initialData?.role === "student"
-                  ? extractClassroomIds(initialData || {})
-                  : [],
-              groupIds: extractGroupIds(initialData || {}),
+              classroomIds: safeIds(
+                initialData.student?.classrooms.map((c) => c.id),
+              ),
+              groupIds: safeIds(
+                initialData.student?.userGroups.map((c) => c.id),
+              ),
             },
           }),
     },
@@ -96,9 +92,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
         toast.error("User ID is missing. Cannot update user.");
         return;
       }
-      //@ts-expect-error expects error for values groupIds and classroomIds
-      const defaultData: Partial<UserEditData> =
-        form.formState.defaultValues ?? {};
+      const defaultData = form.formState.defaultValues ?? {};
       // Always include 'role' in the payload
       // Build payload, including nested 'student' or 'instructor' only if changed
       const payload: UserEditData = Object.fromEntries(
@@ -123,7 +117,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
       toast.promise(mutateAsync({ id: initialData.id, data: payload }), {
         loading: "Updating user...",
         success: (message) => {
-          toggleQuickEditDrawer();
+          toggleQuickDrawer();
           return message;
         },
         error: (err) => err?.response?.data?.message || "Failed to update user",
@@ -180,7 +174,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input disabled={viewOnly} placeholder="Full Name" {...field} />
+                <Input placeholder="Full Name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -194,12 +188,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input
-                  disabled={viewOnly}
-                  placeholder="gns3@user.net"
-                  type="email"
-                  {...field}
-                />
+                <Input placeholder="gns3@user.net" type="email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -213,12 +202,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input
-                  disabled={viewOnly}
-                  placeholder="NetSec Labber"
-                  type="text"
-                  {...field}
-                />
+                <Input placeholder="NetSec Labber" type="text" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -232,12 +216,7 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             <FormItem>
               <FormLabel>Password {"(Leave blank to keep current)"}</FormLabel>
               <FormControl>
-                <Input
-                  disabled={viewOnly}
-                  placeholder="••••••••"
-                  type="password"
-                  {...field}
-                />
+                <Input placeholder="••••••••" type="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -251,9 +230,9 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             <FormItem>
               <FormLabel>Role</FormLabel>
               <Select
-                disabled={viewOnly}
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -278,7 +257,6 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
                 <FormLabel>Instructor Expertise</FormLabel>
                 <FormControl>
                   <StringArrayInput
-                    disabled={viewOnly}
                     value={(field.value ?? []).filter(
                       (v): v is string => typeof v === "string",
                     )}
@@ -296,14 +274,10 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
             name="student.groupIds"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Select Groups
-                  <span className="text-muted-foreground">{"(optional)"}</span>
-                </FormLabel>
+                <FormLabel optional>Select Groups</FormLabel>
                 <FormControl>
                   <MultiSelect
-                    disabled={viewOnly}
-                    defaultValue={safeIds(form.getValues().student?.groupIds)}
+                    defaultValue={form.getValues().student?.groupIds}
                     options={userGroupOptions}
                     value={(field.value ?? []).filter(Boolean) as string[]}
                     onValueChange={field.onChange}
@@ -327,17 +301,13 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
           }
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Select Classrooms
-                <span className="text-muted-foreground">{"(optional)"}</span>
-              </FormLabel>
+              <FormLabel optional>Select Classrooms</FormLabel>
               <FormControl>
                 <MultiSelect
-                  disabled={viewOnly}
-                  defaultValue={safeIds(
+                  defaultValue={
                     form.getValues()[form.watch("role") ?? "student"]
-                      ?.classroomIds,
-                  )}
+                      ?.classroomIds
+                  }
                   options={classroomOptions}
                   value={(field.value ?? []).filter(Boolean) as string[]}
                   onValueChange={field.onChange}
@@ -352,11 +322,9 @@ export function UserUpdateForm({ mode, initialData }: UserEditProps) {
         />
 
         <div className="w-full px-4 absolute bottom-17 right-0">
-          {!viewOnly && (
-            <Button type="submit" className="w-full">
-              {status === "pending" ? "Updating User..." : "Update User"}
-            </Button>
-          )}
+          <Button type="submit" className="w-full">
+            {status === "pending" ? "Updating User..." : "Update User"}
+          </Button>
         </div>
       </form>
     </Form>

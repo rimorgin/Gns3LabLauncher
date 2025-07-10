@@ -5,23 +5,27 @@ import {
   TabsTrigger,
   TabsContent,
 } from "@clnt/components/ui/tabs";
-import { ResponsiveDrawerDialog } from "../ui/responsive-dialog";
+import { ResponsiveDrawerDialog } from "@clnt/components/ui/responsive-dialog";
 import { Button } from "@clnt/components/ui/button";
-import { ClassroomForm } from "../forms/classroom-form";
-import { ProjectForm } from "../forms/project-form";
-import { CourseForm } from "../forms/course-form";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
-import { UserGroupForm } from "../forms/user-group-form";
-import { UserCreateForm } from "../forms/user/user-create-form";
+import { ClassroomCreateForm } from "@clnt/components/forms/classroom/classroom-create-form";
+import { ProjectCreateForm } from "@clnt/components/forms/project/project-create-form";
+import { CourseCreateForm } from "@clnt/components/forms/course/course-create-form";
+import { UserGroupCreateForm } from "@clnt/components/forms/usergroup/user-group-create-form";
+import { UserCreateForm } from "@clnt/components/forms/user/user-create-form";
+import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 
 export default function QuickCreate() {
-  const { isQuickCreateDialogOpen, toggleQuickCreateDialog } =
-    useAppStateStore();
+  const isQuickDialogOpen = useQuickDialogStore(
+    (state) => state.isQuickDialogOpen,
+  );
+  const toggleQuickDialog = useQuickDialogStore(
+    (state) => state.toggleQuickDialog,
+  );
 
   return (
     <ResponsiveDrawerDialog
-      open={isQuickCreateDialogOpen}
-      onOpenChange={toggleQuickCreateDialog}
+      open={isQuickDialogOpen}
+      onOpenChange={toggleQuickDialog}
       button={
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground dark:text-white max-w-31 duration-50 ease-linear active:scale-95">
           <IconCirclePlusFilled />
@@ -51,7 +55,7 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a user group by filling all required forms.
             </p>
-            <UserGroupForm />
+            <UserGroupCreateForm />
           </div>
         </TabsContent>
         <TabsContent value="course">
@@ -59,7 +63,7 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a course by filling all required forms.
             </p>
-            <CourseForm />
+            <CourseCreateForm />
           </div>
         </TabsContent>
         <TabsContent value="classroom">
@@ -67,7 +71,7 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a classroom by filling all required forms.
             </p>
-            <ClassroomForm />
+            <ClassroomCreateForm />
           </div>
         </TabsContent>
         <TabsContent value="project">
@@ -75,7 +79,7 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a project by filling all required forms.
             </p>
-            <ProjectForm />
+            <ProjectCreateForm />
           </div>
         </TabsContent>
       </Tabs>

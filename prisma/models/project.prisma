@@ -9,6 +9,7 @@ model Project {
   duration           DateTime?
   tags               ProjectTagsEnum?
 
-  classroom  Classroom[]  @relation("ClassroomProjects")
-  Submission Submission[]
+  progresses  Progress[]   @relation("ProjectProgresses")
+  classrooms  Classroom[]  @relation("ClassroomProjects")
+  submissions Submission[] @relation("ProjectSubmissions")
 }

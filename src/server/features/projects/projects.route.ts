@@ -4,6 +4,7 @@ import {
 } from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
 import {
+  deleteManyProjects,
   deleteProject,
   getProjects,
   getProjectsById,
@@ -71,6 +72,18 @@ router.patch(
   checkAuthentication,
   checkPermission(["read_projects"]),
   patchProject,
+);
+
+/**
+ * @route   DELETE /projects/many
+ * @desc    Deletes many project.
+ * @access  Authenticated users with 'delete_projects' permission
+ */
+router.delete(
+  "/many",
+  checkAuthentication,
+  checkPermission(["read_projects"]),
+  deleteManyProjects,
 );
 
 /**

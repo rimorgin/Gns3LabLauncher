@@ -23,13 +23,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@clnt/components/ui/tooltip";
-import { useAppStateStore } from "@clnt/lib/store/app-state-store";
 import {
   IconLayoutSidebarLeftCollapseFilled,
   IconLayoutSidebarLeftExpand,
 } from "@tabler/icons-react";
 import { useKeyDown } from "@clnt/hooks/use-key-down";
 import { data } from "@clnt/constants/data";
+import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
 
 //const SIDEBAR_COOKIE_NAME = "sidebar_state"
 //const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -73,8 +73,8 @@ function SidebarProvider({
   const isMobile = useIsMobile();
 
   // Zustand-based persisted sidebar state
-  const isSideBarToggled = useAppStateStore((state) => state.isSideBarToggled);
-  const toggleSideBar = useAppStateStore((state) => state.toggleSideBar);
+  const isSideBarToggled = useSidebarStore((state) => state.isSideBarToggled);
+  const toggleSideBar = useSidebarStore((state) => state.toggleSideBar);
 
   // Local mobile state (not persisted)
   const [openMobile, setOpenMobile] = React.useState(false);

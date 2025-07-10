@@ -5,6 +5,7 @@ import {
 import { Router } from "express";
 import {
   deleteClassroom,
+  deleteClassroomMany,
   getClassroomById,
   getClassrooms,
   patchClassroom,
@@ -59,6 +60,18 @@ router.patch(
   checkAuthentication,
   checkPermission(["update_classrooms"]),
   patchClassroom,
+);
+
+/**
+ * @route   DELETE /classrooms/many
+ * @desc    Delete a resources in classrooms.
+ * @access  Authenticated users with 'delete_classrooms' permission
+ */
+router.delete(
+  "/many",
+  checkAuthentication,
+  checkPermission(["delete_users"]),
+  deleteClassroomMany,
 );
 
 /**

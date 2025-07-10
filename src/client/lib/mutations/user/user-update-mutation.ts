@@ -7,7 +7,7 @@ export const patchUser = async ({
   data,
 }: {
   id: string;
-  data: Partial<UserEditData>; // or whatever update shape you allow
+  data: Partial<UserEditData>;
 }) => {
   const response = await axios.patch(`/users/${id}`, data);
   return response.data;

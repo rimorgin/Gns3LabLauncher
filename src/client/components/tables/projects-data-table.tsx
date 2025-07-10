@@ -33,8 +33,12 @@ import {
   CheckCircle,
   Circle,
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
 } from "lucide-react";
 import {
+  Column,
   ColumnDef,
   ColumnFiltersState,
   Row,
@@ -87,6 +91,7 @@ import {
   DrawerDescription,
   DrawerFooter,
   DrawerHeader,
+  DrawerPortal,
   DrawerTitle,
 } from "@clnt/components/ui/drawer";
 import { Badge } from "@clnt/components/ui/badge";
@@ -101,20 +106,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@clnt/components/ui/tooltip";
-
-// Define the ProjectData type
-type ProjectData = {
-  id: string;
-  projectName: string;
-  projectDescription?: string;
-  tags?: string;
-  imageUrl?: string;
-  progress?: number;
-  createdAt: string;
-  updatedAt: string;
-  visible: boolean;
-  duration: string | null;
-};
+import { ProjectDbData } from "@clnt/lib/validators/projects-schema";
+import moment from "moment";
+import { ProjectUpdateForm } from "../forms/project/project-update-form";
+import { ProjectDeleteForm } from "../forms/project/project-delete-form";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -228,7 +223,39 @@ function ProjectTags({ tags }: { tags?: string }) {
   );
 }
 
-const columns: ColumnDef<ProjectData>[] = [
+function SortableHeader({
+  column,
+  children,
+}: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  column: Column<any, unknown>;
+  children: React.ReactNode;
+}) {
+  if (!column.getCanSort()) {
+    return <div className="flex items-center gap-2">{children}</div>;
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      className="flex items-center gap-2 px-0 h-auto font-medium hover:bg-transparent"
+      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    >
+      {children}
+      <div className="flex flex-col">
+        {column.getIsSorted() === "desc" ? (
+          <ArrowDown className="h-4 w-4" />
+        ) : column.getIsSorted() === "asc" ? (
+          <ArrowUp className="h-4 w-4" />
+        ) : (
+          <ArrowUpDown className="h-4 w-4 opacity-50" />
+        )}
+      </div>
+    </Button>
+  );
+}
+
+const columns: ColumnDef<ProjectDbData>[] = [
   {
     id: "drag",
     header: () => null,
@@ -264,7 +291,9 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "projectName",
-    header: "Project",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Project</SortableHeader>
+    ),
     cell: ({ row }) => {
       const project = row.original;
       const [onExpand, setOnExpand] = React.useState(false);
@@ -302,7 +331,9 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "progress",
-    header: "Progress",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Progress</SortableHeader>
+    ),
     cell: ({ row }) => <ProgressIndicator progress={row.original.progress} />,
     sortingFn: (rowA, rowB) => {
       const progressA = rowA.original.progress || 0;
@@ -312,7 +343,9 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "visible",
-    header: "Visibility",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Visibility</SortableHeader>
+    ),
     cell: ({ row }) => <VisibilityBadge visible={row.original.visible} />,
     filterFn: (row, id, value) => {
       return value.includes(row.getValue(id));
@@ -320,7 +353,9 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "duration",
-    header: "Duration",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Duration</SortableHeader>
+    ),
     cell: ({ row }) => {
       const duration = row.original.duration;
       return (
@@ -333,9 +368,11 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "createdAt",
-    header: "Created",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Created At</SortableHeader>
+    ),
     cell: ({ row }) => {
-      const date = new Date(row.original.createdAt);
+      const date = new Date(row.original?.createdAt ?? 0);
       return (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -346,23 +383,29 @@ const columns: ColumnDef<ProjectData>[] = [
   },
   {
     accessorKey: "updatedAt",
-    header: "Updated",
+    header: ({ column }) => (
+      <SortableHeader column={column}>Updated At</SortableHeader>
+    ),
     cell: ({ row }) => {
-      const date = new Date(row.original.updatedAt);
-      const now = new Date();
-      const diffInDays = Math.floor(
-        (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const date = new Date(row.original?.updatedAt ?? 0);
+      const timeAgo = getTimeAgo(date);
 
-      let timeAgo = "";
-      if (diffInDays === 0) {
-        timeAgo = "Today";
-      } else if (diffInDays === 1) {
-        timeAgo = "Yesterday";
-      } else if (diffInDays < 7) {
-        timeAgo = `${diffInDays} days ago`;
-      } else {
-        timeAgo = date.toLocaleDateString();
+      // Helper function to format "time ago"
+      function getTimeAgo(date: Date) {
+        const now = new Date();
+        const diffInDays = Math.floor(
+          (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24),
+        );
+
+        if (diffInDays === 0) {
+          return "Today";
+        } else if (diffInDays === 1) {
+          return "Yesterday";
+        } else if (diffInDays < 7) {
+          return `${diffInDays} days ago`;
+        } else {
+          return date.toLocaleDateString();
+        }
       }
 
       return (
@@ -377,7 +420,7 @@ const columns: ColumnDef<ProjectData>[] = [
     id: "actions",
     header: "Actions",
     cell: ({ row, table }) => {
-      const [openDrawer, setOpenDrawer] = React.useState(false);
+      const [isDrawerOpen, toggleDrawer] = React.useState(false);
       const [drawerMode, setDrawerMode] = React.useState<
         "edit" | "view" | "delete"
       >("edit");
@@ -399,7 +442,7 @@ const columns: ColumnDef<ProjectData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("edit");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEdit />
@@ -408,7 +451,7 @@ const columns: ColumnDef<ProjectData>[] = [
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("view");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconEye />
@@ -419,7 +462,7 @@ const columns: ColumnDef<ProjectData>[] = [
                 variant="destructive"
                 onClick={() => {
                   setDrawerMode("delete");
-                  setOpenDrawer(true);
+                  toggleDrawer(true);
                 }}
               >
                 <IconPencilX />
@@ -437,8 +480,8 @@ const columns: ColumnDef<ProjectData>[] = [
                   ? row.original
                   : table.getSelectedRowModel().rows.map((row) => row.original)
             }
-            open={openDrawer}
-            setOpen={setOpenDrawer}
+            open={isDrawerOpen}
+            setOpen={toggleDrawer}
           />
         </>
       );
@@ -446,7 +489,7 @@ const columns: ColumnDef<ProjectData>[] = [
   },
 ];
 
-function DraggableRow({ row }: { row: Row<ProjectData> }) {
+function DraggableRow({ row }: { row: Row<ProjectDbData> }) {
   const { transform, transition, setNodeRef, isDragging } = useSortable({
     id: row.original.id,
   });
@@ -478,7 +521,7 @@ function TableCellViewer({
   setOpen,
 }: {
   drawerMode: "edit" | "view" | "delete";
-  item: ProjectData | ProjectData[];
+  item: ProjectDbData | ProjectDbData[];
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
@@ -523,127 +566,176 @@ function TableCellViewer({
       onOpenChange={setOpen}
       direction={isMobile ? "bottom" : "right"}
     >
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{title}</DrawerTitle>
-          <DrawerDescription>{description}</DrawerDescription>
-        </DrawerHeader>
+      <DrawerPortal>
+        <DrawerContent>
+          <DrawerHeader className="gap-1">
+            <DrawerTitle>{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
 
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          {drawerMode === "view" && !isArray && project && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-16 w-16">
-                  <AvatarImage
-                    src={project.imageUrl}
-                    alt={project.projectName}
-                  />
-                  <AvatarFallback className="bg-purple-100 text-purple-600">
-                    <FolderOpen className="h-6 w-6" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">
-                    {project.projectName}
-                  </h3>
-                  {project.projectDescription && (
-                    <p className="text-muted-foreground">
-                      {project.projectDescription}
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            {drawerMode === "view" && !isArray && project && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage
+                      src={project.imageUrl}
+                      alt={project.projectName}
+                    />
+                    <AvatarFallback className="bg-purple-100 text-purple-600">
+                      <FolderOpen className="h-6 w-6" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">
+                      {project.projectName}
+                    </h3>
+                    {project.projectDescription && (
+                      <p className="text-muted-foreground">
+                        {project.projectDescription}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Progress</label>
+                    <div className="mt-1">
+                      <ProgressIndicator progress={project.progress} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Visibility</label>
+                    <div className="mt-1">
+                      <VisibilityBadge visible={project.visible} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Duration</label>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>{project.duration || "Not specified"}</span>
+                  </div>
+                </div>
+
+                {project.tags && (
+                  <div>
+                    <label className="text-sm font-medium">Tags</label>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {project.tags.split(",").map((tag, index) => (
+                        <Badge key={index} variant="secondary">
+                          {tag.trim()}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {project.classrooms && (
+                  <div>
+                    <label className="text-sm font-medium">
+                      Assigned to{" "}
+                      {project.classrooms.length > 1
+                        ? "Classrooms"
+                        : "Classroom"}
+                    </label>
+                    <ul className="mt-1 space-y-1">
+                      {project.classrooms.map((classroom, index) => (
+                        <li
+                          key={classroom.id}
+                          className="flex items-center gap-2"
+                        >
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="bg-blue-100 text-blue-600">
+                              {index + 1}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">
+                            {`${classroom.course.courseCode}-${classroom.course.courseName}-${classroom.classroomName}`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {project.submissions && (
+                  <div>
+                    <label className="text-sm font-medium">
+                      {project.submissions.length > 1
+                        ? `Submissions ${project.submissions.length}`
+                        : "No Submissions yet"}
+                    </label>
+                    <ul className="mt-1 space-y-1">
+                      {project.submissions.length > 1 &&
+                        project.submissions.map((submission, index) => (
+                          <li
+                            key={submission.id}
+                            className="flex items-center gap-2"
+                          >
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="bg-amber-100 text-amber-600">
+                                {index + 1}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm"></span>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Created</label>
+                    <p className="mt-1">
+                      {moment(project.createdAt).format("llll")}
                     </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Progress</label>
-                  <div className="mt-1">
-                    <ProgressIndicator progress={project.progress} />
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Visibility</label>
-                  <div className="mt-1">
-                    <VisibilityBadge visible={project.visible} />
+                  <div>
+                    <label className="text-sm font-medium">Last Updated</label>
+                    <p className="mt-1">
+                      {moment(project.updatedAt).format("llll")}
+                    </p>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div>
-                <label className="text-sm font-medium">Duration</label>
-                <div className="mt-1 flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{project.duration || "Not specified"}</span>
-                </div>
-              </div>
+            {drawerMode === "edit" && !isArray && project && (
+              <ProjectUpdateForm initialData={item} />
+            )}
 
-              {project.tags && (
-                <div>
-                  <label className="text-sm font-medium">Tags</label>
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {project.tags.split(",").map((tag, index) => (
-                      <Badge key={index} variant="secondary">
-                        {tag.trim()}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {drawerMode === "delete" && (
+              <ProjectDeleteForm initialData={item} />
+            )}
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Created</label>
-                  <p className="mt-1">
-                    {new Date(project.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Last Updated</label>
-                  <p className="mt-1">
-                    {new Date(project.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {drawerMode === "edit" && !isArray && project && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Project edit form would go here. You can create a
-                ProjectUpdateForm component similar to UserUpdateForm.
-              </p>
-            </div>
-          )}
-
-          {drawerMode === "delete" && (
-            <div className="space-y-4">
-              <p className="text-muted-foreground">
-                Project delete form would go here. You can create a
-                ProjectDeleteForm component similar to UserDeleteForm.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DrawerFooter>
-          <DrawerClose asChild>
-            <Button variant="outline">{destructiveButtonTitle}</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">{destructiveButtonTitle}</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </DrawerPortal>
     </Drawer>
   );
 }
 
-export function ProjectDataTable({ data }: { data?: ProjectData[] }) {
+export function ProjectDataTable({ data }: { data?: ProjectDbData[] }) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({ createdAt: false, updatedAt: false });
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "projectName",
+      desc: false,
+    },
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -669,14 +761,6 @@ export function ProjectDataTable({ data }: { data?: ProjectData[] }) {
       rowSelection,
       columnFilters,
       pagination,
-    },
-    initialState: {
-      sorting: [
-        {
-          id: "updatedAt",
-          desc: true,
-        },
-      ],
     },
     getRowId: (row) => row.id,
     enableRowSelection: true,

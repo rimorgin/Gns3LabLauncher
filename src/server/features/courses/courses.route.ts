@@ -5,6 +5,7 @@ import {
 import { Router } from "express";
 import {
   deleteCourse,
+  deleteManyCourse,
   getCourseById,
   getCourses,
   patchCourse,
@@ -62,12 +63,24 @@ router.patch(
 );
 
 /**
+ * @route   DELETE /courses/many
+ * @desc    Deletes a course.
+ * @access  Authenticated users with 'delete_courses' permission
+ */
+router.delete(
+  "/many",
+  checkAuthentication,
+  checkPermission(["delete_courses"]),
+  deleteManyCourse,
+);
+
+/**
  * @route   DELETE /courses/:id
  * @desc    Deletes a course.
  * @access  Authenticated users with 'delete_courses' permission
  */
 router.delete(
-  "/",
+  "/:id",
   checkAuthentication,
   checkPermission(["delete_courses"]),
   deleteCourse,

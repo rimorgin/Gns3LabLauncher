@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios.ts";
-import { CourseFormData } from "../validators/course-schema";
+import { CourseFormData } from "@clnt/lib/validators/course-schema";
 
 // POST /courses (create a course)
 export const postCourses = async (data: CourseFormData) => {

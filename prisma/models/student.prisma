@@ -8,5 +8,9 @@ model Student {
   classrooms  Classroom[]  @relation("ClassroomStudents")
   submissions Submission[] @relation("StudentSubmissions")
 
-  SubmissionFile SubmissionFile[]
+  submissionFile SubmissionFile[] @relation("StudentSubmissionFiles")
+  progress       Progress[]       @relation("StudentProgresses")
+
+  @@index([isOnline])
+  @@index([lastActiveAt])
 }

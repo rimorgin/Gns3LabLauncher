@@ -27,7 +27,7 @@ export const useUserGroupsQuery = ({
   only_ids?: boolean;
 }) => {
   return useQuery({
-    queryKey: [`user-group`, { includes: includes.sort(), only_ids }, includes],
+    queryKey: [`user-groups`, { includes: includes, only_ids }],
     queryFn: () => getUserGroups({ includes, only_ids }),
   });
 };
@@ -35,12 +35,12 @@ export const useUserGroupsQuery = ({
 export const getUserGroupsByIds = async (ids: string[]) => {
   const response = await axios.get("/user-groups", {
     params: {
-      ids, // axios auto-serializes to ?ids[]=a&ids[]=b...
+      ids,
       student: true,
       classroom: true,
     },
     paramsSerializer: {
-      indexes: null, // no brackets at all
+      indexes: null,
     },
   });
   return response.data.user_groups;

@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "@clnt/lib/axios.ts";
-import { ProjectFormData } from "../validators/projects-schema";
+import { ProjectFormData } from "@clnt/lib/validators/projects-schema";
 
 // POST /projects (create a project)
 export const postProjects = async (data: ProjectFormData) => {
