@@ -24,12 +24,12 @@ export const userCreateSchema = z.discriminatedUnion("role", [
   baseUserSchema.extend({
     role: z.literal("instructor"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    instructor: instructorDataSchema,
+    instructor: instructorDataSchema.optional(),
   }),
   baseUserSchema.extend({
     role: z.literal("student"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    student: studentDataSchema,
+    student: studentDataSchema.optional(),
   }),
 ]);
 
@@ -97,6 +97,12 @@ export const userDbSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const userBulkCreateSchema = z.object({
+  users: z.array(userCreateSchema),
+});
+
+export type UserBulkCreateData = z.infer<typeof userBulkCreateSchema>;
 
 // Shared types
 export type UserCreateData = z.infer<typeof userCreateSchema>;

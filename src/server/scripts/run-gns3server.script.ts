@@ -15,13 +15,13 @@ async function runGns3ServerDockerContainer(containerName: string) {
     throw new Error("Container name is required");
   }
 
-  const command = `docker run -d --name ${containerName} \
-                --restart unless-stopped \
+  const command = `docker run -d --rm \
+                --name ${containerName} \
                 -h gns3vm --privileged \
                 --network host \
                 --cap-add=NET_ADMIN \
                 -e GNS3_USERNAME=${containerName} \
-                -e SSL=true -e OPENVPN=true\
+                -e SSL=true\
                 -v ${process.cwd()}/src/server/var/:/data \
                 rimorgin/gns3server`;
 
@@ -36,38 +36,4 @@ async function runGns3ServerDockerContainer(containerName: string) {
   }
 }
 
-async function checkContainerHealth(containerId: string) {
-  const startPeriod = 10 * 1000; // ms
-  const interval = 10 * 1000; // ms
-  const timeout = 5 * 1000; // ms
-  const retries = 5;
-
-  console.log(`Waiting ${startPeriod / 1000}s for container to start...`);
-  await new Promise((resolve) => setTimeout(resolve, startPeriod));
-
-  for (let i = 0; i < retries; i++) {
-    try {
-      const { stdout } = await execAsync(
-        `docker exec ${containerId} /bin/sh -c 'pgrep openvpn'`,
-        { timeout },
-      );
-
-      if (stdout.trim()) {
-        console.log(`Health check passed on attempt ${i + 1}`);
-        return true;
-      }
-    } catch (error) {
-      console.warn(`Health check failed on attempt ${i + 1}: ${error}`);
-    }
-
-    if (i < retries - 1) {
-      console.log(`Retrying in ${interval / 1000}s...`);
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-  }
-
-  console.error("Container failed health checks");
-  return false;
-}
-
-module.exports = { runGns3ServerDockerContainer, checkContainerHealth };
+export { runGns3ServerDockerContainer };

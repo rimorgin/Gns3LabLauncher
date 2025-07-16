@@ -1,40 +1,22 @@
-import { exec } from "child_process";
+import { exec, spawn } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
-/*
- * Runs a Docker container with the specified image and container name.
- * * @param {string} imageName - The name of the Docker image to run.
- * * @param {string} containerName - The name of the Docker container.
- * * @param {function} callback - The callback function to handle the result.
- * * @returns {void}
- */
 
-async function runDockerContainer(containerName: string) {
-  if (!containerName) {
-    throw new Error("Container name and image name are required");
-  }
-
-  const command = `docker run -d --name ${containerName} --restart unless-stopped --privileged \
-  --cap-add=NET_ADMIN \
-    -p 1194:1194/udp \
-    -e OPENVPN_SERVER_IP=10.15.20.34 \
-    --device /dev/net/tun:/dev/net/tun \
-    -v ${process.cwd().replace(/\\/g, "/")}/src/server/var:/data \
-    rimorgin/gns3server`;
-
+export async function isContainerRunning(
+  containerName: string,
+): Promise<boolean> {
   try {
-    const { stdout, stderr } = await execAsync(command);
-    if (stderr) console.warn(`Docker stderr: ${stderr}`);
-    //console.log(`Docker stdout: ${stdout}`);
-    return stdout.trim(); // container ID
-  } catch (error) {
-    console.error(`Docker error: ${error}`);
-    throw error;
+    const { stdout } = await execAsync(
+      `docker ps --filter "name=^/${containerName}$" --filter "status=running" --format "{{.ID}}"`
+    );
+    return !!stdout.trim();
+  } catch {
+    return false;
   }
 }
 
-async function checkContainerHealth(containerId: string) {
+export async function checkContainerHealth(containerId: string) {
   const startPeriod = 10 * 1000; // ms
   const interval = 10 * 1000; // ms
   const timeout = 5 * 1000; // ms
@@ -46,26 +28,54 @@ async function checkContainerHealth(containerId: string) {
   for (let i = 0; i < retries; i++) {
     try {
       const { stdout } = await execAsync(
-        `docker exec ${containerId} /bin/sh -c 'pgrep openvpn'`,
+        `docker exec ${containerId} /bin/sh -c "ss -tunl | grep ':3080'"`,
         { timeout },
       );
 
       if (stdout.trim()) {
-        console.log(`Health check passed on attempt ${i + 1}`);
+        console.log(`✅ Port 3080 is listening (attempt ${i + 1})`);
         return true;
       }
     } catch (error) {
-      console.warn(`Health check failed on attempt ${i + 1}: ${error}`);
+      console.warn(`⚠️ Port 3080 check failed (attempt ${i + 1}): ${error}`);
     }
 
     if (i < retries - 1) {
-      console.log(`Retrying in ${interval / 1000}s...`);
+      console.log(`⏳ Retrying in ${interval / 1000}s...`);
       await new Promise((resolve) => setTimeout(resolve, interval));
     }
   }
 
-  console.error("Container failed health checks");
+  console.error("❌ Container did not listen on port 3080 in time");
   return false;
 }
 
-export { runDockerContainer, checkContainerHealth };
+export async function waitForContainer(containerName: string, timeout = 5000) {
+  const start = Date.now();
+
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(() => {
+      const inspect = spawn("docker", [
+        "inspect",
+        "-f",
+        "{{.State.Running}}",
+        containerName,
+      ]);
+      let output = "";
+
+      inspect.stdout.on("data", (data) => {
+        output += data.toString();
+      });
+
+      inspect.on("close", () => {
+        if (output.trim() === "true") {
+          clearInterval(interval);
+          resolve(true);
+        } else if (Date.now() - start > timeout) {
+          clearInterval(interval);
+          reject(new Error("Container did not start in time"));
+        }
+      });
+    }, 500);
+  });
+}

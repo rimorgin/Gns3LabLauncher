@@ -4,6 +4,7 @@ import {
 } from "@srvr/middlewares/auth.middleware.ts";
 import { Router } from "express";
 import {
+  bulkPostUsers,
   deleteUser,
   deleteUsersMany,
   getUsers,
@@ -31,6 +32,13 @@ router.post(
   checkPermission(["create_users"]),
   postUsers,
 );
+
+/**
+ * @route POST /users/bulk
+ * @desc Create multiple users in one request
+ * @access  Authenticated users with 'create_users' permission
+ */
+router.post("/bulk", bulkPostUsers);
 
 /**
  * @route   PATCH /users/:id

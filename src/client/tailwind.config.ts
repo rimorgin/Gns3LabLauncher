@@ -8,8 +8,18 @@ const config: Config = {
       width: {
         "95p": "95%",
       },
-      bgGradientDeg: {
-        135: "135deg",
+      backgroundImage: {
+        // Define gradients with custom angles here if needed
+        // Example: 'bg-gradient-45': 'linear-gradient(45deg, var(--tw-gradient-stops))'
+      },
+      animation: {
+        "fade-in-scale": "fadeInScale 0.3s ease-out",
+      },
+      keyframes: {
+        fadeInScale: {
+          "0%": { opacity: "0", transform: "scale(0.9)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
       },
     },
   },

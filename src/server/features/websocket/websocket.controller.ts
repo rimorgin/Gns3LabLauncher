@@ -1,9 +1,12 @@
 import { redisClient } from "@srvr/database/redis.database.ts";
+import { io } from "@srvr/main.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import { waitForContainer } from "@srvr/utils/docker-run.utils.ts";
 import {
   forceLogoutUserBySessionID,
   getSocket,
 } from "@srvr/utils/session-ws.utils.ts";
+import { spawn } from "child_process";
 import { Socket } from "socket.io";
 
 /**
@@ -72,7 +75,7 @@ export const onSocketConnection = async (socket: Socket) => {
     //socket.join(classes)
   } */
   // Join a room specific to this user for targeted messaging
-  socket.join(`active_user:${user.id}`);
+  socket.join(`container:${user.username}`);
 
   console.log(socket.rooms);
 
@@ -95,4 +98,40 @@ export const onSocketConnection = async (socket: Socket) => {
       },
     });
   }
+
+  socket.on("start-container-logs", ({ containerName }) => {
+    console.log(`📄 Streaming logs for container: ${containerName}`);
+
+    waitForContainer(containerName).then(() => {
+      const dockerLogs = spawn("docker", ["logs", "-f", containerName]);
+      dockerLogs.stdout.on("data", (data) => {
+        io.to(`container:${user.username}`).emit("container-log", {
+          containerName,
+          log: data.toString(),
+        });
+      });
+
+      dockerLogs.stderr.on("data", (data) => {
+        io.to(`container:${user.username}`).emit("container-log", {
+          containerName,
+          log: data.toString(),
+        });
+      });
+
+      dockerLogs.on("close", (code) => {
+        io.to(`container:${user.username}`).emit("container-log", {
+          containerName,
+          log: `📄 Logs ended (exit code: ${code})`,
+        });
+      });
+
+      socket.on("disconnect", () => {
+        dockerLogs.kill();
+      });
+
+      socket.on("stop-container-logs", () => {
+        dockerLogs.kill();
+      });
+    });
+  });
 };

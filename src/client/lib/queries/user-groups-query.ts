@@ -27,7 +27,11 @@ export const useUserGroupsQuery = ({
   only_ids?: boolean;
 }) => {
   return useQuery({
-    queryKey: [`user-groups`, { includes: includes, only_ids }],
+    queryKey: [
+      `user-groups`,
+      { includes: includes.sort(), only_ids },
+      includes,
+    ],
     queryFn: () => getUserGroups({ includes, only_ids }),
   });
 };

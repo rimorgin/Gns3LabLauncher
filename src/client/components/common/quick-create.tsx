@@ -13,6 +13,9 @@ import { CourseCreateForm } from "@clnt/components/forms/course/course-create-fo
 import { UserGroupCreateForm } from "@clnt/components/forms/usergroup/user-group-create-form";
 import { UserCreateForm } from "@clnt/components/forms/user/user-create-form";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
+import { useState } from "react";
+import { UserBulkCreateForm } from "../forms/user/bulk-user-create-form";
+import { Switch } from "../ui/switch";
 
 export default function QuickCreate() {
   const isQuickDialogOpen = useQuickDialogStore(
@@ -21,6 +24,8 @@ export default function QuickCreate() {
   const toggleQuickDialog = useQuickDialogStore(
     (state) => state.toggleQuickDialog,
   );
+
+  const [isBulkUserCreate, setIsBulkUserCreate] = useState(false);
 
   return (
     <ResponsiveDrawerDialog
@@ -47,7 +52,23 @@ export default function QuickCreate() {
             <p className="text-sm text-muted-foreground">
               Create a user by filling all required forms.
             </p>
-            <UserCreateForm />
+            <div className="flex items-center mb-4 gap-5">
+              <Switch
+                onCheckedChange={setIsBulkUserCreate}
+                checked={isBulkUserCreate}
+              />
+
+              <span className="text-xs font-medium text-foreground">
+                {isBulkUserCreate ? "Bulk Create" : "Single Create"}
+              </span>
+            </div>
+            {isBulkUserCreate ? (
+              <div className="min-h-fit max-h-[70vh] overflow-auto">
+                <UserBulkCreateForm />
+              </div>
+            ) : (
+              <UserCreateForm />
+            )}
           </div>
         </TabsContent>
         <TabsContent value="user-group">

@@ -46,7 +46,7 @@ export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] md:min-w-[525px] md:max-w-fit sm:animate-fade-in-scale">
           <DialogHeader>
             <DialogTitle>{props.title}</DialogTitle>
             {props.renderHeaderContent}
@@ -77,20 +77,3 @@ export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
     </Drawer>
   );
 }
-
-/* function ProfileForm({ className }: React.ComponentProps<"form">) {
-  return (
-    <form className={cn("grid items-start gap-4", className)}>
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input type="email" id="email" defaultValue="shadcn@example.com" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="username">Username</Label>
-        <Input id="username" defaultValue="@shadcn" />
-      </div>
-      <Button type="submit">Save changes</Button>
-    </form>
-  );
-}
- */

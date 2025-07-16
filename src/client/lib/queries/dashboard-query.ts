@@ -14,7 +14,7 @@ const getDashboard = async () => {
 
 export const useDashboardQuery = () => {
   return useQuery({
-    queryKey: ["dashboard", "cards"],
+    queryKey: ["dashboard"],
     queryFn: getDashboard,
   });
 };

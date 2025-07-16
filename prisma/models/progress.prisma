@@ -1,13 +1,22 @@
 model Progress {
-  id          String   @id @default(uuid())
-  studentId   String? // if individual
-  groupId     String? // if group
+  id String @id @default(uuid())
+
+  /// Either `studentId` or `groupId` must be set (but not both).
+  studentId String?
+  groupId   String?
+
   projectId   String // the project being tracked
   classroomId String? // optionally, to scope it to a classroom
-  percent     Float    @default(0) // e.g. 0–100%
-  status      String? // e.g. "in-progress", "completed", "not-started"
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
+
+  currentStep     Int?            @default(0)
+  totalSteps      Int?            @default(0)
+
+  percentComplete Float           @default(0) // 0–100
+  status          ProgressStatus? @default(NOT_STARTED)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime? // optional — when marked complete
 
   student   Student?    @relation("StudentProgresses", fields: [studentId], references: [userId], onDelete: Cascade)
   group     UserGroups? @relation("GroupProgresses", fields: [groupId], references: [id], onDelete: Cascade)

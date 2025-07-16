@@ -31,6 +31,6 @@ export const useClassroomsQuery = ({
   only_ids?: boolean;
 }) =>
   useQuery({
-    queryKey: ["classrooms", { includes: includes, only_ids }],
+    queryKey: ["classrooms", { includes: includes.sort(), only_ids }, includes],
     queryFn: () => getClassrooms({ includes, only_ids }),
   });

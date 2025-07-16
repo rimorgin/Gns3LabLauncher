@@ -46,22 +46,22 @@ export async function getDashboardSummaryMetrics() {
     }),
 
     prisma.progress.count({
-      where: { status: "in-progress", updatedAt: { gte: startOfThisMonth } },
+      where: { status: "IN_PROGRESS", updatedAt: { gte: startOfThisMonth } },
     }),
     prisma.progress.count({
       where: {
-        status: "in-progress",
+        status: "IN_PROGRESS",
         updatedAt: { gte: startOfLastMonth, lt: startOfThisMonth },
       },
     }),
 
     prisma.progress.aggregate({
       where: { updatedAt: { gte: startOfThisMonth } },
-      _avg: { percent: true },
+      _avg: { percentComplete: true },
     }),
     prisma.progress.aggregate({
       where: { updatedAt: { gte: startOfLastMonth, lt: startOfThisMonth } },
-      _avg: { percent: true },
+      _avg: { percentComplete: true },
     }),
   ]);
 
@@ -81,10 +81,10 @@ export async function getDashboardSummaryMetrics() {
       ),
     },
     avgProgress: {
-      value: currentAvgProgress._avg.percent ?? 0,
+      value: currentAvgProgress._avg.percentComplete ?? 0,
       trend: calculateTrend(
-        currentAvgProgress._avg.percent ?? 0,
-        previousAvgProgress._avg.percent ?? 0,
+        currentAvgProgress._avg.percentComplete ?? 0,
+        previousAvgProgress._avg.percentComplete ?? 0,
       ),
     },
     totalOnlineUsers: {

@@ -1,0 +1,6 @@
+enum ProjectContentType {
+  READING
+  VIDEO
+  SLIDE
+  DOCUMENT
+}

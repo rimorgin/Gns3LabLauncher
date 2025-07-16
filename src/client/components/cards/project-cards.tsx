@@ -8,17 +8,7 @@ import {
 import { Badge } from "@clnt/components/ui/badge";
 import { Clock3 } from "lucide-react";
 import moment from "moment";
-import * as React from "react";
-import { Button } from "@clnt/components/ui/button";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@clnt/components/ui/drawer";
+import router from "@clnt/pages/route-layout";
 
 type ProjectData = {
   id: string;
@@ -34,18 +24,18 @@ type ProjectData = {
 };
 
 export function ProjectCard({ project }: { project: ProjectData }) {
-  const [openDrawer, setOpenDrawer] = React.useState(false);
+  const handleNavigate = () => {
+    if (project) {
+      router.navigate({
+        pathname: `lab/${project.id}`,
+      });
+    }
+  };
   return (
     <>
-      <ProjectViewer
-        open={openDrawer}
-        onOpenChange={setOpenDrawer}
-        project={project}
-      />
       <Card
         role="button"
-        tabIndex={0}
-        onClick={() => setOpenDrawer(project.visible)}
+        onClick={handleNavigate}
         className={`w-full max-w-md rounded-xl shadow-md overflow-hidden transition-all duration-300 ${
           project.visible
             ? "cursor-pointer hover:scale-[1.025] hover:shadow-lg active:scale-95"
@@ -113,39 +103,5 @@ export function ProjectList({ projects }: { projects: ProjectData[] }) {
         </div>
       ))}
     </div>
-  );
-}
-
-export function ProjectViewer({
-  project,
-  open,
-  onOpenChange,
-}: {
-  project: ProjectData;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  return (
-    <Drawer modal open={open} onOpenChange={onOpenChange} direction="bottom">
-      <DrawerContent className="h-1/1">
-        <div className="h-full flex flex-col">
-          <DrawerHeader>
-            <DrawerTitle>{project.projectName}</DrawerTitle>
-            <DrawerDescription>{project.projectDescription}</DrawerDescription>
-          </DrawerHeader>
-
-          <div className="flex-1 overflow-y-auto px-4">
-            {/* Main content */}
-          </div>
-
-          <DrawerFooter>
-            <Button>Submit</Button>
-            <DrawerClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </div>
-      </DrawerContent>
-    </Drawer>
   );
 }

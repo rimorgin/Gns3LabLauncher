@@ -28,6 +28,10 @@ import webSocketListener from "./features/websocket/websocket.handler.ts";
 
 // CRON JOBS
 import "./cron";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 let server;
@@ -45,10 +49,14 @@ app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Serve static files from the 'public' directory
+app.use("/static", express.static(path.join(__dirname, "/public")));
+console.log("Serving static files from:", path.join(__dirname, "/public"));
+
 // SECURITY
 app.use(helmetMiddleware());
 app.use(csrfTokenMiddleware);
-app.use(csrfSynchronisedProtection);
+//app.use(csrfSynchronisedProtection);
 // Reduce fingerprinting
 app.disable("x-powered-by");
 // prevent DDos or Brute Force

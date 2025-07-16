@@ -86,6 +86,14 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
         include: {
           classrooms: true,
           userGroups: true,
+          progress: true,
+          submissions: true,
+          submissionFile: true,
+        },
+      },
+      instructor: {
+        include: {
+          classrooms: true,
         },
       },
     },

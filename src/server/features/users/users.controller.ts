@@ -3,6 +3,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
 import {
   createUser,
+  createUsersBulk,
   deleteManyUsersById,
   deleteUserById,
   updateUserById,
@@ -163,6 +164,36 @@ export const postUsers = async (req: Request, res: Response): Promise<void> => {
       .json({ message: APP_RESPONSE_MESSAGE.serverError });
   }
   return;
+};
+
+export const bulkPostUsers = async (req: Request, res: Response) => {
+  try {
+    console.log("🚀 ~ bulkPostUsers ~ req.body:", req.body);
+
+    // make sure to extract the array
+    const { users } = req.body;
+
+    if (!Array.isArray(users) || users.length === 0) {
+      res.status(400).json({ message: "No users provided" });
+      return;
+    }
+
+    const createdUsers = await createUsersBulk(users);
+
+    res.status(201).json({
+      message: `${createdUsers.length} users created successfully`,
+      data: createdUsers,
+    });
+    return;
+  } catch (err) {
+    console.error("bulkPostUsers error:", err);
+    if (!res.headersSent) {
+      res
+        .status(500)
+        .json({ message: "Something went wrong", error: String(err) });
+      return;
+    }
+  }
 };
 
 /**

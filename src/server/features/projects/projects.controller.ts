@@ -6,7 +6,10 @@ import {
   deleteProjectById,
   updateProjectById,
 } from "./projects.service.ts";
-import { APP_RESPONSE_MESSAGE } from "@srvr/configs/constants.config.ts";
+import {
+  APP_RESPONSE_MESSAGE,
+  HTTP_RESPONSE_CODE,
+} from "@srvr/configs/constants.config.ts";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -123,31 +126,50 @@ export const getProjectsById = async (
   res: Response,
 ): Promise<void> => {
   const { id: projectId } = req.params;
-  const { classrooms, partial } = req.query;
+  const { partial, studentsCount, projectContent } = req.query;
 
+  // Convert query params to booleans
+  const isStudentsCount = studentsCount === "true";
+  const isProjectContent = projectContent === "true";
+
+  const include: Prisma.ProjectInclude = {};
+  if (isStudentsCount) {
+    include.classrooms = {
+      select: {
+        _count: {
+          select: {
+            students: true,
+          },
+        },
+      },
+    };
+  }
+  if (isProjectContent) {
+    include.steps = {
+      include: {
+        contents: true,
+        quizQuestions: true,
+      },
+    };
+    include.discussions = true;
+  }
   const where = { where: { id: projectId } };
-  const project = classrooms
+  const project = partial
     ? await prisma.project.findUnique({
         ...where,
-        include: {
-          classrooms: true,
+        select: {
+          id: true,
+          projectName: true,
         },
       })
-    : partial
-      ? await prisma.project.findUnique({
-          ...where,
-          select: {
-            id: true,
-            projectName: true,
-          },
-        })
-      : await prisma.project.findUnique({
-          ...where,
-        });
+    : await prisma.project.findUnique({
+        ...where,
+        include,
+      });
 
-  res.status(200).json({
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.project.projectReturned,
-    project: project,
+    projects: project,
   });
 };
 
@@ -175,18 +197,18 @@ export const postProjects = async (
 
   if (projectExists) {
     res
-      .status(409)
+      .status(HTTP_RESPONSE_CODE.CONFLICT)
       .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesExist });
     return;
   }
   try {
     const newProject = await createProject(req.body);
-    res.status(201).json({
+    res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: APP_RESPONSE_MESSAGE.project.projectCreated,
       newData: newProject,
     });
   } catch {
-    res.status(500).json({
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
       message: APP_RESPONSE_MESSAGE.serverError,
     });
     return;
@@ -217,17 +239,19 @@ export const patchProject = async (
 
     if (!updatedProject) {
       res
-        .status(409)
+        .status(HTTP_RESPONSE_CODE.CONFLICT)
         .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
       return;
     }
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.project.projectUpdated,
       newData: updatedProject,
     });
   } catch {
-    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
     return;
   }
 };
@@ -256,17 +280,19 @@ export const deleteProject = async (
 
     if (!deletedProject) {
       res
-        .status(409)
+        .status(HTTP_RESPONSE_CODE.CONFLICT)
         .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
       return;
     }
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.project.projectDeleted,
       newData: deletedProject,
     });
   } catch {
-    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
     return;
   }
 };
@@ -295,17 +321,19 @@ export const deleteManyProjects = async (
 
     if (!deletedProject) {
       res
-        .status(409)
+        .status(HTTP_RESPONSE_CODE.CONFLICT)
         .json({ message: APP_RESPONSE_MESSAGE.project.projectDoesntExist });
       return;
     }
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.project.projectDeleted,
       newData: deletedProject,
     });
   } catch {
-    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.serverError });
     return;
   }
 };

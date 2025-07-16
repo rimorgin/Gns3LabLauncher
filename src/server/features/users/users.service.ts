@@ -106,6 +106,105 @@ export const createUser = async (
 };
 
 /**
+ * Creates multiple users in the database, applying role-based logic,
+ * name capitalization, and password hashing.
+ *
+ * Runs in a single transaction — if any user creation fails, the entire
+ * operation is rolled back.
+ *
+ * @param {IUserWithRoleInput[]} users - Array of user payloads.
+ * @returns {Promise<IUserWithRoleOutput[]>} The created users without passwords.
+ */
+export const createUsersBulk = async (
+  users: IUserWithRoleInput[],
+): Promise<IUserWithRoleOutput[]> => {
+  const result = await prisma.$transaction(
+    async (tx) => {
+      const createdUsers: IUserWithRoleOutput[] = [];
+
+      for (const user of users) {
+        const capitalizedName = capitalizedString(user.name);
+        const hashedPassword = await hashString(user.password, 12);
+        const userId = uuidv4();
+
+        const users = await tx.user.create({
+          data: {
+            id: userId,
+            name: capitalizedName,
+            email: user.email,
+            username: user.username,
+            password: hashedPassword,
+            role: user.role,
+            administrator:
+              user.role === "administrator"
+                ? {
+                    connectOrCreate: {
+                      where: { userId },
+                      create: {},
+                    },
+                  }
+                : undefined,
+            instructor:
+              user.role === "instructor"
+                ? {
+                    connectOrCreate: {
+                      where: { userId },
+                      create: {
+                        expertise: user.instructor.expertise,
+                        classrooms: {
+                          connect: (user.instructor?.classroomIds ?? []).map(
+                            (id) => ({ id }),
+                          ),
+                        },
+                      },
+                    },
+                  }
+                : undefined,
+            student:
+              user.role === "student"
+                ? {
+                    connectOrCreate: {
+                      where: { userId },
+                      create: {
+                        userGroups: {
+                          connect: (user.student?.groupIds ?? []).map((id) => ({
+                            id,
+                          })),
+                        },
+                        classrooms: {
+                          connect: (user.student?.classroomIds ?? []).map(
+                            (id) => ({ id }),
+                          ),
+                        },
+                      },
+                    },
+                  }
+                : undefined,
+          },
+          omit: { password: true },
+          include: {
+            student: user.role === "student",
+            instructor: user.role === "instructor",
+            administrator: user.role === "administrator",
+          },
+        });
+
+        // Omit password from returned data explicitly
+        createdUsers.push(users as IUserWithRoleOutput);
+      }
+
+      return createdUsers;
+    },
+    {
+      timeout: 60_000, // 1 minute
+      maxWait: 60_000,
+    },
+  );
+
+  return result;
+};
+
+/**
  * Updates an existing user with the provided details.
  *
  * @param {string} id - The ID of the user to update.

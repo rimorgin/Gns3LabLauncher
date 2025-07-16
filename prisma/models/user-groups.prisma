@@ -1,11 +1,11 @@
 model UserGroups {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   groupName   String
   classroomId String
-  limit       Int         
+  limit       Int
   imageUrl    String?
-  createdAt    DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   classrooms  Classroom?   @relation("ClassroomStudentGroups", fields: [classroomId], references: [id])
   student     Student[]    @relation("UserGroups")

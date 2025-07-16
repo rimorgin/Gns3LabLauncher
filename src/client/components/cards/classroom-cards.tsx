@@ -21,6 +21,7 @@ import { Separator } from "@clnt/components/ui/separator";
 import { TeacherIcon } from "@clnt/components/common/svg-icons";
 import { IconAlertOctagonFilled, IconLockFilled } from "@tabler/icons-react";
 import { Badge } from "@clnt/components/ui/badge";
+import router from "@clnt/pages/route-layout";
 
 type ClassroomData = {
   id: string;
@@ -35,7 +36,6 @@ type ClassroomData = {
 };
 
 export function ClassroomCard({ classroom }: { classroom: ClassroomData }) {
-  const [openDrawer, setOpenDrawer] = React.useState(false);
   const classroomStatus = classroom.status;
   const isLockedOrExpired =
     classroom.status === "expired" || classroom.status === "locked";
@@ -49,78 +49,74 @@ export function ClassroomCard({ classroom }: { classroom: ClassroomData }) {
           ? "outline"
           : "default";
 
+  const handleNavigate = () => {
+    if (classroom) {
+      router.navigate({
+        pathname: `classrooms/${classroom.id}`,
+      });
+    }
+  };
   return (
-    <>
-      <ClassroomViewer
-        open={openDrawer}
-        onOpenChange={setOpenDrawer}
-        classroom={classroom}
-      />
-      <Card
-        onClick={() =>
-          setOpenDrawer(
-            classroomStatus === "active" || classroomStatus === "archived",
-          )
-        }
-        role="button"
-        className="w-full max-w-md rounded-xl shadow-md overflow-hidden transition-all duration-300 cursor-pointer hover:scale-[1.025] hover:shadow-lg active:scale-95 break-inside-avoid"
-      >
-        {/* IMAGE SECTION */}
-        <div className="relative">
-          <img
-            src={classroom.imageUrl?.trim() || "/placeholder.png"}
-            alt={classroom.classroomName}
-            className={`h-40 w-full object-cover -mt-6 ${isLockedOrExpired ? "contrast-50 brightness-50" : ""}`}
-          />
-          {classroomStatus === "locked" && (
-            <span className="absolute inset-0 flex items-center justify-center">
-              <IconLockFilled className="w-3/6 h-3/6" />
-            </span>
-          )}
-          {classroomStatus === "expired" && (
-            <span className="absolute inset-0 flex items-center justify-center">
-              <IconAlertOctagonFilled className="w-3/6 h-3/6 fill-destructive" />
-            </span>
-          )}
+    <Card
+      onClick={handleNavigate}
+      role="button"
+      className="w-full max-w-md rounded-xl shadow-md overflow-hidden transition-all duration-300 cursor-pointer hover:scale-[1.025] hover:shadow-lg active:scale-95 break-inside-avoid"
+    >
+      {/* IMAGE SECTION */}
+      <div className="relative">
+        <img
+          src={classroom.imageUrl?.trim() || "/placeholder.png"}
+          alt={classroom.classroomName}
+          className={`h-40 w-full object-cover -mt-6 ${isLockedOrExpired ? "contrast-50 brightness-50" : ""}`}
+        />
+        {classroomStatus === "locked" && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <IconLockFilled className="w-3/6 h-3/6" />
+          </span>
+        )}
+        {classroomStatus === "expired" && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <IconAlertOctagonFilled className="w-3/6 h-3/6 fill-destructive" />
+          </span>
+        )}
+      </div>
+
+      {/* HEADER & CONTENT */}
+      <CardHeader>
+        <div className="flex flex-row justify-between">
+          <CardTitle className="text-md font-semibold">
+            {(classroom.course?.courseCode ?? "") +
+              " - " +
+              classroom.classroomName}
+          </CardTitle>
+          <Badge variant={badgeColor ?? "default"}>{classroom.status}</Badge>
         </div>
+        <CardDescription className="text-xs">
+          {classroom.course.courseName || "No course assigned"}
+        </CardDescription>
+      </CardHeader>
 
-        {/* HEADER & CONTENT */}
-        <CardHeader>
-          <div className="flex flex-row justify-between">
-            <CardTitle className="text-md font-semibold">
-              {(classroom.course?.courseCode ?? "") +
-                " - " +
-                classroom.classroomName}
-            </CardTitle>
-            <Badge variant={badgeColor ?? "default"}>{classroom.status}</Badge>
+      <CardContent>
+        <div className="flex flex-row -mb-3 justify-between ">
+          <p className="text-xs text-muted-foreground">
+            {classroom.students.length} Students enrolled
+          </p>
+        </div>
+      </CardContent>
+      <CardFooter className="-mb-3">
+        <div className="flex flex-col w-full gap-3">
+          <Separator />
+          <div className="flex flex-col gap-2 text-xs font-bold">
+            {classroom.instructor.user.name && (
+              <div className="flex items-center gap-2">
+                <TeacherIcon />
+                {classroom.instructor.user.name.toUpperCase()}
+              </div>
+            )}
           </div>
-          <CardDescription className="text-xs">
-            {classroom.course.courseName || "No course assigned"}
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex flex-row -mb-3 justify-between ">
-            <p className="text-xs text-muted-foreground">
-              {classroom.students.length} Students enrolled
-            </p>
-          </div>
-        </CardContent>
-        <CardFooter className="-mb-3">
-          <div className="flex flex-col w-full gap-3">
-            <Separator />
-            <div className="flex flex-col gap-2 text-xs font-bold">
-              {classroom.instructor.user.name && (
-                <div className="flex items-center gap-2">
-                  <TeacherIcon />
-                  {classroom.instructor.user.name.toUpperCase()}
-                </div>
-              )}
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
-    </>
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
 

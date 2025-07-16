@@ -5,9 +5,14 @@ import {
 } from "@srvr/configs/constants.config.ts";
 import { HttpException } from "@srvr/configs/http-exception.config.ts";
 
-export const notFoundHandler = function (req: Request, res: Response) {
-  const error = new Error("Not Found");
-  res.status(404).json({ error: error.message });
+export const notFoundHandler = function (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  /* const error = new Error("Not Found");
+  res.status(404).json({ error: error.message }); */
+  next(new HttpException(404, "Not Found"));
 };
 
 export default function errorMiddleware(
@@ -26,7 +31,7 @@ export default function errorMiddleware(
     errors = error.error;
   } else if (isForbiddenError(error)) {
     status = HttpStatusCode.FORBIDDEN;
-    message = APP_RESPONSE_MESSAGE.invalidCsrfToken;
+    message = APP_RESPONSE_MESSAGE.user.invalidCsrfToken;
   } else {
     console.error(error);
   }
@@ -36,8 +41,6 @@ export default function errorMiddleware(
     message,
     ...(errors ? { errors } : {}),
   });
-
-  next();
 }
 
 function isForbiddenError(error: unknown): error is { name: string } {

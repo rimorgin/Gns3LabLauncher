@@ -1,0 +1,11 @@
+model ProjectResource {
+  id          String   @id @default(uuid())
+  projectId   String
+  title       String
+  type        ResourceType
+  url         String
+  description String?
+  isRequired  Boolean @default(true)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}

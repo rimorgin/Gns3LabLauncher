@@ -1,0 +1,606 @@
+{
+   "id":"basic-router-config",
+   "title":"Basic Router Configuration",
+   "description":"Learn fundamental router configuration including hostname, passwords, interface setup, and static routing",
+   "category":"Networking Fundamentals",
+   "difficulty":"BEGINNER",
+   "estimatedTime":90,
+   "tags":[
+      "router",
+      "basic",
+      "configuration",
+      "interfaces",
+      "static-routing"
+   ],
+   "thumbnail":"/templates/basic-router.png",
+   "objectives":[
+      "Configure basic router settings including hostname and passwords",
+      "Set up router interfaces with IP addresses and subnet masks",
+      "Implement static routing between networks",
+      "Test network connectivity using ping and traceroute",
+      "Verify router configuration using show commands"
+   ],
+   "prerequisites":[
+      "Basic understanding of IP addressing and subnetting",
+      "Familiarity with command line interfaces",
+      "Knowledge of OSI model and TCP/IP stack"
+   ],
+   "labEnvironment":{
+      "id":"lab_env_1",
+      "type":"GNS3",
+      "topology":{
+         "nodes":[
+            {
+               "id":"r1",
+               "name":"Router1",
+               "type":"router",
+               "x":200,
+               "y":150,
+               "icon":"router",
+               "status":"stopped"
+            },
+            {
+               "id":"r2",
+               "name":"Router2",
+               "type":"router",
+               "x":500,
+               "y":150,
+               "icon":"router",
+               "status":"stopped"
+            },
+            {
+               "id":"pc1",
+               "name":"PC1",
+               "type":"pc",
+               "x":100,
+               "y":250,
+               "icon":"pc",
+               "status":"stopped"
+            },
+            {
+               "id":"pc2",
+               "name":"PC2",
+               "type":"pc",
+               "x":600,
+               "y":250,
+               "icon":"pc",
+               "status":"stopped"
+            }
+         ],
+         "links":[
+            {
+               "id":"link1",
+               "source":"pc1",
+               "target":"r1",
+               "sourcePort":"eth0",
+               "targetPort":"g0/0",
+               "status":"down"
+            },
+            {
+               "id":"link2",
+               "source":"r1",
+               "target":"r2",
+               "sourcePort":"g0/1",
+               "targetPort":"g0/1",
+               "status":"down"
+            },
+            {
+               "id":"link3",
+               "source":"r2",
+               "target":"pc2",
+               "sourcePort":"g0/0",
+               "targetPort":"eth0",
+               "status":"down"
+            }
+         ],
+         "layout":{
+            "width":800,
+            "height":400
+         }
+      },
+      "devices":[
+         {
+            "id":"r1",
+            "name":"Router1",
+            "type":"Cisco 2901",
+            "ipAddress":"192.168.1.1",
+            "credentials":{
+               "username":"admin",
+               "password":"cisco"
+            },
+            "interfaces":[
+               {
+                  "name":"GigabitEthernet0/0",
+                  "ipAddress":"192.168.1.1",
+                  "subnet":"255.255.255.0",
+                  "enabled":false,
+                  "status":"down"
+               },
+               {
+                  "name":"GigabitEthernet0/1",
+                  "ipAddress":"10.0.0.1",
+                  "subnet":"255.255.255.252",
+                  "enabled":false,
+                  "status":"down"
+               }
+            ]
+         },
+         {
+            "id":"r2",
+            "name":"Router2",
+            "type":"Cisco 2901",
+            "ipAddress":"192.168.2.1",
+            "credentials":{
+               "username":"admin",
+               "password":"cisco"
+            },
+            "interfaces":[
+               {
+                  "name":"GigabitEthernet0/0",
+                  "ipAddress":"192.168.2.1",
+                  "subnet":"255.255.255.0",
+                  "enabled":false,
+                  "status":"down"
+               },
+               {
+                  "name":"GigabitEthernet0/1",
+                  "ipAddress":"10.0.0.2",
+                  "subnet":"255.255.255.252",
+                  "enabled":false,
+                  "status":"down"
+               }
+            ]
+         },
+         {
+            "id":"pc1",
+            "name":"PC1",
+            "type":"Virtual PC",
+            "ipAddress":"192.168.1.10",
+            "interfaces":[
+               {
+                  "name":"eth0",
+                  "ipAddress":"192.168.1.10",
+                  "subnet":"255.255.255.0",
+                  "enabled":true,
+                  "status":"down"
+               }
+            ]
+         },
+         {
+            "id":"pc2",
+            "name":"PC2",
+            "type":"Virtual PC",
+            "ipAddress":"192.168.2.10",
+            "interfaces":[
+               {
+                  "name":"eth0",
+                  "ipAddress":"192.168.2.10",
+                  "subnet":"255.255.255.0",
+                  "enabled":true,
+                  "status":"down"
+               }
+            ]
+         }
+      ]
+   },
+   "guide":{
+      "id":"basic-router-guide",
+      "sections":[
+         {
+            "id":"intro",
+            "title":"Introduction to Router Configuration",
+            "type":"introduction",
+            "order":1,
+            "estimatedTime":15,
+            "content":[
+               {
+                  "id":"intro-text",
+                  "type":"text",
+                  "content":"Welcome to the Basic Router Configuration lab. In this lab, you will learn the fundamentals of configuring Cisco routers, including basic settings, interface configuration, and static routing. This lab provides hands-on experience with essential networking concepts that form the foundation of network administration."
+               },
+               {
+                  "id":"topology-overview",
+                  "type":"callout",
+                  "content":"The lab topology consists of two routers (Router1 and Router2) connected via a point-to-point link, with a PC connected to each router's LAN interface. This simple topology allows you to practice basic routing concepts and inter-network communication.",
+                  "metadata":{
+                     "callout_type":"info"
+                  }
+               },
+               {
+                  "id":"objectives-callout",
+                  "type":"callout",
+                  "content":"By the end of this lab, you will be able to configure basic router settings, set up interfaces, implement static routing, and verify network connectivity.",
+                  "metadata":{
+                     "callout_type":"info"
+                  }
+               }
+            ],
+            "tasks":[
+               
+            ],
+            "verification":[
+               
+            ],
+            "hints":[
+               
+            ]
+         },
+         {
+            "id":"basic-config",
+            "title":"Basic Router Configuration",
+            "type":"step",
+            "order":2,
+            "estimatedTime":25,
+            "content":[
+               {
+                  "id":"hostname-intro",
+                  "type":"text",
+                  "content":"First, we'll configure basic settings on both routers including hostname, enable password, and console settings. These basic configurations are essential for router management and security."
+               },
+               {
+                  "id":"config-commands",
+                  "type":"code",
+                  "content":"`Router> enable\nRouter# configure terminal\nRouter(config)# hostname Router1\n\nRouter1(config)# enable secret cisco\nRouter1(config)# line console 0\nRouter1(config-line)# password console\nRouter1(config-line)# login\nRouter1(config-line)# logging synchronous\nRouter1(config-line)# exec-timeout 0 0\nRouter1(config-line)# exit\nRouter1(config)# no ip domain-lookup`",
+                  "metadata":{
+                     "language":"cisco",
+                     "device":"Router1"
+                  }
+               },
+               {
+                  "id":"config-explanation",
+                  "type":"text",
+                  "content":"The commands above set the hostname to Router1, configure an enable secret password, set up console access with a password, enable synchronous logging to prevent command interruption, disable exec timeout, and turn off DNS lookups to speed up the CLI."
+               }
+            ],
+            "tasks":[
+               {
+                  "id":"task1",
+                  "description":"Configure hostname on Router1",
+                  "device":"Router1",
+                  "commands":[
+                     "enable",
+                     "configure terminal",
+                     "hostname Router1"
+                  ],
+                  "expectedResult":"Router prompt should change to Router1",
+                  "isCompleted":false,
+                  "hints":[
+                     "Use the hostname command in global configuration mode",
+                     "The prompt will change immediately after entering the command"
+                  ]
+               },
+               {
+                  "id":"task2",
+                  "description":"Set enable secret password to 'cisco'",
+                  "device":"Router1",
+                  "commands":[
+                     "enable secret cisco"
+                  ],
+                  "expectedResult":"Enable secret password is configured",
+                  "isCompleted":false,
+                  "hints":[
+                     "The enable secret command encrypts the password",
+                     "This password is required to enter privileged EXEC mode"
+                  ]
+               },
+               {
+                  "id":"task3",
+                  "description":"Configure console password and settings",
+                  "device":"Router1",
+                  "commands":[
+                     "line console 0",
+                     "password console",
+                     "login",
+                     "logging synchronous",
+                     "exec-timeout 0 0"
+                  ],
+                  "expectedResult":"Console line is configured with password and settings",
+                  "isCompleted":false,
+                  "hints":[
+                     "Line console 0 configures the console port",
+                     "Logging synchronous prevents output from interrupting commands"
+                  ]
+               }
+            ],
+            "verification":[
+               {
+                  "id":"verify1",
+                  "description":"Verify hostname configuration",
+                  "command":"show running-config | include hostname",
+                  "expectedOutput":"hostname Router1",
+                  "device":"Router1",
+                  "isCompleted":false
+               },
+               {
+                  "id":"verify2",
+                  "description":"Verify enable secret is configured",
+                  "command":"show running-config | include enable",
+                  "expectedOutput":"enable secret",
+                  "device":"Router1",
+                  "isCompleted":false
+               }
+            ],
+            "hints":[
+               "Remember to enter global configuration mode first",
+               "Save your configuration with 'copy running-config startup-config'"
+            ]
+         },
+         {
+            "id":"interface-config",
+            "title":"Interface Configuration",
+            "type":"step",
+            "order":3,
+            "estimatedTime":30,
+            "content":[
+               {
+                  "id":"interface-intro",
+                  "type":"text",
+                  "content":"Now we'll configure the router interfaces with IP addresses. Proper interface configuration is crucial for network connectivity. We'll configure both the LAN interface (connected to PC1) and the WAN interface (connected to Router2)."
+               },
+               {
+                  "id":"interface-commands",
+                  "type":"code",
+                  "content":"`Router1(config)# interface gigabitethernet 0/0\nRouter1(config-if)# description LAN Interface to PC1\nRouter1(config-if)# ip address 192.168.1.1 255.255.255.0\nRouter1(config-if)# no shutdown\nRouter1(config-if)# exit\nRouter1(config)# interface gigabitethernet 0/1\nRouter1(config-if)# description WAN Interface to Router2\nRouter1(config-if)# ip address 10.0.0.1 255.255.255.252\nRouter1(config-if)# no shutdown`",
+                  "metadata":{
+                     "language":"cisco",
+                     "device":"Router1"
+                  }
+               },
+               {
+                  "id":"interface-explanation",
+                  "type":"text",
+                  "content":"The 'no shutdown' command is essential as router interfaces are administratively down by default. The description command helps with documentation and troubleshooting."
+               }
+            ],
+            "tasks":[
+               {
+                  "id":"task4",
+                  "description":"Configure GigabitEthernet0/0 interface on Router1",
+                  "device":"Router1",
+                  "commands":[
+                     "interface gigabitethernet 0/0",
+                     "description LAN Interface to PC1",
+                     "ip address 192.168.1.1 255.255.255.0",
+                     "no shutdown"
+                  ],
+                  "expectedResult":"Interface should be configured and enabled",
+                  "isCompleted":false,
+                  "hints":[
+                     "Use 'interface gigabitethernet 0/0' to enter interface configuration mode",
+                     "Don't forget the 'no shutdown' command"
+                  ]
+               },
+               {
+                  "id":"task5",
+                  "description":"Configure GigabitEthernet0/1 interface on Router1",
+                  "device":"Router1",
+                  "commands":[
+                     "interface gigabitethernet 0/1",
+                     "description WAN Interface to Router2",
+                     "ip address 10.0.0.1 255.255.255.252",
+                     "no shutdown"
+                  ],
+                  "expectedResult":"WAN interface should be configured and enabled",
+                  "isCompleted":false,
+                  "hints":[
+                     "The /30 subnet (255.255.255.252) is commonly used for point-to-point links",
+                     "Interface descriptions help with network documentation"
+                  ]
+               }
+            ],
+            "verification":[
+               {
+                  "id":"verify3",
+                  "description":"Verify interface configuration",
+                  "command":"show ip interface brief",
+                  "expectedOutput":"GigabitEthernet0/0    192.168.1.1     YES manual up                    up",
+                  "device":"Router1",
+                  "isCompleted":false
+               },
+               {
+                  "id":"verify4",
+                  "description":"Check interface status",
+                  "command":"show interfaces gigabitethernet 0/0",
+                  "expectedOutput":"GigabitEthernet0/0 is up, line protocol is up",
+                  "device":"Router1",
+                  "isCompleted":false
+               }
+            ],
+            "hints":[
+               "Interfaces are administratively down by default",
+               "Use 'show ip interface brief' to quickly check all interfaces"
+            ]
+         },
+         {
+            "id":"static-routing",
+            "title":"Static Routing Configuration",
+            "type":"step",
+            "order":4,
+            "estimatedTime":20,
+            "content":[
+               {
+                  "id":"routing-intro",
+                  "type":"text",
+                  "content":"Static routing allows routers to learn about remote networks manually. We'll configure static routes so that PC1 can communicate with PC2 through both routers."
+               },
+               {
+                  "id":"routing-commands",
+                  "type":"code",
+                  "content":"`Router1(config)# ip route 192.168.2.0 255.255.255.0 10.0.0.2\nRouter1(config)# exit\nRouter1# show ip route static`",
+                  "metadata":{
+                     "language":"cisco",
+                     "device":"Router1"
+                  }
+               },
+               {
+                  "id":"routing-explanation",
+                  "type":"text",
+                  "content":"The static route tells Router1 that to reach the 192.168.2.0/24 network, it should forward packets to 10.0.0.2 (Router2's WAN interface)."
+               }
+            ],
+            "tasks":[
+               {
+                  "id":"task6",
+                  "description":"Configure static route on Router1 to reach PC2's network",
+                  "device":"Router1",
+                  "commands":[
+                     "ip route 192.168.2.0 255.255.255.0 10.0.0.2"
+                  ],
+                  "expectedResult":"Static route should be added to routing table",
+                  "isCompleted":false,
+                  "hints":[
+                     "The syntax is: ip route destination_network subnet_mask next_hop",
+                     "The next hop is Router2's WAN interface IP"
+                  ]
+               }
+            ],
+            "verification":[
+               {
+                  "id":"verify5",
+                  "description":"Verify static route in routing table",
+                  "command":"show ip route static",
+                  "expectedOutput":"S    192.168.2.0/24 [1/0] via 10.0.0.2",
+                  "device":"Router1",
+                  "isCompleted":false
+               }
+            ],
+            "hints":[
+               "Static routes have an administrative distance of 1",
+               "Use 'show ip route' to see the complete routing table"
+            ]
+         },
+         {
+            "id":"connectivity-test",
+            "title":"Testing Network Connectivity",
+            "type":"verification",
+            "order":5,
+            "estimatedTime":15,
+            "content":[
+               {
+                  "id":"testing-intro",
+                  "type":"text",
+                  "content":"Now we'll test connectivity between the networks using ping and traceroute commands. This verifies that our configuration is working correctly."
+               },
+               {
+                  "id":"ping-example",
+                  "type":"code",
+                  "content":"`Router1# ping 10.0.0.2\nType escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 10.0.0.2, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 1/1/4 ms`",
+                  "metadata":{
+                     "language":"cisco",
+                     "device":"Router1",
+                     "command":"ping",
+                     "expected_output":"Success rate is 100 percent"
+                  }
+               }
+            ],
+            "tasks":[
+               {
+                  "id":"task7",
+                  "description":"Test connectivity to Router2's WAN interface",
+                  "device":"Router1",
+                  "commands":[
+                     "ping 10.0.0.2"
+                  ],
+                  "expectedResult":"Ping should be successful with 100% success rate",
+                  "isCompleted":false,
+                  "hints":[
+                     "Ping tests Layer 3 connectivity",
+                     "A successful ping shows !!!!! symbols"
+                  ]
+               }
+            ],
+            "verification":[
+               {
+                  "id":"verify6",
+                  "description":"Verify ping to Router2",
+                  "command":"ping 10.0.0.2",
+                  "expectedOutput":"Success rate is 100 percent",
+                  "device":"Router1",
+                  "isCompleted":false
+               }
+            ],
+            "hints":[
+               "If ping fails, check interface status and IP configuration",
+               "Use 'show ip route' to verify routing table"
+            ]
+         }
+      ],
+      "currentSection":0,
+      "completedSections":[
+         
+      ]
+   },
+   "resources":[
+      {
+         "id":"cisco-commands",
+         "title":"Cisco IOS Command Reference",
+         "type":"reference",
+         "url":"/resources/cisco-ios-commands.pdf",
+         "description":"Complete reference guide for Cisco IOS commands used in basic router configuration"
+      },
+      {
+         "id":"subnetting-guide",
+         "title":"IP Subnetting Quick Reference",
+         "type":"cheat_sheet",
+         "url":"/resources/subnetting-cheatsheet.pdf",
+         "description":"Quick reference for IP subnetting and VLSM calculations"
+      },
+      {
+         "id":"troubleshooting-guide",
+         "title":"Router Troubleshooting Guide",
+         "type":"documentation",
+         "url":"/resources/router-troubleshooting.pdf",
+         "description":"Step-by-step troubleshooting procedures for common router issues"
+      }
+   ],
+   "variables":[
+      {
+         "name":"router1_hostname",
+         "type":"string",
+         "defaultValue":"Router1",
+         "description":"Hostname for the first router",
+         "required":true
+      },
+      {
+         "name":"router2_hostname",
+         "type":"string",
+         "defaultValue":"Router2",
+         "description":"Hostname for the second router",
+         "required":true
+      },
+      {
+         "name":"lan1_network",
+         "type":"ip",
+         "defaultValue":"192.168.1.0",
+         "description":"Network address for LAN 1 (PC1's network)",
+         "required":true
+      },
+      {
+         "name":"lan2_network",
+         "type":"ip",
+         "defaultValue":"192.168.2.0",
+         "description":"Network address for LAN 2 (PC2's network)",
+         "required":true
+      },
+      {
+         "name":"wan_network",
+         "type":"ip",
+         "defaultValue":"10.0.0.0",
+         "description":"Point-to-point network between routers",
+         "required":true
+      },
+      {
+         "name":"enable_password",
+         "type":"string",
+         "defaultValue":"cisco",
+         "description":"Enable secret password for privileged mode",
+         "required":true
+      }
+   ],
+   "isPublic":true,
+   "authorId":"system",
+   "createdAt": "2025-07-15",
+   "updatedAt":"2025-07-15",
+   "usageCount":1247
+}
+   

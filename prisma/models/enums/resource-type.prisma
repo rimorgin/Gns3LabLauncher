@@ -1,0 +1,7 @@
+enum ResourceType {
+  DOCUMENT
+  VIDEO
+  LINK
+  DOWNLOAD
+  TOOL
+}

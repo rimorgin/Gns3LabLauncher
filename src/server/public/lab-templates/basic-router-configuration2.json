@@ -1,0 +1,711 @@
+{
+    "id": "lab_1",
+    "title": "GNS3 Basic Router Configuration Lab",
+    "description": "Learn to configure basic router settings, interfaces, and routing in a hands-on GNS3 environment",
+    "difficulty": "BEGINNER",
+    "estimatedTime": 90,
+    "category": "Networking",
+    "tags": [
+        "GNS3",
+        "Routing",
+        "Configuration",
+        "Cisco"
+    ],
+    "objectives": [
+        "Configure basic router settings and hostname",
+        "Set up router interfaces with IP addresses",
+        "Configure static routing between networks",
+        "Verify connectivity using ping and traceroute",
+        "Save and backup router configurations"
+    ],
+    "prerequisites": [
+        "Basic understanding of IP addressing",
+        "Familiarity with command line interfaces",
+        "GNS3 software installed (provided in lab environment)"
+    ],
+    "labEnvironment": {
+        "id": "env_1",
+        "type": "GNS3",
+        "topology": {
+            "nodes": [
+                {
+                    "id": "r1",
+                    "name": "Router1",
+                    "type": "router",
+                    "x": 150,
+                    "y": 200,
+                    "icon": "router",
+                    "status": "running"
+                },
+                {
+                    "id": "r2",
+                    "name": "Router2",
+                    "type": "router",
+                    "x": 450,
+                    "y": 200,
+                    "icon": "router",
+                    "status": "running"
+                },
+                {
+                    "id": "pc1",
+                    "name": "PC1",
+                    "type": "pc",
+                    "x": 50,
+                    "y": 300,
+                    "icon": "pc",
+                    "status": "running"
+                },
+                {
+                    "id": "pc2",
+                    "name": "PC2",
+                    "type": "pc",
+                    "x": 550,
+                    "y": 300,
+                    "icon": "pc",
+                    "status": "running"
+                }
+            ],
+            "links": [
+                {
+                    "id": "link1",
+                    "source": "r1",
+                    "target": "r2",
+                    "sourcePort": "f0/1",
+                    "targetPort": "f0/1",
+                    "status": "up"
+                },
+                {
+                    "id": "link2",
+                    "source": "r1",
+                    "target": "pc1",
+                    "sourcePort": "f0/0",
+                    "targetPort": "eth0",
+                    "status": "up"
+                },
+                {
+                    "id": "link3",
+                    "source": "r2",
+                    "target": "pc2",
+                    "sourcePort": "f0/0",
+                    "targetPort": "eth0",
+                    "status": "up"
+                }
+            ],
+            "layout": {
+                "width": 600,
+                "height": 400
+            }
+        },
+        "devices": [
+            {
+                "id": "r1",
+                "name": "Router1",
+                "type": "Cisco 2691",
+                "ipAddress": "192.168.1.1",
+                "credentials": {
+                    "username": "admin",
+                    "password": "cisco"
+                },
+                "interfaces": [
+                    {
+                        "name": "FastEthernet0/0",
+                        "ipAddress": "192.168.1.1",
+                        "subnet": "255.255.255.0",
+                        "status": "up"
+                    },
+                    {
+                        "name": "FastEthernet0/1",
+                        "ipAddress": "10.0.0.1",
+                        "subnet": "255.255.255.252",
+                        "status": "up"
+                    }
+                ]
+            },
+            {
+                "id": "r2",
+                "name": "Router2",
+                "type": "Cisco 2691",
+                "ipAddress": "192.168.2.1",
+                "credentials": {
+                    "username": "admin",
+                    "password": "cisco"
+                },
+                "interfaces": [
+                    {
+                        "name": "FastEthernet0/0",
+                        "ipAddress": "192.168.2.1",
+                        "subnet": "255.255.255.0",
+                        "status": "up"
+                    },
+                    {
+                        "name": "FastEthernet0/1",
+                        "ipAddress": "10.0.0.2",
+                        "subnet": "255.255.255.252",
+                        "status": "up"
+                    }
+                ]
+            },
+            {
+                "id": "pc1",
+                "name": "PC1",
+                "type": "Virtual PC",
+                "ipAddress": "192.168.1.10",
+                "interfaces": [
+                    {
+                        "name": "eth0",
+                        "ipAddress": "192.168.1.10",
+                        "subnet": "255.255.255.0",
+                        "status": "up"
+                    }
+                ]
+            },
+            {
+                "id": "pc2",
+                "name": "PC2",
+                "type": "Virtual PC",
+                "ipAddress": "192.168.2.10",
+                "interfaces": [
+                    {
+                        "name": "eth0",
+                        "ipAddress": "192.168.2.10",
+                        "subnet": "255.255.255.0",
+                        "status": "up"
+                    }
+                ]
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn1",
+                "from": "r1",
+                "to": "r2",
+                "fromPort": "f0/1",
+                "toPort": "f0/1"
+            },
+            {
+                "id": "conn2",
+                "from": "r1",
+                "to": "pc1",
+                "fromPort": "f0/0",
+                "toPort": "eth0"
+            },
+            {
+                "id": "conn3",
+                "from": "r2",
+                "to": "pc2",
+                "fromPort": "f0/0",
+                "toPort": "eth0"
+            }
+        ]
+    },
+    "guide": {
+        "id": "guide_1",
+        "currentSection": 0,
+        "completedSections": [],
+        "sections": [
+            {
+                "id": "intro",
+                "title": "Lab Introduction and Objectives",
+                "type": "introduction",
+                "order": 1,
+                "estimatedTime": 10,
+                "content": [
+                    {
+                        "id": "intro_text",
+                        "type": "text",
+                        "content": "<h3>Welcome to the GNS3 Basic Router Configuration Lab!</h3>\n            <p>In this hands-on lab, you'll learn the fundamentals of router configuration using GNS3. This lab simulates a real network environment where you'll configure two Cisco routers to enable communication between different network segments.</p>\n            \n            <h4>What You'll Learn:</h4>\n            <ul>\n              <li>How to access and navigate Cisco router CLI</li>\n              <li>Basic router configuration commands</li>\n              <li>Interface configuration and IP addressing</li>\n              <li>Static routing configuration</li>\n              <li>Network connectivity verification</li>\n            </ul>\n            \n            <h4>Lab Scenario:</h4>\n            <p>You are a network administrator tasked with connecting two office locations. Each location has its own network segment, and you need to configure routers to enable communication between them.</p>"
+                    },
+                    {
+                        "id": "topology_overview",
+                        "type": "callout",
+                        "content": "The lab topology consists of two routers (Router1 and Router2) connected via a point-to-point link, with each router serving a local network segment with connected PCs.",
+                        "metadata": {
+                            "callout_type": "info"
+                        }
+                    }
+                ],
+                "tasks": [],
+                "verification": [],
+                "hints": []
+            },
+            {
+                "id": "step1",
+                "title": "Step 1: Access Router Console and Basic Configuration",
+                "type": "step",
+                "order": 2,
+                "estimatedTime": 20,
+                "content": [
+                    {
+                        "id": "step1_intro",
+                        "type": "text",
+                        "content": "<h3>Accessing the Router Console</h3>\n            <p>First, we need to access the router console to begin configuration. In GNS3, you can access the console by right-clicking on the router and selecting \"Console\".</p>\n            \n            <p>Once connected, you'll see the router prompt. Let's start with basic configuration.</p>"
+                    },
+                    {
+                        "id": "enable_mode",
+                        "type": "terminal",
+                        "content": "enable",
+                        "metadata": {
+                            "device": "Router1",
+                            "command": "enable",
+                            "expected_output": "Router1#"
+                        }
+                    },
+                    {
+                        "id": "config_mode",
+                        "type": "terminal",
+                        "content": "configure terminal",
+                        "metadata": {
+                            "device": "Router1",
+                            "command": "configure terminal",
+                            "expected_output": "Router1(config)#"
+                        }
+                    },
+                    {
+                        "id": "hostname_config",
+                        "type": "code",
+                        "content": "hostname R1\nno ip domain-lookup\nline console 0\n logging synchronous\n exec-timeout 0 0\nexit",
+                        "metadata": {
+                            "device": "Router1",
+                            "language": "cisco"
+                        }
+                    },
+                    {
+                        "id": "config_tip",
+                        "type": "callout",
+                        "content": "The 'no ip domain-lookup' command prevents the router from trying to resolve unknown commands as hostnames, which can cause delays. The console line configuration improves the user experience.",
+                        "metadata": {
+                            "callout_type": "tip"
+                        }
+                    }
+                ],
+                "tasks": [
+                    {
+                        "id": "task1_1",
+                        "description": "Access Router1 console and enter privileged EXEC mode",
+                        "device": "Router1",
+                        "commands": [
+                            "enable"
+                        ],
+                        "expectedResult": "Router prompt changes to Router1#",
+                        "isCompleted": false,
+                        "hints": [
+                            "Use the 'enable' command to enter privileged mode",
+                            "The prompt should change from > to #"
+                        ]
+                    },
+                    {
+                        "id": "task1_2",
+                        "description": "Enter global configuration mode and set hostname to R1",
+                        "device": "Router1",
+                        "commands": [
+                            "configure terminal",
+                            "hostname R1"
+                        ],
+                        "expectedResult": "Router prompt changes to R1(config)#",
+                        "isCompleted": false,
+                        "hints": [
+                            "Use 'configure terminal' to enter config mode",
+                            "Use 'hostname R1' to set the hostname",
+                            "The prompt will reflect the new hostname"
+                        ]
+                    },
+                    {
+                        "id": "task1_3",
+                        "description": "Configure console line settings for better user experience",
+                        "device": "Router1",
+                        "commands": [
+                            "line console 0",
+                            "logging synchronous",
+                            "exec-timeout 0 0",
+                            "exit"
+                        ],
+                        "expectedResult": "Console logging is synchronized and timeout is disabled",
+                        "isCompleted": false,
+                        "hints": [
+                            "Access console line configuration with 'line console 0'",
+                            "Use 'logging synchronous' to prevent log messages from interrupting commands",
+                            "Set 'exec-timeout 0 0' to disable automatic logout"
+                        ]
+                    }
+                ],
+                "verification": [
+                    {
+                        "id": "verify1_1",
+                        "description": "Verify hostname configuration",
+                        "command": "show running-config | include hostname",
+                        "expectedOutput": "hostname R1",
+                        "device": "Router1",
+                        "isCompleted": false
+                    }
+                ],
+                "hints": [
+                    "Remember to press Enter after each command",
+                    "Use Tab key for command completion",
+                    "Use '?' for help with command syntax"
+                ]
+            },
+            {
+                "id": "step2",
+                "title": "Step 2: Configure Router Interfaces",
+                "type": "step",
+                "order": 3,
+                "estimatedTime": 25,
+                "content": [
+                    {
+                        "id": "step2_intro",
+                        "type": "text",
+                        "content": "<h3>Interface Configuration</h3>\n            <p>Now we'll configure the router interfaces with IP addresses. Router1 has two interfaces:</p>\n            <ul>\n              <li><strong>FastEthernet0/0</strong>: Connected to PC1's network (192.168.1.0/24)</li>\n              <li><strong>FastEthernet0/1</strong>: Connected to Router2 (10.0.0.0/30)</li>\n            </ul>\n            \n            <p>Let's configure each interface step by step.</p>"
+                    },
+                    {
+                        "id": "interface_config",
+                        "type": "code",
+                        "content": "interface FastEthernet0/0\n ip address 192.168.1.1 255.255.255.0\n no shutdown\n description LAN Interface - Connected to PC1\nexit\n\ninterface FastEthernet0/1\n ip address 10.0.0.1 255.255.255.252\n no shutdown\n description WAN Interface - Connected to Router2\nexit",
+                        "metadata": {
+                            "device": "Router1",
+                            "language": "cisco"
+                        }
+                    },
+                    {
+                        "id": "no_shutdown_tip",
+                        "type": "callout",
+                        "content": "The 'no shutdown' command is crucial! Cisco interfaces are administratively down by default. Always remember to bring them up with 'no shutdown'.",
+                        "metadata": {
+                            "callout_type": "warning"
+                        }
+                    }
+                ],
+                "tasks": [
+                    {
+                        "id": "task2_1",
+                        "description": "Configure FastEthernet0/0 interface for LAN connectivity",
+                        "device": "Router1",
+                        "commands": [
+                            "interface FastEthernet0/0",
+                            "ip address 192.168.1.1 255.255.255.0",
+                            "no shutdown",
+                            "description LAN Interface - Connected to PC1",
+                            "exit"
+                        ],
+                        "expectedResult": "Interface is configured and brought up",
+                        "isCompleted": false,
+                        "hints": [
+                            "Enter interface configuration mode with 'interface FastEthernet0/0'",
+                            "Set IP address with 'ip address 192.168.1.1 255.255.255.0'",
+                            "Don't forget 'no shutdown' to activate the interface"
+                        ]
+                    },
+                    {
+                        "id": "task2_2",
+                        "description": "Configure FastEthernet0/1 interface for WAN connectivity",
+                        "device": "Router1",
+                        "commands": [
+                            "interface FastEthernet0/1",
+                            "ip address 10.0.0.1 255.255.255.252",
+                            "no shutdown",
+                            "description WAN Interface - Connected to Router2",
+                            "exit"
+                        ],
+                        "expectedResult": "WAN interface is configured and operational",
+                        "isCompleted": false,
+                        "hints": [
+                            "Use /30 subnet (255.255.255.252) for point-to-point links",
+                            "This interface connects to Router2's FastEthernet0/1",
+                            "Add a description to document the interface purpose"
+                        ]
+                    },
+                    {
+                        "id": "task2_3",
+                        "description": "Repeat the same configuration on Router2 with appropriate IP addresses",
+                        "device": "Router2",
+                        "commands": [
+                            "enable",
+                            "configure terminal",
+                            "hostname R2",
+                            "interface FastEthernet0/0",
+                            "ip address 192.168.2.1 255.255.255.0",
+                            "no shutdown",
+                            "exit",
+                            "interface FastEthernet0/1",
+                            "ip address 10.0.0.2 255.255.255.252",
+                            "no shutdown",
+                            "exit"
+                        ],
+                        "expectedResult": "Router2 interfaces are configured",
+                        "isCompleted": false,
+                        "hints": [
+                            "Router2's LAN interface should be 192.168.2.1/24",
+                            "Router2's WAN interface should be 10.0.0.2/30",
+                            "Follow the same steps as Router1 but with different IP addresses"
+                        ]
+                    }
+                ],
+                "verification": [
+                    {
+                        "id": "verify2_1",
+                        "description": "Verify interface configuration on Router1",
+                        "command": "show ip interface brief",
+                        "expectedOutput": "Interface                  IP-Address      OK? Method Status                Protocol\nFastEthernet0/0            192.168.1.1     YES manual up                    up      \nFastEthernet0/1            10.0.0.1        YES manual up                    up",
+                        "device": "Router1",
+                        "isCompleted": false
+                    },
+                    {
+                        "id": "verify2_2",
+                        "description": "Test connectivity between routers",
+                        "command": "ping 10.0.0.2",
+                        "expectedOutput": "Type escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 10.0.0.2, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5), round-trip min/avg/max = 1/2/4 ms",
+                        "device": "Router1",
+                        "isCompleted": false
+                    }
+                ],
+                "hints": [
+                    "Use 'show ip interface brief' to see all interface statuses",
+                    "Both Status and Protocol should show 'up' for working interfaces",
+                    "If ping fails, check cable connections and interface configurations"
+                ]
+            },
+            {
+                "id": "step3",
+                "title": "Step 3: Configure Static Routing",
+                "type": "step",
+                "order": 4,
+                "estimatedTime": 20,
+                "content": [
+                    {
+                        "id": "step3_intro",
+                        "type": "text",
+                        "content": "<h3>Static Routing Configuration</h3>\n            <p>Now that our interfaces are configured, we need to set up routing so that devices in different networks can communicate. We'll use static routes to tell each router how to reach the remote networks.</p>\n            \n            <p>Router1 needs to know how to reach the 192.168.2.0/24 network, and Router2 needs to know how to reach the 192.168.1.0/24 network.</p>"
+                    },
+                    {
+                        "id": "routing_concept",
+                        "type": "callout",
+                        "content": "Static routes manually define the path to reach specific networks. The format is: ip route [destination_network] [subnet_mask] [next_hop_ip]",
+                        "metadata": {
+                            "callout_type": "info"
+                        }
+                    },
+                    {
+                        "id": "static_routes",
+                        "type": "code",
+                        "content": "! On Router1 - Route to reach 192.168.2.0/24 network\nip route 192.168.2.0 255.255.255.0 10.0.0.2\n\n! On Router2 - Route to reach 192.168.1.0/24 network  \nip route 192.168.1.0 255.255.255.0 10.0.0.1",
+                        "metadata": {
+                            "language": "cisco"
+                        }
+                    }
+                ],
+                "tasks": [
+                    {
+                        "id": "task3_1",
+                        "description": "Configure static route on Router1 to reach Router2's LAN",
+                        "device": "Router1",
+                        "commands": [
+                            "ip route 192.168.2.0 255.255.255.0 10.0.0.2"
+                        ],
+                        "expectedResult": "Static route is added to routing table",
+                        "isCompleted": false,
+                        "hints": [
+                            "The destination network is 192.168.2.0/24",
+                            "The next hop is Router2's WAN interface (10.0.0.2)",
+                            "Make sure you're in global configuration mode"
+                        ]
+                    },
+                    {
+                        "id": "task3_2",
+                        "description": "Configure static route on Router2 to reach Router1's LAN",
+                        "device": "Router2",
+                        "commands": [
+                            "configure terminal",
+                            "ip route 192.168.1.0 255.255.255.0 10.0.0.1"
+                        ],
+                        "expectedResult": "Return route is configured",
+                        "isCompleted": false,
+                        "hints": [
+                            "The destination network is 192.168.1.0/24",
+                            "The next hop is Router1's WAN interface (10.0.0.1)",
+                            "Both routers need routes for bidirectional communication"
+                        ]
+                    }
+                ],
+                "verification": [
+                    {
+                        "id": "verify3_1",
+                        "description": "Verify routing table on Router1",
+                        "command": "show ip route",
+                        "expectedOutput": "Gateway of last resort is not set\n\n     10.0.0.0/30 is subnetted, 1 subnets\nC       10.0.0.0 is directly connected, FastEthernet0/1\n     192.168.1.0/24 is directly connected, FastEthernet0/0\nS    192.168.2.0/24 [1/0] via 10.0.0.2",
+                        "device": "Router1",
+                        "isCompleted": false
+                    },
+                    {
+                        "id": "verify3_2",
+                        "description": "Test end-to-end connectivity",
+                        "command": "ping 192.168.2.1",
+                        "expectedOutput": "Type escape sequence to abort.\nSending 5, 100-byte ICMP Echos to 192.168.2.1, timeout is 2 seconds:\n!!!!!\nSuccess rate is 100 percent (5/5)",
+                        "device": "Router1",
+                        "isCompleted": false
+                    }
+                ],
+                "hints": [
+                    "Look for 'S' entries in the routing table - these are static routes",
+                    "Connected networks show as 'C' in the routing table",
+                    "If ping fails, verify both routers have the correct static routes"
+                ]
+            },
+            {
+                "id": "verification",
+                "title": "Final Verification and Testing",
+                "type": "verification",
+                "order": 5,
+                "estimatedTime": 15,
+                "content": [
+                    {
+                        "id": "final_intro",
+                        "type": "text",
+                        "content": "<h3>Comprehensive Network Testing</h3>\n            <p>Now let's perform comprehensive testing to ensure our network is working correctly. We'll test connectivity from multiple points and verify our configuration.</p>"
+                    },
+                    {
+                        "id": "testing_commands",
+                        "type": "code",
+                        "content": "! Test connectivity from Router1 to all networks\nping 192.168.1.10  ! PC1\nping 10.0.0.2      ! Router2 WAN\nping 192.168.2.1   ! Router2 LAN\nping 192.168.2.10  ! PC2\n\n! Use traceroute to see the path\ntraceroute 192.168.2.10\n\n! Verify routing tables\nshow ip route\nshow ip interface brief",
+                        "metadata": {
+                            "device": "Router1",
+                            "language": "cisco"
+                        }
+                    }
+                ],
+                "tasks": [
+                    {
+                        "id": "task4_1",
+                        "description": "Perform comprehensive connectivity testing from Router1",
+                        "device": "Router1",
+                        "commands": [
+                            "ping 192.168.1.10",
+                            "ping 10.0.0.2",
+                            "ping 192.168.2.1",
+                            "ping 192.168.2.10"
+                        ],
+                        "expectedResult": "All pings should be successful",
+                        "isCompleted": false,
+                        "hints": [
+                            "Test local network first (192.168.1.10)",
+                            "Test direct connection to Router2 (10.0.0.2)",
+                            "Test Router2's LAN interface (192.168.2.1)",
+                            "Test end-to-end to PC2 (192.168.2.10)"
+                        ]
+                    },
+                    {
+                        "id": "task4_2",
+                        "description": "Use traceroute to verify the path to remote network",
+                        "device": "Router1",
+                        "commands": [
+                            "traceroute 192.168.2.10"
+                        ],
+                        "expectedResult": "Shows path through Router2",
+                        "isCompleted": false,
+                        "hints": [
+                            "Traceroute shows each hop in the path",
+                            "You should see Router2's WAN interface (10.0.0.2) as the first hop",
+                            "Then Router2's LAN interface (192.168.2.1) as the second hop"
+                        ]
+                    },
+                    {
+                        "id": "task4_3",
+                        "description": "Save the configuration to prevent loss on reboot",
+                        "device": "Router1",
+                        "commands": [
+                            "copy running-config startup-config"
+                        ],
+                        "expectedResult": "Configuration is saved to NVRAM",
+                        "isCompleted": false,
+                        "hints": [
+                            "Use 'copy running-config startup-config' to save",
+                            "You can also use the shortcut 'copy run start'",
+                            "Repeat this on Router2 as well"
+                        ]
+                    }
+                ],
+                "verification": [
+                    {
+                        "id": "verify4_1",
+                        "description": "Verify complete routing table",
+                        "command": "show ip route",
+                        "expectedOutput": "Codes: C - connected, S - static\n     10.0.0.0/30 is subnetted, 1 subnets\nC       10.0.0.0 is directly connected, FastEthernet0/1\nC    192.168.1.0/24 is directly connected, FastEthernet0/0\nS    192.168.2.0/24 [1/0] via 10.0.0.2",
+                        "device": "Router1",
+                        "isCompleted": false
+                    },
+                    {
+                        "id": "verify4_2",
+                        "description": "Confirm configuration is saved",
+                        "command": "show startup-config | include hostname",
+                        "expectedOutput": "hostname R1",
+                        "device": "Router1",
+                        "isCompleted": false
+                    }
+                ],
+                "hints": [
+                    "All networks should be reachable from any point",
+                    "Save configurations on both routers",
+                    "Document your network for future reference"
+                ]
+            },
+            {
+                "id": "summary",
+                "title": "Lab Summary and Next Steps",
+                "type": "summary",
+                "order": 6,
+                "estimatedTime": 10,
+                "content": [
+                    {
+                        "id": "summary_intro",
+                        "type": "text",
+                        "content": "<h3>Congratulations! 🎉</h3>\n            <p>You have successfully completed the GNS3 Basic Router Configuration Lab. Let's review what you accomplished:</p>\n            \n            <h4>What You Learned:</h4>\n            <ul>\n              <li>✅ Accessed router console and navigated Cisco CLI</li>\n              <li>✅ Configured basic router settings (hostname, console)</li>\n              <li>✅ Configured router interfaces with IP addresses</li>\n              <li>✅ Implemented static routing between networks</li>\n              <li>✅ Verified network connectivity and troubleshooting</li>\n              <li>✅ Saved configurations for persistence</li>\n            </ul>\n            \n            <h4>Key Commands You Mastered:</h4>\n            <ul>\n              <li><code>enable</code> - Enter privileged EXEC mode</li>\n              <li><code>configure terminal</code> - Enter global configuration mode</li>\n              <li><code>interface [name]</code> - Configure specific interface</li>\n              <li><code>ip address [ip] [mask]</code> - Assign IP address to interface</li>\n              <li><code>no shutdown</code> - Activate interface</li>\n              <li><code>ip route [network] [mask] [next-hop]</code> - Configure static route</li>\n              <li><code>show ip route</code> - Display routing table</li>\n              <li><code>show ip interface brief</code> - Show interface status</li>\n              <li><code>ping [ip]</code> - Test connectivity</li>\n              <li><code>copy running-config startup-config</code> - Save configuration</li>\n            </ul>"
+                    },
+                    {
+                        "id": "next_steps",
+                        "type": "callout",
+                        "content": "Ready for more? Try the Advanced Routing Lab to learn about dynamic routing protocols like OSPF and EIGRP, or explore the Network Security Lab to implement access control lists and firewall configurations.",
+                        "metadata": {
+                            "callout_type": "success"
+                        }
+                    },
+                    {
+                        "id": "troubleshooting_tips",
+                        "type": "text",
+                        "content": "<h4>Common Troubleshooting Tips:</h4>\n            <ul>\n              <li><strong>Interface Down:</strong> Check 'no shutdown' command and cable connections</li>\n              <li><strong>Can't Ping:</strong> Verify IP addresses, subnet masks, and routing tables</li>\n              <li><strong>Routing Issues:</strong> Ensure static routes point to correct next-hop addresses</li>\n              <li><strong>Configuration Lost:</strong> Always save with 'copy run start'</li>\n            </ul>"
+                    }
+                ],
+                "tasks": [],
+                "verification": [],
+                "hints": []
+            }
+        ]
+    },
+    "resources": [
+        {
+            "id": "res1",
+            "title": "Cisco IOS Command Reference",
+            "type": "documentation",
+            "url": "https://www.cisco.com/c/en/us/support/ios-nx-os-software/ios-15-0s/products-command-reference-list.html",
+            "description": "Complete reference for Cisco IOS commands"
+        },
+        {
+            "id": "res2",
+            "title": "GNS3 User Guide",
+            "type": "documentation",
+            "url": "https://docs.gns3.com/",
+            "description": "Official GNS3 documentation and tutorials"
+        },
+        {
+            "id": "res3",
+            "title": "Subnetting Cheat Sheet",
+            "type": "cheat_sheet",
+            "url": "/resources/subnetting-cheat-sheet.pdf",
+            "description": "Quick reference for subnet calculations"
+        }
+    ],
+    "createdAt": "2024-01-15T00:00:00.000Z",
+    "updatedAt": "2024-01-20T00:00:00.000Z",
+    "thumbnail": "",
+    "variables": [],
+    "isPublic": true,
+    "authorId": "",
+    "usageCount": 0
+}

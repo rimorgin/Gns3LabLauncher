@@ -152,11 +152,22 @@ export interface IProject {
   classroomIds?: string[] | null;
 }
 
-export interface ProgressData {
+export interface IStudentProgress {
   projectId: string;
   classroomId: string;
-  studentId?: string;
-  groupId?: string;
-  percent: number;
+  studentId: string;
+  groupId?: never; // Enforces exclusion
+  percentComplete: number;
   status: string;
 }
+
+export interface IGroupProgress {
+  projectId: string;
+  classroomId: string;
+  studentId?: never; // Enforces exclusion
+  groupId: string;
+  percentComplete: number;
+  status: string;
+}
+
+export type IProgress = IStudentProgress | IGroupProgress;

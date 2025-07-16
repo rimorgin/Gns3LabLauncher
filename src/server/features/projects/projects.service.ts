@@ -1,5 +1,5 @@
 import { Prisma, ProjectTagsEnum } from "@prisma/client";
-import { IProject, ProgressData } from "@srvr/types/models.type.ts";
+import { IProject } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import uuidv4 from "@srvr/utils/uuidv4.utils.ts";
 
@@ -22,6 +22,7 @@ import uuidv4 from "@srvr/utils/uuidv4.utils.ts";
  */
 export const createProject = async (props: IProject): Promise<IProject> => {
   const projectId = await uuidv4();
+
   const project = await prisma.project.create({
     data: {
       id: projectId,
@@ -36,11 +37,8 @@ export const createProject = async (props: IProject): Promise<IProject> => {
       },
       // If your Submission model has a unique 'id' field, use it here. Adjust as needed for your schema.
       submissions: {
-        connectOrCreate: {
-          where: { id: projectId },
-          create: {
-            status: "idle",
-          },
+        create: {
+          status: "idle",
         },
       },
     },
@@ -57,39 +55,45 @@ export const createProject = async (props: IProject): Promise<IProject> => {
       studentGroups: { select: { id: true } },
     },
   });
+  try {
+    const IProgress: Prisma.ProgressCreateManyInput[] = [];
 
-  const progressData: ProgressData[] = [];
+    for (const classroom of classroomStudentsAndGroups) {
+      const classroomId = classroom.id;
 
-  for (const classroom of classroomStudentsAndGroups) {
-    const classroomId = classroom.id;
+      // student progress records
+      for (const student of classroom.students) {
+        IProgress.push({
+          projectId,
+          classroomId,
+          studentId: student.userId,
+          percentComplete: 0,
+          status: "NOT_STARTED",
+        });
+      }
 
-    // student progress records
-    for (const student of classroom.students) {
-      progressData.push({
-        projectId,
-        classroomId,
-        studentId: student.userId,
-        percent: 0,
-        status: "not-started",
+      // group progress records
+      for (const group of classroom.studentGroups) {
+        IProgress.push({
+          projectId,
+          classroomId,
+          groupId: group.id,
+          percentComplete: 0,
+          status: "NOT_STARTED",
+        });
+      }
+    }
+    // insert all progress records in bulk
+    if (IProgress.length) {
+      await prisma.progress.createMany({
+        data: IProgress,
       });
     }
-
-    // group progress records
-    for (const group of classroom.studentGroups) {
-      progressData.push({
-        projectId,
-        classroomId,
-        groupId: group.id,
-        percent: 0,
-        status: "not-started",
-      });
-    }
-  }
-  // insert all progress records in bulk
-  if (progressData.length) {
-    await prisma.progress.createMany({
-      data: progressData,
+  } catch {
+    await prisma.project.delete({
+      where: { id: projectId },
     });
+    throw new Error("Failed to create project progress records");
   }
 
   return project;
