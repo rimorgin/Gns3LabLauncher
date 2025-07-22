@@ -34,6 +34,7 @@ import { Skeleton } from "@clnt/components/ui/skeleton";
 import { DateTimePicker } from "@clnt/components/ui/date-time-picker";
 import { useEffect, useState } from "react";
 import { deepEqual, safeIds } from "@clnt/lib/utils";
+import { useLabsQuery } from "@clnt/lib/queries/lab-query";
 
 interface ProjectEditProps {
   initialData?: Partial<ProjectDbData>;
@@ -54,6 +55,7 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
       ...(initialData?.classrooms && {
         classroomIds: safeIds(initialData?.classrooms?.map((c) => c.id)),
       }),
+      ...(initialData?.labId && { labId: initialData.labId }),
       duration: initialData?.duration
         ? new Date(initialData.duration)
         : undefined,
@@ -74,6 +76,12 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
   } = useClassroomsQuery({ includes: ["course"] });
+
+  const {
+    data: labsQry = [],
+    isLoading: isLabsLoading,
+    error: errorOnLabs,
+  } = useLabsQuery();
   const { mutateAsync, status } = useProjectPatch();
 
   const onSubmit = async (data: ProjectFormData) => {
@@ -111,7 +119,7 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
     }
   };
 
-  if (isClassroomsLoading)
+  if (isClassroomsLoading || isLabsLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -124,7 +132,8 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
         <Skeleton className="w-full h-8" />
       </>
     );
-  if (errorOnClassrooms) return <div>Failed to load resources</div>;
+  if (errorOnClassrooms || errorOnLabs)
+    return <div>Failed to load resources</div>;
 
   const classroomOptions = classroomsQry?.map(
     (cls: {
@@ -137,6 +146,18 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
       label: `${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
     }),
   );
+
+  const labOptions =
+    labsQry.length > 0
+      ? labsQry
+          .filter(
+            (lab) => lab.status !== undefined && lab.status === "PUBLISHED",
+          )
+          .map((lab) => ({
+            value: lab.id,
+            label: lab.title,
+          }))
+      : [];
 
   return (
     <Form {...form}>
@@ -205,6 +226,43 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
                   className="w-full"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="labId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Labs</FormLabel>
+              {/* allow fallback for reset */}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("labId")}
+                  >
+                    <SelectValue placeholder="e.g. Basic OSPF Configuration" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Project Tags</SelectLabel>
+                    {labOptions.map((lab, index) => (
+                      <SelectItem id={lab.label + index} value={lab.value}>
+                        {lab.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

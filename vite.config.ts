@@ -49,7 +49,10 @@ export default defineConfig(() => {
       //pure: mode === "production" ? ["console.log"] : [],
     },
     server: {
-      allowedHosts: ["gns3lablauncher.mapua.netlab"],
+      allowedHosts: [
+        "gns3lablauncher.mapua.netlab",
+        "3af4e28e0dff.ngrok-free.app",
+      ],
     },
     resolve: {
       alias: {

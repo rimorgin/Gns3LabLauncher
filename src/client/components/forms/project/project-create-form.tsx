@@ -32,8 +32,10 @@ import { toast } from "sonner";
 import { Skeleton } from "@clnt/components/ui/skeleton";
 import { DateTimePicker } from "@clnt/components/ui/date-time-picker";
 import { useState } from "react";
-import { getRandomImage } from "@clnt/lib/utils";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
+import { Textarea } from "@clnt/components/ui/textarea";
+import { useLabsQuery } from "@clnt/lib/queries/lab-query";
+import router from "@clnt/pages/route-layout";
 
 export function ProjectCreateForm() {
   const toggleQuickDialog = useQuickDialogStore(
@@ -47,6 +49,8 @@ export function ProjectCreateForm() {
       visible: true,
       classroomIds: undefined,
       tags: undefined,
+      labId: "",
+      byGroupSubmissions: false,
     },
   });
   const [isProjectDurationEnabled, setIsProjectDurationEnabled] =
@@ -57,6 +61,11 @@ export function ProjectCreateForm() {
     isLoading: isClassroomsLoading,
     error: errorOnClassrooms,
   } = useClassroomsQuery({ includes: ["course"] });
+  const {
+    data: labsQry = [],
+    isLoading: isLabsLoading,
+    error: errorOnLabs,
+  } = useLabsQuery();
   const { mutateAsync, status } = useProjectsPost();
 
   const onSubmit = async (data: ProjectFormData) => {
@@ -73,7 +82,7 @@ export function ProjectCreateForm() {
     });
   };
 
-  if (isClassroomsLoading)
+  if (isClassroomsLoading || isLabsLoading)
     return (
       <>
         <Skeleton className="w-18 h-4" />
@@ -86,7 +95,7 @@ export function ProjectCreateForm() {
         <Skeleton className="w-full h-8" />
       </>
     );
-  if (errorOnClassrooms) return <div>Failed to load resources</div>;
+  if (errorOnClassrooms || errorOnLabs) return router.navigate("/error");
 
   const classroomOptions = classroomsQry?.map(
     (cls: {
@@ -99,6 +108,18 @@ export function ProjectCreateForm() {
       label: `${cls.course?.id ? `${cls.course?.courseCode}` : ""} ${cls.classroomName} (${cls.status})`,
     }),
   );
+
+  const labOptions =
+    labsQry.length > 0
+      ? labsQry
+          .filter(
+            (lab) => lab.status !== undefined && lab.status === "PUBLISHED",
+          )
+          .map((lab) => ({
+            value: lab.id,
+            label: lab.title,
+          }))
+      : [];
 
   return (
     <Form {...form}>
@@ -126,7 +147,7 @@ export function ProjectCreateForm() {
             <FormItem>
               <FormLabel>Project Description</FormLabel>
               <FormControl>
-                <Input
+                <Textarea
                   placeholder="e.g. Learn how to configure OSPF inter-area "
                   {...field}
                 />
@@ -164,8 +185,46 @@ export function ProjectCreateForm() {
                   onValueChange={field.onChange}
                   placeholder="Select Classrooms"
                   className="w-full"
+                  disabled={!form.getValues("labId")}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="labId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Labs</FormLabel>
+              {/* allow fallback for reset */}
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger
+                    className="w-full"
+                    value={field.value}
+                    onReset={() => form.resetField("labId")}
+                  >
+                    <SelectValue placeholder="e.g. Basic OSPF Configuration" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Project Tags</SelectLabel>
+                    {labOptions.map((lab, index) => (
+                      <SelectItem id={lab.label + index} value={lab.value}>
+                        {lab.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
@@ -208,7 +267,20 @@ export function ProjectCreateForm() {
             </FormItem>
           )}
         />
-
+        <FormField
+          control={form.control}
+          name="byGroupSubmissions" // adjust this to your schema
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel optional>By Group</FormLabel>
+              <FormDescription className="text-xs">
+                OFF: Individual / ON: By Group
+              </FormDescription>
+              <Switch checked={field.value} onCheckedChange={field.onChange} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="duration" // adjust this to your schema
@@ -235,13 +307,6 @@ export function ProjectCreateForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
-
-        {/* Set imageUrl programmatically with hidden input */}
-        <input
-          type="hidden"
-          {...form.register("imageUrl")}
-          value={getRandomImage("projects", form.getValues("tags") as string)}
         />
 
         <Button type="submit" className="w-full">

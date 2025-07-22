@@ -6,7 +6,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@clnt/components/ui/avatar";
-import { Card, CardContent } from "@clnt/components/ui/card";
 import {
   Users,
   BookOpen,
@@ -16,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Classroom } from "@clnt/types/classroom";
 import { Button } from "@clnt/components/ui/button";
+import moment from "moment";
 
 interface ClassroomHeaderProps {
   classroom: Classroom;
@@ -26,6 +26,7 @@ export function ClassroomHeader({
   classroom,
   onExitClassroom,
 }: ClassroomHeaderProps) {
+  console.log("🚀 ~ classroom:", classroom);
   const getStatusColor = (status: string) => {
     const colors = {
       ACTIVE: "bg-green-100 text-green-800",
@@ -41,7 +42,10 @@ export function ClassroomHeader({
       <div className="h-58 bg-gradient-to-r from-blue-600 to-purple-600 relative overflow-hidden">
         {classroom.imageUrl && (
           <img
-            src={classroom.imageUrl || "/placeholder.svg"}
+            src={
+              classroom.imageUrl ??
+              "http://localhost:5000/static/images/courses/4a4118ab-b27d-44ae-90ba-b1e48be85f79.jpg"
+            }
             className="w-full h-full object-cover opacity-30"
           />
         )}
@@ -79,72 +83,24 @@ export function ClassroomHeader({
                 {classroom.course && (
                   <div className="flex items-center gap-1">
                     <BookOpen className="h-4 w-4" />
-                    {classroom.course.courseName}
+                    {classroom.course.courseCode}-{classroom.course.courseName}
                   </div>
                 )}
 
                 {classroom.instructor && (
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    {classroom.instructor.firstName}{" "}
-                    {classroom.instructor.lastName}
+                    {classroom.instructor.user.name}
                   </div>
                 )}
 
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  Created {new Date(classroom.createdAt).toLocaleDateString()}
+                  Created {moment(classroom.createdAt).format("LL")}
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="container mx-auto px-6 pt-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">
-                {classroom.students.length}
-              </div>
-              <div className="text-sm text-muted-foreground">Students</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">
-                {classroom.projects.length}
-              </div>
-              <div className="text-sm text-muted-foreground">Projects</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">
-                {classroom.studentGroups.length}
-              </div>
-              <div className="text-sm text-muted-foreground">Groups</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">
-                {Math.round(
-                  (classroom.progress.filter((p) => p.status === "COMPLETED")
-                    .length /
-                    Math.max(classroom.progress.length, 1)) *
-                    100,
-                )}
-                %
-              </div>
-              <div className="text-sm text-muted-foreground">Avg. Progress</div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

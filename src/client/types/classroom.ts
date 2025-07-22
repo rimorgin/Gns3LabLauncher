@@ -28,6 +28,7 @@ export enum ClassroomStatusEnum {
 
 export interface Course {
   id: string;
+  courseCode: string;
   courseName: string;
   description: string | null;
   createdAt: Date;
@@ -36,19 +37,32 @@ export interface Course {
 
 export interface Instructor {
   userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profileImage: string | null;
+  isOnline: Date | null;
+  lastActiveAt: Date | null;
+  user: {
+    name: string;
+    username: string;
+    email: string;
+    role: "administrator" | "instructor" | "student";
+    createdAt: Date;
+    updatedAt: Date;
+    profileImage: string | null;
+  };
 }
 
 export interface Student {
   userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  profileImage: string | null;
-  enrolledAt: Date;
+  isOnline: Date | null;
+  lastActiveAt: Date | null;
+  user: {
+    name: string;
+    username: string;
+    email: string;
+    role: "administrator" | "instructor" | "student";
+    createdAt: Date;
+    updatedAt: Date;
+    profileImage: string | null;
+  };
 }
 
 export interface UserGroups {
@@ -56,7 +70,8 @@ export interface UserGroups {
   groupName: string;
   description: string | null;
   createdAt: Date;
-  students: Student[];
+  limit: number;
+  student: Student[];
 }
 
 export interface ClassroomProgress {

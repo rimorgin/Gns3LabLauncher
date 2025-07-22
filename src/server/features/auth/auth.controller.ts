@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import passport from "@srvr/configs/passport.config.ts";
 import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
-import { createUser } from "@srvr/features/users/users.service.ts";
+import { UserService } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
 import roles from "@srvr/configs/roles.config.ts";
@@ -79,26 +79,7 @@ export const getUserPermissions = (req: Request, res: Response): void => {
  */
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   const userSessionId = req.session?.passport?.user;
-  const user = await prisma.user.findUnique({
-    where: { id: userSessionId },
-    include: {
-      student: {
-        include: {
-          classrooms: true,
-          userGroups: true,
-          progress: true,
-          submissions: true,
-          submissionFile: true,
-        },
-      },
-      instructor: {
-        include: {
-          classrooms: true,
-        },
-      },
-    },
-    omit: { password: true },
-  });
+  const user = await UserService.getMe(userSessionId);
   if (!user) {
     res
       .status(HTTP_RESPONSE_CODE.NOT_FOUND)
@@ -141,25 +122,29 @@ export const postLoginLocal = (
           .json({ type: "error", message: info.message || "Unauthorized" });
       }
 
-      req.login(user, async (loginErr) => {
+      req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
 
-        const duration = Date.now() - start;
-        logger.info(`Request completed with status ${res.statusCode}`, {
-          context: user.username,
-          message: `User ${user.username} logged in`,
-          stack: {
-            userAgent: req.headers["user-agent"],
-          },
-          statusCode: res.statusCode,
-          durationMs: duration,
-          ip: req.ip?.replace("::ffff:", ""),
-        });
+        req.session.save((saveErr) => {
+          if (saveErr) return next(saveErr);
 
-        res.json({
-          user: req.session.passport?.user, // This will be serialized user
-          session: true,
-          message: APP_RESPONSE_MESSAGE.user.userLoggedIn,
+          const duration = Date.now() - start;
+          logger.info(`Request completed with status ${res.statusCode}`, {
+            context: user.username,
+            message: `User ${user.username} logged in`,
+            stack: {
+              userAgent: req.headers["user-agent"],
+            },
+            statusCode: res.statusCode,
+            durationMs: duration,
+            ip: req.ip?.replace("::ffff:", ""),
+          });
+
+          res.json({
+            user: req.session.passport?.user,
+            session: true,
+            message: APP_RESPONSE_MESSAGE.user.userLoggedIn,
+          });
         });
       });
     },
@@ -260,7 +245,7 @@ export const postSignup = async (
   next: NextFunction,
 ): Promise<void> => {
   try {
-    const user = await createUser(req.body);
+    const user = await UserService.create(req.body);
     req.login(user, (err: Error) => {
       if (err) return next(err);
       res.redirect("/");

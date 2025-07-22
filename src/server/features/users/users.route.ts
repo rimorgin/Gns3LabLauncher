@@ -7,6 +7,7 @@ import {
   bulkPostUsers,
   deleteUser,
   deleteUsersMany,
+  getUserById,
   getUsers,
   patchUser,
   postUsers,
@@ -20,6 +21,18 @@ const router = Router();
  * @access  Authenticated users with 'read_users' permission
  */
 router.get("/", checkAuthentication, checkPermission(["read_users"]), getUsers);
+
+/**
+ * @route   GET /users/:id
+ * @desc    Fetch list of users filtered by optional query parameter `role`.
+ * @access  Authenticated users with 'read_users' permission
+ */
+router.get(
+  "/:id",
+  checkAuthentication,
+  checkPermission(["read_users"]),
+  getUserById,
+);
 
 /**
  * @route   POST /users

@@ -81,15 +81,6 @@ export function ProjectBasicInfo({ project, onUpdate }: ProjectBasicInfoProps) {
     });
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    const colors = {
-      BEGINNER: "bg-green-100 text-green-800",
-      INTERMEDIATE: "bg-yellow-100 text-yellow-800",
-      ADVANCED: "bg-red-100 text-red-800",
-    };
-    return colors[difficulty as keyof typeof colors];
-  };
-
   return (
     <div className="space-y-6">
       {/* Basic Information */}

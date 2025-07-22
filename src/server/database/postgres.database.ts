@@ -1,7 +1,7 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { exec } from "child_process";
 import { IUserWithRoleInput } from "@srvr/types/models.type.ts";
-import { createUser } from "@srvr/features/users/users.service.ts";
+import { UserService } from "@srvr/features/users/users.service.ts";
 
 const checkPostgresHealth = () =>
   new Promise<boolean>((resolve) => {
@@ -71,7 +71,7 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
       role: "administrator",
     };
 
-    const admin = await createUser(defaultUserCredentials);
+    const admin = await UserService.create(defaultUserCredentials);
     console.log("🚀 ~ Postgres ~ Gns3AdminCredentials", admin);
   }
 }

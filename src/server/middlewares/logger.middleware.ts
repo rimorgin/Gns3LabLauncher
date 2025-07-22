@@ -3,6 +3,8 @@ import { envPostgresUrl, MODE } from "@srvr/configs/env.config.ts";
 import { NextFunction, Request, Response } from "express";
 import winston from "winston";
 
+console.log("🚀 ~ envPostgresUrl:", envPostgresUrl);
+
 const { combine, timestamp, printf } = winston.format;
 interface MyLogTable {
   id: number;

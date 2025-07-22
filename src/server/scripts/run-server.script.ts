@@ -9,6 +9,7 @@ import {
   runEnvFile,
   runScript,
 } from "@srvr/configs/env.config.ts";
+import { onProcessShutdownStopGns3Containers } from "@srvr/utils/docker-run.utils.ts";
 
 console.log("Environment mode:", MODE);
 console.log("MAP HOST: ", process.env.OPENVPN_STATIC_HOST_MAPPINGS);
@@ -123,30 +124,40 @@ async function startViteExpress(): Promise<void> {
 
   const shutdown = async () => {
     console.log("\n🛑 Shutting down services gracefully...");
-    if (
-      prismaStudioProcess &&
-      prismaStudioProcess.pid &&
-      !prismaStudioProcess.killed
-    ) {
-      console.log(
-        "🚀 ~ shutdown ~ prismaStudioProcess.pid:",
-        prismaStudioProcess.pid,
-      );
+    const shutdownPrismaStudio = async () => {
+      if (
+        prismaStudioProcess &&
+        prismaStudioProcess.pid &&
+        !prismaStudioProcess.killed
+      ) {
+        console.log(
+          "🚀 ~ shutdown ~ prismaStudioProcess.pid:",
+          prismaStudioProcess.pid,
+        );
 
-      await prismaStudioProcess.kill();
-      console.log("✅ Prisma Studio stopped.");
-    }
-    exec(
-      `docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`,
-      (err) => {
-        if (err) {
-          console.warn("⚠️ Error stopping containers:", err.message);
-        } else {
-          console.log("✅ All containers stopped.");
-        }
-        process.exit(0);
-      },
-    );
+        await prismaStudioProcess.kill();
+        console.log("✅ Prisma Studio stopped.");
+      }
+    };
+    const shutdownAppProcess = async () => {
+      if (appProcess && !appProcess.killed) {
+        console.log("🚀 ~ shutdown ~ appProcess.pid:", appProcess.pid);
+        appProcess.kill();
+        console.log("✅ Vite Express application stopped.");
+      }
+    };
+    Promise.all([
+      shutdownPrismaStudio(),
+      onProcessShutdownStopGns3Containers(),
+      execAsync(
+        `docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`,
+      )
+        .then(() => console.log("✅ All dependent containers stopped."))
+        .catch((err) =>
+          console.warn("⚠️ Error stopping containers:", err.message),
+        ),
+      shutdownAppProcess(),
+    ]);
   };
 
   process.on("SIGINT", shutdown);

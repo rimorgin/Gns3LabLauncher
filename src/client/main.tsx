@@ -33,7 +33,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <TooltipProvider>
           <App />
           <Toaster />
-          <ReactQueryDevtools initialIsOpen={false} />
+          <ReactQueryDevtools initialIsOpen={true} />
         </TooltipProvider>
       </ThemeProvider>
     </AppWrapper>

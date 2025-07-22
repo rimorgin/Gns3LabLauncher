@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { IClassroom } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import { getRandomImageUrlImage } from "@srvr/utils/random-image-url.utils.ts";
 
 /**
  * Creates a new classroom associated with a specific course.
@@ -20,6 +21,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
 export const createClassroom = async (
   props: IClassroom,
 ): Promise<IClassroom> => {
+  const imageUrl = getRandomImageUrlImage("classrooms");
   const classroom = await prisma.classroom.create({
     data: {
       courseId: props.courseId,
@@ -33,7 +35,7 @@ export const createClassroom = async (
       /* ASSIGNING PROJECTS SHOULD BE IN THE PROJECTS SIDE projects: {
         connect: (props.projectIds ?? []).map((id) => ({ id })),
       }, */
-      imageUrl: props.imageUrl,
+      imageUrl: imageUrl,
     },
   });
   return {

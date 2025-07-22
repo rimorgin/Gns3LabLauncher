@@ -39,6 +39,7 @@ import {
 } from "@clnt/components/ui/form";
 import Papa from "papaparse";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
+import { ScrollArea } from "@clnt/components/ui/scroll-area";
 
 export function UserBulkCreateForm() {
   const toggleQuickDialog = useQuickDialogStore(
@@ -228,7 +229,6 @@ export function UserBulkCreateForm() {
           console.log("Validation errors:", errors);
           toast.error("Form has validation errors");
         })}
-        className="overflow-scroll "
       >
         <div className="my-4">
           <Input type="file" accept=".csv" onChange={handleCsvUpload} />
@@ -236,77 +236,79 @@ export function UserBulkCreateForm() {
             Upload a CSV with columns: name, email, username, password, role
           </p>
         </div>
-        <div className="w-full overflow-x-auto rounded-lg">
-          <Table className="w-full border">
-            <TableHeader className="bg-muted sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className="border px-4 py-3 text-left text-xs font-medium bg-muted uppercase tracking-wider"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="p-2 border">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="mt-4 space-x-2">
-          <Button
-            type="button"
-            onClick={() =>
-              append({
-                name: "",
-                email: "",
-                username: "",
-                password: "",
-                role: "student",
-                student: { classroomIds: [], groupIds: [] },
-              })
-            }
-          >
-            Add Student
-          </Button>
-          <Button
-            type="button"
-            onClick={() =>
-              append({
-                name: "",
-                email: "",
-                username: "",
-                password: "",
-                role: "instructor",
-                instructor: { expertise: [], classroomIds: [] },
-              })
-            }
-          >
-            Add Instructor
-          </Button>
+        <ScrollArea className="max-h-[400px]">
+          <div className="w-full overflow-x-auto rounded-lg">
+            <Table className="w-full border">
+              <TableHeader className="bg-muted sticky top-0 z-10">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="border px-4 py-3 text-left text-xs font-medium bg-muted uppercase tracking-wider"
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="p-2 border">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="mt-4 space-x-2">
+            <Button
+              type="button"
+              onClick={() =>
+                append({
+                  name: "",
+                  email: "",
+                  username: "",
+                  password: "",
+                  role: "student",
+                  student: { classroomIds: [], groupIds: [] },
+                })
+              }
+            >
+              Add Student
+            </Button>
+            <Button
+              type="button"
+              onClick={() =>
+                append({
+                  name: "",
+                  email: "",
+                  username: "",
+                  password: "",
+                  role: "instructor",
+                  instructor: { expertise: [], classroomIds: [] },
+                })
+              }
+            >
+              Add Instructor
+            </Button>
 
-          <Button type="submit" disabled={status === "pending"}>
-            {status === "pending" ? "Creating…" : "Create Users"}
-          </Button>
-        </div>
+            <Button type="submit" disabled={status === "pending"}>
+              {status === "pending" ? "Creating…" : "Create Users"}
+            </Button>
+          </div>
+        </ScrollArea>
       </form>
     </Form>
   );

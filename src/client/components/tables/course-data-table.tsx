@@ -96,14 +96,14 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@clnt/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@clnt/components/ui/tooltip";
 import { CourseDbData } from "@clnt/lib/validators/course-schema";
-import { CourseUpdateForm } from "../forms/course/course-update-form";
-import { CourseDeleteForm } from "../forms/course/course-delete-form";
+import { CourseUpdateForm } from "@clnt/components/forms/course/course-update-form";
+import { CourseDeleteForm } from "@clnt/components/forms/course/course-delete-form";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@clnt/components/ui/hover-card";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -198,13 +198,13 @@ function ClassroomsList({
         {activeClassrooms.length}/{totalClassrooms} active
       </span>
       {totalClassrooms > 0 && (
-        <Tooltip>
-          <TooltipTrigger>
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger>
             <Badge variant="secondary" className="text-xs">
               {totalClassrooms}
             </Badge>
-          </TooltipTrigger>
-          <TooltipContent>
+          </HoverCardTrigger>
+          <HoverCardContent>
             <div className="space-y-1 bg-muted ">
               {classrooms.slice(0, 3).map((classroom) => (
                 <div
@@ -221,8 +221,8 @@ function ClassroomsList({
                 </div>
               )}
             </div>
-          </TooltipContent>
-        </Tooltip>
+          </HoverCardContent>
+        </HoverCard>
       )}
     </div>
   );

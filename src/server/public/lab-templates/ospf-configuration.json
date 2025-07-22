@@ -1,18 +1,11 @@
 {
-  "id": "ospf-routing",
-  "title": "OSPF Dynamic Routing Protocol",
+  "title": "Basic OSPF Configuration",
+  "projectId": "9b9f84cf-a572-4846-890b-cda7e5b80afe",
   "description": "Configure OSPF routing protocol for dynamic route advertisement and learn link-state routing concepts",
   "category": "Routing Protocols",
   "difficulty": "ADVANCED",
   "estimatedTime": 150,
-  "tags": [
-    "ospf",
-    "dynamic-routing",
-    "link-state",
-    "areas",
-    "lsa"
-  ],
-  "thumbnail": "/templates/ospf-routing.png",
+  "tags": ["ospf", "dynamic-routing", "link-state", "areas", "lsa"],
   "objectives": [
     "Configure OSPF routing protocol on multiple routers",
     "Understand OSPF areas and hierarchical design",
@@ -26,13 +19,11 @@
     "Familiarity with routing tables and metrics",
     "Understanding of network design principles"
   ],
-  "labEnvironment": {
-    "id": "lab_env_1",
+  "environment": {
     "type": "GNS3",
     "topology": {
       "nodes": [
         {
-          "id": "r1",
           "name": "Router1",
           "type": "router",
           "x": 150,
@@ -41,7 +32,6 @@
           "status": "stopped"
         },
         {
-          "id": "r2",
           "name": "Router2",
           "type": "router",
           "x": 400,
@@ -50,7 +40,6 @@
           "status": "stopped"
         },
         {
-          "id": "r3",
           "name": "Router3",
           "type": "router",
           "x": 400,
@@ -59,7 +48,6 @@
           "status": "stopped"
         },
         {
-          "id": "r4",
           "name": "Router4",
           "type": "router",
           "x": 650,
@@ -68,7 +56,6 @@
           "status": "stopped"
         },
         {
-          "id": "pc1",
           "name": "PC1",
           "type": "pc",
           "x": 50,
@@ -77,7 +64,6 @@
           "status": "stopped"
         },
         {
-          "id": "pc2",
           "name": "PC2",
           "type": "pc",
           "x": 750,
@@ -88,7 +74,6 @@
       ],
       "links": [
         {
-          "id": "link1",
           "source": "pc1",
           "target": "r1",
           "sourcePort": "eth0",
@@ -96,7 +81,6 @@
           "status": "down"
         },
         {
-          "id": "link2",
           "source": "r1",
           "target": "r2",
           "sourcePort": "g0/1",
@@ -104,7 +88,6 @@
           "status": "down"
         },
         {
-          "id": "link3",
           "source": "r1",
           "target": "r3",
           "sourcePort": "g0/2",
@@ -112,7 +95,6 @@
           "status": "down"
         },
         {
-          "id": "link4",
           "source": "r2",
           "target": "r4",
           "sourcePort": "g0/1",
@@ -120,7 +102,6 @@
           "status": "down"
         },
         {
-          "id": "link5",
           "source": "r3",
           "target": "r4",
           "sourcePort": "g0/1",
@@ -128,7 +109,6 @@
           "status": "down"
         },
         {
-          "id": "link6",
           "source": "r4",
           "target": "pc2",
           "sourcePort": "g0/2",
@@ -136,21 +116,14 @@
           "status": "down"
         }
       ],
-      "layout": {
-        "width": 900,
-        "height": 350
-      }
+      "layout": { "width": 900, "height": 350 }
     },
     "devices": [
       {
-        "id": "r1",
         "name": "Router1",
         "type": "Cisco 2901",
         "ipAddress": "10.1.1.1",
-        "credentials": {
-          "username": "admin",
-          "password": "cisco"
-        },
+        "credentials": { "username": "admin", "password": "cisco" },
         "interfaces": [
           {
             "name": "GigabitEthernet0/0",
@@ -176,14 +149,10 @@
         ]
       },
       {
-        "id": "r2",
         "name": "Router2",
         "type": "Cisco 2901",
         "ipAddress": "10.1.2.1",
-        "credentials": {
-          "username": "admin",
-          "password": "cisco"
-        },
+        "credentials": { "username": "admin", "password": "cisco" },
         "interfaces": [
           {
             "name": "GigabitEthernet0/0",
@@ -202,14 +171,10 @@
         ]
       },
       {
-        "id": "r3",
         "name": "Router3",
         "type": "Cisco 2901",
         "ipAddress": "10.1.3.1",
-        "credentials": {
-          "username": "admin",
-          "password": "cisco"
-        },
+        "credentials": { "username": "admin", "password": "cisco" },
         "interfaces": [
           {
             "name": "GigabitEthernet0/0",
@@ -228,14 +193,10 @@
         ]
       },
       {
-        "id": "r4",
         "name": "Router4",
         "type": "Cisco 2901",
         "ipAddress": "10.2.4.1",
-        "credentials": {
-          "username": "admin",
-          "password": "cisco"
-        },
+        "credentials": { "username": "admin", "password": "cisco" },
         "interfaces": [
           {
             "name": "GigabitEthernet0/0",
@@ -261,7 +222,6 @@
         ]
       },
       {
-        "id": "pc1",
         "name": "PC1",
         "type": "Virtual PC",
         "ipAddress": "192.168.1.10",
@@ -276,7 +236,6 @@
         ]
       },
       {
-        "id": "pc2",
         "name": "PC2",
         "type": "Virtual PC",
         "ipAddress": "192.168.4.10",
@@ -293,22 +252,18 @@
     ]
   },
   "guide": {
-    "id": "ospf-guide",
     "sections": [
       {
-        "id": "ospf-intro",
         "title": "Introduction to OSPF",
         "type": "introduction",
         "order": 1,
         "estimatedTime": 25,
         "content": [
           {
-            "id": "ospf-overview",
             "type": "text",
             "content": "Open Shortest Path First (OSPF) is a link-state routing protocol that uses Dijkstra's algorithm to calculate the shortest path to destinations. Unlike distance-vector protocols, OSPF maintains a complete topology database and converges quickly to network changes."
           },
           {
-            "id": "ospf-features",
             "type": "callout",
             "content": "OSPF features include: fast convergence, loop-free routing, support for VLSM and CIDR, hierarchical design with areas, and authentication for security.",
             "metadata": {
@@ -316,12 +271,10 @@
             }
           },
           {
-            "id": "lab-topology",
             "type": "text",
             "content": "Our lab topology consists of four routers in a partial mesh configuration. Router1 and Router4 have LAN connections, while Router2 and Router3 provide redundant paths. We'll configure Area 0 (backbone area) and Area 1."
           },
           {
-            "id": "ospf-areas",
             "type": "text",
             "content": "OSPF uses areas to create a hierarchical network design. Area 0 is the backbone area, and all other areas must connect to it. This design reduces LSA flooding and improves scalability."
           }
@@ -331,19 +284,16 @@
         "hints": []
       },
       {
-        "id": "basic-ospf-config",
         "title": "Basic OSPF Configuration",
         "type": "step",
         "order": 2,
         "estimatedTime": 35,
         "content": [
           {
-            "id": "ospf-process-intro",
             "type": "text",
             "content": "OSPF configuration begins with enabling the OSPF process and defining a router ID. The router ID uniquely identifies each router in the OSPF domain and should be configured manually for consistency."
           },
           {
-            "id": "ospf-basic-commands",
             "type": "code",
             "content": "Router1(config)# router ospf 1\nRouter1(config-router)# router-id 1.1.1.1\nRouter1(config-router)# network 192.168.1.0 0.0.0.255 area 0\nRouter1(config-router)# network 10.1.12.0 0.0.0.3 area 0\nRouter1(config-router)# network 10.1.13.0 0.0.0.3 area 0",
             "metadata": {
@@ -352,12 +302,10 @@
             }
           },
           {
-            "id": "network-command-explanation",
             "type": "text",
             "content": "The network command specifies which interfaces participate in OSPF. The wildcard mask (inverse subnet mask) determines which IP addresses match. Area 0 is the backbone area that all other areas must connect to."
           },
           {
-            "id": "wildcard-mask-tip",
             "type": "callout",
             "content": "Wildcard masks are the inverse of subnet masks. For /24 networks, use 0.0.0.255. For /30 point-to-point links, use 0.0.0.3.",
             "metadata": {
@@ -367,7 +315,6 @@
         ],
         "tasks": [
           {
-            "id": "task1",
             "description": "Configure OSPF process 1 on Router1 with router ID 1.1.1.1",
             "device": "Router1",
             "commands": [
@@ -384,7 +331,6 @@
             ]
           },
           {
-            "id": "task2",
             "description": "Advertise Router1's networks in OSPF Area 0",
             "device": "Router1",
             "commands": [
@@ -400,7 +346,6 @@
             ]
           },
           {
-            "id": "task3",
             "description": "Configure OSPF on Router2 with router ID 2.2.2.2",
             "device": "Router2",
             "commands": [
@@ -419,7 +364,6 @@
             ]
           },
           {
-            "id": "task4",
             "description": "Configure OSPF on Router3 with router ID 3.3.3.3",
             "device": "Router3",
             "commands": [
@@ -440,7 +384,6 @@
         ],
         "verification": [
           {
-            "id": "verify1",
             "description": "Verify OSPF process is running",
             "command": "show ip ospf",
             "expectedOutput": "Routing Process \"ospf 1\" with ID 1.1.1.1",
@@ -448,7 +391,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify2",
             "description": "Check OSPF neighbors",
             "command": "show ip ospf neighbor",
             "expectedOutput": "2.2.2.2        1   FULL/  -        00:00:30    10.1.12.2       GigabitEthernet0/1",
@@ -462,19 +404,16 @@
         ]
       },
       {
-        "id": "ospf-areas",
         "title": "Configuring OSPF Areas",
         "type": "step",
         "order": 3,
         "estimatedTime": 30,
         "content": [
           {
-            "id": "areas-intro",
             "type": "text",
             "content": "OSPF areas provide hierarchical network design and reduce LSA flooding. We'll configure Router4's LAN in Area 1, making Router2 and Router3 Area Border Routers (ABRs)."
           },
           {
-            "id": "area-commands",
             "type": "code",
             "content": "Router4(config)# router ospf 1\nRouter4(config-router)# router-id 4.4.4.4\nRouter4(config-router)# network 10.2.24.0 0.0.0.3 area 0\nRouter4(config-router)# network 10.2.34.0 0.0.0.3 area 0\nRouter4(config-router)# network 192.168.4.0 0.0.0.255 area 1",
             "metadata": {
@@ -483,14 +422,12 @@
             }
           },
           {
-            "id": "abr-explanation",
             "type": "text",
             "content": "Area Border Routers (ABRs) connect multiple areas and summarize routes between them. Router2 and Router3 will become ABRs when we configure their Area 1 interfaces."
           }
         ],
         "tasks": [
           {
-            "id": "task5",
             "description": "Configure Router4 with OSPF router ID 4.4.4.4",
             "device": "Router4",
             "commands": [
@@ -507,7 +444,6 @@
             ]
           },
           {
-            "id": "task6",
             "description": "Configure Router4's Area 0 networks",
             "device": "Router4",
             "commands": [
@@ -522,12 +458,9 @@
             ]
           },
           {
-            "id": "task7",
             "description": "Configure Router4's LAN network in Area 1",
             "device": "Router4",
-            "commands": [
-              "network 192.168.4.0 0.0.0.255 area 1"
-            ],
+            "commands": ["network 192.168.4.0 0.0.0.255 area 1"],
             "expectedResult": "Router4's LAN should be in Area 1",
             "isCompleted": false,
             "hints": [
@@ -536,13 +469,9 @@
             ]
           },
           {
-            "id": "task8",
             "description": "Update Router2 to include Area 1 networks",
             "device": "Router2",
-            "commands": [
-              "router ospf 1",
-              "network 10.2.24.0 0.0.0.3 area 0"
-            ],
+            "commands": ["router ospf 1", "network 10.2.24.0 0.0.0.3 area 0"],
             "expectedResult": "Router2 should connect to Router4 in Area 0",
             "isCompleted": false,
             "hints": [
@@ -551,13 +480,9 @@
             ]
           },
           {
-            "id": "task9",
             "description": "Update Router3 to include Area 1 networks",
             "device": "Router3",
-            "commands": [
-              "router ospf 1",
-              "network 10.2.34.0 0.0.0.3 area 0"
-            ],
+            "commands": ["router ospf 1", "network 10.2.34.0 0.0.0.3 area 0"],
             "expectedResult": "Router3 should connect to Router4 in Area 0",
             "isCompleted": false,
             "hints": [
@@ -568,7 +493,6 @@
         ],
         "verification": [
           {
-            "id": "verify3",
             "description": "Verify Router4 is an ABR",
             "command": "show ip ospf",
             "expectedOutput": "Area BACKBONE(0)",
@@ -576,7 +500,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify4",
             "description": "Check inter-area routes",
             "command": "show ip route ospf",
             "expectedOutput": "O IA 192.168.4.0/24 [110/2] via 10.1.12.2",
@@ -590,19 +513,16 @@
         ]
       },
       {
-        "id": "ospf-authentication",
         "title": "OSPF Authentication",
         "type": "step",
         "order": 4,
         "estimatedTime": 25,
         "content": [
           {
-            "id": "auth-intro",
             "type": "text",
             "content": "OSPF authentication prevents unauthorized routers from joining the OSPF domain. We'll configure simple password authentication on all OSPF interfaces for security."
           },
           {
-            "id": "auth-commands",
             "type": "code",
             "content": "Router1(config)# router ospf 1\nRouter1(config-router)# area 0 authentication\nRouter1(config-router)# exit\nRouter1(config)# interface gigabitethernet 0/1\nRouter1(config-if)# ip ospf authentication-key cisco123\nRouter1(config-if)# exit",
             "metadata": {
@@ -611,7 +531,6 @@
             }
           },
           {
-            "id": "auth-security",
             "type": "callout",
             "content": "For production networks, use MD5 authentication instead of simple passwords for better security.",
             "metadata": {
@@ -621,13 +540,9 @@
         ],
         "tasks": [
           {
-            "id": "task10",
             "description": "Enable authentication for Area 0 on all routers",
             "device": "Router1",
-            "commands": [
-              "router ospf 1",
-              "area 0 authentication"
-            ],
+            "commands": ["router ospf 1", "area 0 authentication"],
             "expectedResult": "Area 0 should require authentication",
             "isCompleted": false,
             "hints": [
@@ -636,7 +551,6 @@
             ]
           },
           {
-            "id": "task11",
             "description": "Configure authentication keys on Router1 interfaces",
             "device": "Router1",
             "commands": [
@@ -656,7 +570,6 @@
         ],
         "verification": [
           {
-            "id": "verify5",
             "description": "Verify OSPF authentication is working",
             "command": "show ip ospf neighbor",
             "expectedOutput": "FULL/  -",
@@ -670,19 +583,16 @@
         ]
       },
       {
-        "id": "ospf-verification",
         "title": "OSPF Verification and Troubleshooting",
         "type": "verification",
         "order": 5,
         "estimatedTime": 35,
         "content": [
           {
-            "id": "verification-intro",
             "type": "text",
             "content": "Proper OSPF verification involves checking neighbor relationships, LSA database, routing table, and end-to-end connectivity. We'll use various show commands to verify our configuration."
           },
           {
-            "id": "verification-commands",
             "type": "code",
             "content": "Router1# show ip ospf neighbor detail\nRouter1# show ip ospf database\nRouter1# show ip route ospf\nRouter1# show ip ospf interface brief",
             "metadata": {
@@ -691,19 +601,15 @@
             }
           },
           {
-            "id": "lsa-types",
             "type": "text",
             "content": "OSPF uses different LSA types: Type 1 (Router LSA), Type 2 (Network LSA), Type 3 (Summary LSA), Type 4 (ASBR Summary), and Type 5 (External LSA). Understanding these helps with troubleshooting."
           }
         ],
         "tasks": [
           {
-            "id": "task12",
             "description": "Verify all OSPF neighbors are in FULL state",
             "device": "Router1",
-            "commands": [
-              "show ip ospf neighbor"
-            ],
+            "commands": ["show ip ospf neighbor"],
             "expectedResult": "All neighbors should show FULL state",
             "isCompleted": false,
             "hints": [
@@ -712,12 +618,9 @@
             ]
           },
           {
-            "id": "task13",
             "description": "Examine the OSPF database",
             "device": "Router1",
-            "commands": [
-              "show ip ospf database"
-            ],
+            "commands": ["show ip ospf database"],
             "expectedResult": "Database should show LSAs from all routers",
             "isCompleted": false,
             "hints": [
@@ -726,12 +629,9 @@
             ]
           },
           {
-            "id": "task14",
             "description": "Test end-to-end connectivity",
             "device": "PC1",
-            "commands": [
-              "ping 192.168.4.10"
-            ],
+            "commands": ["ping 192.168.4.10"],
             "expectedResult": "Ping should be successful",
             "isCompleted": false,
             "hints": [
@@ -742,7 +642,6 @@
         ],
         "verification": [
           {
-            "id": "verify6",
             "description": "Verify OSPF routes in routing table",
             "command": "show ip route ospf",
             "expectedOutput": "O    192.168.4.0/24 [110/3] via 10.1.12.2",
@@ -750,7 +649,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify7",
             "description": "Check OSPF interface costs",
             "command": "show ip ospf interface brief",
             "expectedOutput": "Gi0/1    1.1.1.1         Area 0          1           P2P",
@@ -770,81 +668,28 @@
   },
   "resources": [
     {
-      "id": "ospf-commands",
       "title": "OSPF Command Reference",
       "type": "cheat_sheet",
       "url": "/resources/ospf-commands.pdf",
       "description": "Comprehensive list of OSPF configuration and verification commands"
     },
     {
-      "id": "ospf-lsa-types",
       "title": "OSPF LSA Types Guide",
       "type": "reference",
       "url": "/resources/ospf-lsa-types.pdf",
       "description": "Detailed explanation of OSPF Link State Advertisement types"
     },
     {
-      "id": "ospf-troubleshooting",
       "title": "OSPF Troubleshooting Guide",
       "type": "documentation",
       "url": "/resources/ospf-troubleshooting.pdf",
       "description": "Step-by-step troubleshooting procedures for OSPF issues"
     },
     {
-      "id": "dijkstra-algorithm",
       "title": "Dijkstra's Algorithm Explained",
       "type": "documentation",
       "url": "/resources/dijkstra-algorithm.pdf",
       "description": "Understanding how OSPF calculates shortest paths"
     }
-  ],
-  "variables": [
-    {
-      "name": "ospf_process_id",
-      "type": "number",
-      "defaultValue": "1",
-      "description": "OSPF process ID (locally significant)",
-      "required": true
-    },
-    {
-      "name": "backbone_area",
-      "type": "number",
-      "defaultValue": "0",
-      "description": "OSPF backbone area number",
-      "required": true
-    },
-    {
-      "name": "secondary_area",
-      "type": "number",
-      "defaultValue": "1",
-      "description": "OSPF secondary area number",
-      "required": true
-    },
-    {
-      "name": "authentication_key",
-      "type": "string",
-      "defaultValue": "cisco123",
-      "description": "OSPF authentication password",
-      "required": true
-    },
-    {
-      "name": "router1_id",
-      "type": "ip",
-      "defaultValue": "1.1.1.1",
-      "description": "Router 1 OSPF router ID",
-      "required": true
-    },
-    {
-      "name": "enable_authentication",
-      "type": "boolean",
-      "defaultValue": "true",
-      "description": "Enable OSPF authentication",
-      "required": false
-    }
-  ],
-  "isPublic": true,
-  "authorId": "system",
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-25T00:00:00.000Z",
-  "usageCount": 634
+  ]
 }

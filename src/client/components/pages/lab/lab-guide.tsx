@@ -41,10 +41,12 @@ import type {
   LabContent,
   LabTask,
   VerificationStep,
+  LabProgress,
 } from "@clnt/types/lab";
 
 interface LabGuideProps {
   guide: LabGuide;
+  labProgress: LabProgress;
   onSectionComplete: (sectionId: string) => void;
   onTaskComplete: (taskId: string) => void;
   onVerificationComplete: (verificationId: string) => void;
@@ -54,6 +56,7 @@ interface LabGuideProps {
 
 export function LabGuideComponent({
   guide,
+  labProgress,
   onSectionComplete,
   onTaskComplete,
   onVerificationComplete,
@@ -68,7 +71,7 @@ export function LabGuideComponent({
 
   const currentSection = guide.sections[guide.currentSection];
   const progress =
-    (guide.completedSections.length / guide.sections.length) * 100;
+    (labProgress.completedSections.length / guide.sections.length) * 100;
 
   useEffect(() => {
     setActiveTab("tasks");
@@ -467,8 +470,8 @@ export function LabGuideComponent({
           </TabsTrigger>
           <TabsTrigger value="verification">
             Verification (
-            {currentSection.verification.filter((v) => v.isCompleted).length}/
-            {currentSection.verification.length})
+            {currentSection.verifications.filter((v) => v.isCompleted).length}/
+            {currentSection.verifications.length})
           </TabsTrigger>
         </TabsList>
 
@@ -493,7 +496,7 @@ export function LabGuideComponent({
         </TabsContent>
 
         <TabsContent value="verification" className="space-y-4">
-          {currentSection.verification.length === 0 ? (
+          {currentSection.verifications.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
                 <CheckCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -507,7 +510,7 @@ export function LabGuideComponent({
             </Card>
           ) : (
             <div className="space-y-4">
-              {currentSection.verification.map((verification) =>
+              {currentSection.verifications.map((verification) =>
                 renderVerification(verification),
               )}
             </div>
@@ -529,7 +532,7 @@ export function LabGuideComponent({
             </Button>
 
             <div className="flex items-center gap-2">
-              {guide.completedSections.includes(guide.currentSection) ? (
+              {labProgress.completedSections.includes(guide.currentSection) ? (
                 <Button
                   variant="default"
                   className="bg-green-600 text-green-200 hover:bg-green-500"
@@ -542,7 +545,7 @@ export function LabGuideComponent({
                   onClick={() => onSectionComplete(currentSection.id)}
                   disabled={
                     currentSection.tasks.some((t) => !t.isCompleted) ||
-                    currentSection.verification.some((v) => !v.isCompleted)
+                    currentSection.verifications.some((v) => !v.isCompleted)
                   }
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />
@@ -555,7 +558,7 @@ export function LabGuideComponent({
               onClick={() => onNavigateSection(guide.currentSection + 1)}
               disabled={
                 guide.currentSection === guide.sections.length - 1 ||
-                !guide.completedSections.includes(guide.currentSection)
+                !labProgress.completedSections.includes(guide.currentSection)
               }
             >
               Next Section

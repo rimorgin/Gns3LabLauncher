@@ -22,6 +22,8 @@ import { TeacherIcon } from "@clnt/components/common/svg-icons";
 import { IconAlertOctagonFilled, IconLockFilled } from "@tabler/icons-react";
 import { Badge } from "@clnt/components/ui/badge";
 import router from "@clnt/pages/route-layout";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Book } from "lucide-react";
 
 type ClassroomData = {
   id: string;
@@ -121,10 +123,16 @@ export function ClassroomCard({ classroom }: { classroom: ClassroomData }) {
 }
 
 export function ClassroomList({ classrooms }: { classrooms: ClassroomData[] }) {
-  if (classrooms.length === 0) {
+  console.log("🚀 ~ ClassroomList ~ classrooms:", classrooms);
+  if (classrooms?.length === 0) {
     return (
-      <div className="text-sm text-muted-foreground italic py-6 text-center">
-        No classrooms found.
+      <div className="w-full h-full flex flex-col gap-4 items-center justify-center">
+        <Avatar className="w-30 h-30">
+          <AvatarFallback randomizeBg>
+            <Book className="w-15 h-15" />
+          </AvatarFallback>
+        </Avatar>
+        <p>Your instructor has not made any classrooms yet</p>
       </div>
     );
   }

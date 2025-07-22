@@ -19,7 +19,7 @@ export default function NavSystem({
   }[];
 }) {
   const activeNavName = useSidebarStore((state) => state.activeNavName);
-    const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
+  const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
 
   return (
     <SidebarGroup>

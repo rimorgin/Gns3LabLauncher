@@ -8,11 +8,13 @@ model Project {
   visible            Boolean?         @default(true)
   duration           DateTime?
   tags               ProjectTagsEnum?
+  byGroupSubmissions Boolean?         @default(false)
+  labId              String?
 
   // relations
-  progresses  Progress[]            @relation("ProjectProgresses")
-  classrooms  Classroom[]           @relation("ClassroomProjects")
-  submissions Submission[]          @relation("ProjectSubmissions")
-  steps       ProjectLearningStep[] @relation("ProjectLearningSteps")
+  lab         Lab?                @relation("ProjectLabs", fields: [labId], references: [id])
+  progresses  Progress[]          @relation("ProjectProgresses")
+  classrooms  Classroom[]         @relation("ClassroomProjects")
+  submissions Submission[]        @relation("ProjectSubmissions")
   discussions ProjectDiscussion[]
 }

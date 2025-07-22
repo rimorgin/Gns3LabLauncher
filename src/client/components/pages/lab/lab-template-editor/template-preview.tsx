@@ -104,19 +104,16 @@ export function TemplatePreview({
                 Lab Environment Overview
               </h3>
               <p className="text-sm text-muted-foreground">
-                Type: {template.labEnvironment.type}
+                Type: {template.environment.type}
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Nodes: {template.labEnvironment.topology.nodes.length}, Links:{" "}
-                {template.labEnvironment.topology.links.length}
+                Nodes: {template.environment.topology.nodes.length}, Links:{" "}
+                {template.environment.topology.links.length}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Devices: {template.labEnvironment.devices.length}
-              </p>
-              {template.labEnvironment.startupConfig && (
+              {template.environment.startupConfig && (
                 <p className="text-sm text-muted-foreground mt-1">
                   Startup Config:{" "}
-                  {template.labEnvironment.startupConfig.substring(0, 50)}...
+                  {template.environment.startupConfig.substring(0, 50)}...
                 </p>
               )}
             </div>

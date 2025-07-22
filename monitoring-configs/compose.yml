@@ -1,5 +1,5 @@
 name: Gns3LabLauncher_Monitoring
-services:  
+services:
   node-exporter:
     image: prom/node-exporter
     container_name: node-exporter
@@ -25,7 +25,7 @@ services:
       - "9121:9121"
     networks:
       - gns3netlab-network
-    
+
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter
     container_name: postgres-exporter
@@ -38,7 +38,6 @@ services:
     networks:
       - gns3netlab-network
 
-    
   prometheus:
     image: prom/prometheus
     container_name: prometheus
@@ -55,7 +54,7 @@ services:
       - postgres-exporter
     networks:
       - gns3netlab-network
-  
+
   grafana:
     image: grafana/grafana
     container_name: grafana

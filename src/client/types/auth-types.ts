@@ -11,6 +11,7 @@ type User = {
 };
 
 type Classroom = {
+  id: string;
   classroomName: string;
   instructorId: string;
   status: "active" | "expired" | "archived" | "locked";
@@ -28,6 +29,8 @@ export interface IUser extends User {
   student: {
     classrooms?: Classroom[];
     userGroups?: Groups[];
+    lastActiveAt?: Date;
+    isOnline?: boolean;
   };
 }
 

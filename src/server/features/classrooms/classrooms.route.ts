@@ -6,7 +6,6 @@ import { Router } from "express";
 import {
   deleteClassroom,
   deleteClassroomMany,
-  getClassroomById,
   getClassrooms,
   patchClassroom,
   postClassroom,
@@ -31,12 +30,12 @@ router.get(
  * @desc    Fetch a classroom by id,
  * @access  Authenticated users with 'read_classrooms' permission
  */
-router.get(
-  "/",
+/* router.get(
+  "/:id",
   checkAuthentication,
   checkPermission(["read_classrooms"]),
   getClassroomById,
-);
+); */
 
 /**
  * @route   POST /classrooms

@@ -65,7 +65,7 @@ export function TemplatePreview({
     <div className="relative bg-gray-50 rounded-lg p-6 min-h-[300px]">
       <svg width="100%" height="300" viewBox="0 0 800 300">
         {/* Render topology nodes */}
-        {template.labEnvironment.topology.nodes.map((node) => (
+        {template.environment.topology.nodes.map((node) => (
           <g key={node.id}>
             <circle
               cx={node.x}
@@ -92,11 +92,11 @@ export function TemplatePreview({
         ))}
 
         {/* Render topology links */}
-        {template.labEnvironment.topology.links.map((link) => {
-          const sourceNode = template.labEnvironment.topology.nodes.find(
+        {template.environment.topology.links.map((link) => {
+          const sourceNode = template.environment.topology.nodes.find(
             (n) => n.id === link.source,
           );
-          const targetNode = template.labEnvironment.topology.nodes.find(
+          const targetNode = template.environment.topology.nodes.find(
             (n) => n.id === link.target,
           );
           if (!sourceNode || !targetNode) return null;
@@ -229,7 +229,7 @@ export function TemplatePreview({
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {template.labEnvironment.devices.map((device) => (
+                      {template.environment.topology.nodes.map((device) => (
                         <div key={device.id} className="border rounded-lg p-3">
                           <h4 className="font-medium mb-2">{device.name}</h4>
                           <p className="text-sm text-muted-foreground mb-2">
@@ -237,9 +237,9 @@ export function TemplatePreview({
                           </p>
                           <div className="text-xs space-y-1">
                             <div>Interfaces: {device.interfaces.length}</div>
-                            {device.ipAddress && (
+                            {/* {device.interfaces.mapipAddress && (
                               <div>IP: {device.ipAddress}</div>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       ))}

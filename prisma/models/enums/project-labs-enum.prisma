@@ -1,0 +1,74 @@
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum EnvironmentType {
+  GNS3
+}
+
+enum NodeType {
+  router
+  switch
+  pc
+  server
+  firewall
+  cloud
+}
+
+enum NodeStatus {
+  running
+  stopped
+  starting
+  error
+}
+
+enum LinkStatus {
+  up
+  down
+}
+
+enum InterfaceStatus {
+  up
+  down
+  admin_down
+}
+
+enum SectionType {
+  introduction
+  step
+  verification
+  troubleshooting
+  summary
+}
+
+enum ContentType {
+  text
+  code
+  image
+  video
+  callout
+  topology
+  terminal
+}
+
+enum ContentMetadataType {
+  info
+  warning
+  success
+  error
+  tip
+}
+
+enum ResourceType {
+  documentation
+  cheat_sheet
+  reference
+  download
+}
+
+enum LabStatus {
+  DRAFT
+  PUBLISHED
+}

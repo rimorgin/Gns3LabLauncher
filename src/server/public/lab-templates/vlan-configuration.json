@@ -1,19 +1,10 @@
-
-
 {
-  "id": "vlan-configuration",
   "title": "VLAN Configuration and Management",
   "description": "Configure VLANs, trunk ports, and inter-VLAN routing on Cisco switches with hands-on practice",
   "category": "Switching",
   "difficulty": "INTERMEDIATE",
   "estimatedTime": 120,
-  "tags": [
-    "vlan",
-    "switching",
-    "trunking",
-    "inter-vlan",
-    "stp"
-  ],
+  "tags": ["vlan", "switching", "trunking", "inter-vlan", "stp"],
   "thumbnail": "/templates/vlan-config.png",
   "objectives": [
     "Create and configure VLANs on Cisco switches",
@@ -28,13 +19,11 @@
     "Familiarity with Cisco IOS commands",
     "Knowledge of Ethernet frame structure"
   ],
-  "labEnvironment": {
-    "id": "lab_env_1",
+  "environment": {
     "type": "GNS3",
     "topology": {
       "nodes": [
         {
-          "id": "sw1",
           "name": "Switch1",
           "type": "switch",
           "x": 200,
@@ -43,7 +32,6 @@
           "status": "stopped"
         },
         {
-          "id": "sw2",
           "name": "Switch2",
           "type": "switch",
           "x": 500,
@@ -52,7 +40,6 @@
           "status": "stopped"
         },
         {
-          "id": "r1",
           "name": "Router1",
           "type": "router",
           "x": 350,
@@ -61,7 +48,6 @@
           "status": "stopped"
         },
         {
-          "id": "pc1",
           "name": "PC1-Sales",
           "type": "pc",
           "x": 100,
@@ -70,7 +56,6 @@
           "status": "stopped"
         },
         {
-          "id": "pc2",
           "name": "PC2-Engineering",
           "type": "pc",
           "x": 300,
@@ -79,7 +64,6 @@
           "status": "stopped"
         },
         {
-          "id": "pc3",
           "name": "PC3-Sales",
           "type": "pc",
           "x": 600,
@@ -90,7 +74,6 @@
       ],
       "links": [
         {
-          "id": "link1",
           "source": "pc1",
           "target": "sw1",
           "sourcePort": "eth0",
@@ -98,7 +81,6 @@
           "status": "down"
         },
         {
-          "id": "link2",
           "source": "pc2",
           "target": "sw1",
           "sourcePort": "eth0",
@@ -106,7 +88,6 @@
           "status": "down"
         },
         {
-          "id": "link3",
           "source": "sw1",
           "target": "sw2",
           "sourcePort": "f0/24",
@@ -114,7 +95,6 @@
           "status": "down"
         },
         {
-          "id": "link4",
           "source": "sw2",
           "target": "pc3",
           "sourcePort": "f0/1",
@@ -122,7 +102,6 @@
           "status": "down"
         },
         {
-          "id": "link5",
           "source": "sw1",
           "target": "r1",
           "sourcePort": "f0/23",
@@ -137,7 +116,6 @@
     },
     "devices": [
       {
-        "id": "sw1",
         "name": "Switch1",
         "type": "Cisco 2960",
         "credentials": {
@@ -168,7 +146,6 @@
         ]
       },
       {
-        "id": "sw2",
         "name": "Switch2",
         "type": "Cisco 2960",
         "credentials": {
@@ -189,7 +166,6 @@
         ]
       },
       {
-        "id": "r1",
         "name": "Router1",
         "type": "Cisco 2901",
         "credentials": {
@@ -205,7 +181,6 @@
         ]
       },
       {
-        "id": "pc1",
         "name": "PC1-Sales",
         "type": "Virtual PC",
         "ipAddress": "192.168.10.10",
@@ -220,7 +195,6 @@
         ]
       },
       {
-        "id": "pc2",
         "name": "PC2-Engineering",
         "type": "Virtual PC",
         "ipAddress": "192.168.20.10",
@@ -235,7 +209,6 @@
         ]
       },
       {
-        "id": "pc3",
         "name": "PC3-Sales",
         "type": "Virtual PC",
         "ipAddress": "192.168.10.20",
@@ -252,22 +225,18 @@
     ]
   },
   "guide": {
-    "id": "vlan-guide",
     "sections": [
       {
-        "id": "vlan-intro",
         "title": "Introduction to VLANs",
         "type": "introduction",
         "order": 1,
         "estimatedTime": 20,
         "content": [
           {
-            "id": "vlan-concept",
             "type": "text",
             "content": "Virtual Local Area Networks (VLANs) allow you to segment a physical network into multiple logical networks. This lab will teach you how to create VLANs, configure switch ports, and enable communication between VLANs using inter-VLAN routing."
           },
           {
-            "id": "vlan-benefits",
             "type": "callout",
             "content": "VLANs provide improved security, better traffic management, simplified administration, and cost savings by reducing the need for physical network segmentation.",
             "metadata": {
@@ -275,7 +244,6 @@
             }
           },
           {
-            "id": "lab-scenario",
             "type": "text",
             "content": "In this lab, we'll create two VLANs: VLAN 10 for Sales department and VLAN 20 for Engineering department. We'll configure switch ports as access and trunk ports, and set up inter-VLAN routing."
           }
@@ -285,19 +253,16 @@
         "hints": []
       },
       {
-        "id": "create-vlans",
         "title": "Creating VLANs",
         "type": "step",
         "order": 2,
         "estimatedTime": 25,
         "content": [
           {
-            "id": "vlan-creation-intro",
             "type": "text",
             "content": "First, we'll create VLANs on both switches. VLANs are created in global configuration mode and should be created on all switches in the network."
           },
           {
-            "id": "vlan-commands",
             "type": "code",
             "content": "Switch1> enable\nSwitch1# configure terminal\nSwitch1(config)# vlan 10\nSwitch1(config-vlan)# name Sales\nSwitch1(config-vlan)# exit\nSwitch1(config)# vlan 20\nSwitch1(config-vlan)# name Engineering\nSwitch1(config-vlan)# exit",
             "metadata": {
@@ -306,14 +271,12 @@
             }
           },
           {
-            "id": "vlan-verification-intro",
             "type": "text",
             "content": "After creating VLANs, we can verify them using the show vlan command. This displays all VLANs, their names, status, and assigned ports."
           }
         ],
         "tasks": [
           {
-            "id": "task1",
             "description": "Create VLAN 10 with name 'Sales' on Switch1",
             "device": "Switch1",
             "commands": [
@@ -325,20 +288,12 @@
             ],
             "expectedResult": "VLAN 10 should be created with name Sales",
             "isCompleted": false,
-            "hints": [
-              "Use 'vlan 10' to create VLAN 10",
-              "Use 'name Sales' to assign a descriptive name"
-            ]
+            "hints": ["Use 'vlan 10' to create VLAN 10", "Use 'name Sales'"]
           },
           {
-            "id": "task2",
             "description": "Create VLAN 20 with name 'Engineering' on Switch1",
             "device": "Switch1",
-            "commands": [
-              "vlan 20",
-              "name Engineering",
-              "exit"
-            ],
+            "commands": ["vlan 20", "name Engineering", "exit"],
             "expectedResult": "VLAN 20 should be created with name Engineering",
             "isCompleted": false,
             "hints": [
@@ -347,7 +302,6 @@
             ]
           },
           {
-            "id": "task3",
             "description": "Create the same VLANs on Switch2",
             "device": "Switch2",
             "commands": [
@@ -370,7 +324,6 @@
         ],
         "verification": [
           {
-            "id": "verify1",
             "description": "Verify VLANs are created on Switch1",
             "command": "show vlan brief",
             "expectedOutput": "10   Sales                         active",
@@ -378,7 +331,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify2",
             "description": "Verify VLANs are created on Switch2",
             "command": "show vlan brief",
             "expectedOutput": "20   Engineering                  active",
@@ -392,19 +344,16 @@
         ]
       },
       {
-        "id": "configure-access-ports",
         "title": "Configuring Access Ports",
         "type": "step",
         "order": 3,
         "estimatedTime": 30,
         "content": [
           {
-            "id": "access-port-intro",
             "type": "text",
             "content": "Access ports connect end devices (like PCs) to a specific VLAN. Each access port belongs to only one VLAN and removes VLAN tags from frames before sending them to the connected device."
           },
           {
-            "id": "access-port-commands",
             "type": "code",
             "content": "Switch1(config)# interface fastethernet 0/1\nSwitch1(config-if)# switchport mode access\nSwitch1(config-if)# switchport access vlan 10\nSwitch1(config-if)# description PC1-Sales\nSwitch1(config-if)# exit",
             "metadata": {
@@ -413,14 +362,12 @@
             }
           },
           {
-            "id": "access-port-explanation",
             "type": "text",
             "content": "The 'switchport mode access' command configures the port as an access port, and 'switchport access vlan 10' assigns it to VLAN 10. The description helps with documentation."
           }
         ],
         "tasks": [
           {
-            "id": "task4",
             "description": "Configure FastEthernet0/1 on Switch1 as access port for VLAN 10",
             "device": "Switch1",
             "commands": [
@@ -437,7 +384,6 @@
             ]
           },
           {
-            "id": "task5",
             "description": "Configure FastEthernet0/2 on Switch1 as access port for VLAN 20",
             "device": "Switch1",
             "commands": [
@@ -454,7 +400,6 @@
             ]
           },
           {
-            "id": "task6",
             "description": "Configure FastEthernet0/1 on Switch2 as access port for VLAN 10",
             "device": "Switch2",
             "commands": [
@@ -473,7 +418,6 @@
         ],
         "verification": [
           {
-            "id": "verify3",
             "description": "Verify access port configuration on Switch1",
             "command": "show vlan brief",
             "expectedOutput": "10   Sales                         active    Fa0/1",
@@ -481,7 +425,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify4",
             "description": "Check interface switchport status",
             "command": "show interfaces fastethernet 0/1 switchport",
             "expectedOutput": "Administrative Mode: static access",
@@ -495,19 +438,16 @@
         ]
       },
       {
-        "id": "configure-trunk-ports",
         "title": "Configuring Trunk Ports",
         "type": "step",
         "order": 4,
         "estimatedTime": 25,
         "content": [
           {
-            "id": "trunk-port-intro",
             "type": "text",
             "content": "Trunk ports carry traffic for multiple VLANs between switches. They use VLAN tagging (802.1Q) to identify which VLAN each frame belongs to."
           },
           {
-            "id": "trunk-port-commands",
             "type": "code",
             "content": "Switch1(config)# interface fastethernet 0/24\nSwitch1(config-if)# switchport mode trunk\nSwitch1(config-if)# switchport trunk allowed vlan 10,20\nSwitch1(config-if)# description Trunk to Switch2\nSwitch1(config-if)# exit",
             "metadata": {
@@ -516,7 +456,6 @@
             }
           },
           {
-            "id": "trunk-security",
             "type": "callout",
             "content": "For security, it's best practice to explicitly specify which VLANs are allowed on trunk ports rather than allowing all VLANs.",
             "metadata": {
@@ -526,7 +465,6 @@
         ],
         "tasks": [
           {
-            "id": "task7",
             "description": "Configure FastEthernet0/24 on Switch1 as trunk port",
             "device": "Switch1",
             "commands": [
@@ -543,7 +481,6 @@
             ]
           },
           {
-            "id": "task8",
             "description": "Configure FastEthernet0/24 on Switch2 as trunk port",
             "device": "Switch2",
             "commands": [
@@ -562,7 +499,6 @@
         ],
         "verification": [
           {
-            "id": "verify5",
             "description": "Verify trunk configuration",
             "command": "show interfaces trunk",
             "expectedOutput": "Fa0/24         802.1q         trunking      10,20",
@@ -570,7 +506,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify6",
             "description": "Check trunk status on Switch2",
             "command": "show interfaces fastethernet 0/24 switchport",
             "expectedOutput": "Administrative Mode: trunk",
@@ -584,19 +519,16 @@
         ]
       },
       {
-        "id": "inter-vlan-routing",
         "title": "Inter-VLAN Routing Configuration",
         "type": "step",
         "order": 5,
         "estimatedTime": 30,
         "content": [
           {
-            "id": "inter-vlan-intro",
             "type": "text",
             "content": "By default, VLANs cannot communicate with each other. Inter-VLAN routing using a router-on-a-stick configuration allows controlled communication between VLANs."
           },
           {
-            "id": "subinterface-commands",
             "type": "code",
             "content": "Router1(config)# interface gigabitethernet 0/0\nRouter1(config-if)# no shutdown\nRouter1(config-if)# exit\nRouter1(config)# interface gigabitethernet 0/0.10\nRouter1(config-subif)# encapsulation dot1q 10\nRouter1(config-subif)# ip address 192.168.10.1 255.255.255.0\nRouter1(config-subif)# exit\nRouter1(config)# interface gigabitethernet 0/0.20\nRouter1(config-subif)# encapsulation dot1q 20\nRouter1(config-subif)# ip address 192.168.20.1 255.255.255.0",
             "metadata": {
@@ -605,14 +537,12 @@
             }
           },
           {
-            "id": "router-trunk-config",
             "type": "text",
             "content": "We also need to configure the switch port connected to the router as a trunk port to carry both VLANs."
           }
         ],
         "tasks": [
           {
-            "id": "task9",
             "description": "Configure router subinterfaces for inter-VLAN routing",
             "device": "Router1",
             "commands": [
@@ -637,7 +567,6 @@
             ]
           },
           {
-            "id": "task10",
             "description": "Configure Switch1 port to router as trunk",
             "device": "Switch1",
             "commands": [
@@ -656,7 +585,6 @@
         ],
         "verification": [
           {
-            "id": "verify7",
             "description": "Verify router subinterfaces",
             "command": "show ip interface brief",
             "expectedOutput": "GigabitEthernet0/0.10   192.168.10.1    YES manual up                    up",
@@ -664,7 +592,6 @@
             "isCompleted": false
           },
           {
-            "id": "verify8",
             "description": "Test inter-VLAN connectivity",
             "command": "ping 192.168.20.10",
             "expectedOutput": "Success rate is 100 percent",
@@ -683,68 +610,22 @@
   },
   "resources": [
     {
-      "id": "vlan-commands",
       "title": "VLAN Command Reference",
       "type": "cheat_sheet",
       "url": "/resources/vlan-commands.pdf",
       "description": "Quick reference for VLAN configuration commands"
     },
     {
-      "id": "trunking-guide",
       "title": "802.1Q Trunking Guide",
       "type": "documentation",
       "url": "/resources/trunking-guide.pdf",
       "description": "Detailed explanation of VLAN trunking and 802.1Q protocol"
     },
     {
-      "id": "inter-vlan-routing",
       "title": "Inter-VLAN Routing Methods",
       "type": "reference",
       "url": "/resources/inter-vlan-routing.pdf",
       "description": "Comparison of different inter-VLAN routing methods"
     }
-  ],
-  "variables": [
-    {
-      "name": "sales_vlan_id",
-      "type": "number",
-      "defaultValue": "10",
-      "description": "VLAN ID for Sales department",
-      "required": true
-    },
-    {
-      "name": "engineering_vlan_id",
-      "type": "number",
-      "defaultValue": "20",
-      "description": "VLAN ID for Engineering department",
-      "required": true
-    },
-    {
-      "name": "sales_network",
-      "type": "ip",
-      "defaultValue": "192.168.10.0",
-      "description": "Network address for Sales VLAN",
-      "required": true
-    },
-    {
-      "name": "engineering_network",
-      "type": "ip",
-      "defaultValue": "192.168.20.0",
-      "description": "Network address for Engineering VLAN",
-      "required": true
-    },
-    {
-      "name": "enable_stp",
-      "type": "boolean",
-      "defaultValue": "true",
-      "description": "Enable Spanning Tree Protocol",
-      "required": false
-    }
-  ],
-  "isPublic": true,
-  "authorId": "system",
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-20T00:00:00.000Z",
-  "usageCount": 892
+  ]
 }
-

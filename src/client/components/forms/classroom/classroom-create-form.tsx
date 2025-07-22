@@ -29,7 +29,6 @@ import { useUsersByRoleQuery } from "@clnt/lib/queries/user-query";
 import { useClassroomsPost } from "@clnt/lib/mutations/classrooms/classroom-create-mutation";
 import { MultiSelect } from "@clnt/components/ui/multi-select";
 import { Skeleton } from "@clnt/components/ui/skeleton";
-import { getRandomImage } from "@clnt/lib/utils";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 
 export function ClassroomCreateForm() {
@@ -244,12 +243,6 @@ export function ClassroomCreateForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
-        {/* Set imageUrl programmatically with hidden input */}
-        <input
-          type="hidden"
-          {...form.register("imageUrl")}
-          value={getRandomImage("classrooms")}
         />
 
         <Button type="submit" className="w-full">

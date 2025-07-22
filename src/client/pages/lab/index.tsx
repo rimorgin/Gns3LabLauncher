@@ -33,31 +33,34 @@ import {
   CheckCircle,
   Network,
 } from "lucide-react";
-import type { Lab, LabProgress } from "@clnt/types/lab";
-import { labTemplates } from "@clnt/constants/data";
+import { type LabProgress } from "@clnt/types/lab";
 import router from "../route-layout";
 import socket from "@clnt/lib/socket";
 import { useUser } from "@clnt/lib/auth";
 import {
   useStartContainerInstance,
   useStopContainerInstance,
-} from "@clnt/lib/mutations/lab/lab-mutation";
+} from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
 import { toast } from "sonner";
 import { LockLabGuideOverlay } from "@clnt/components/pages/lab/lock-lab-guide-overlay";
-
-// Mock lab data
-const mockLab: Lab = labTemplates[3];
+import { Navigate, useParams } from "react-router";
+import { IconDirectionArrowsFilled } from "@tabler/icons-react";
+import PageMeta from "@clnt/components/common/page-meta";
+import { useLabQuery } from "@clnt/lib/queries/lab-query";
+import Loader from "@clnt/components/common/loader";
 
 export default function LabPageRoute() {
   const user = useUser();
-  const containerName = user.data?.username;
+  const { classroomId, projectId, labId } = useParams();
   const startContainer = useStartContainerInstance();
   const stopContainer = useStopContainerInstance();
-  const [lab] = useState<Lab>(mockLab);
   const [isLabRunning, setIsLabRunning] = useState(false);
   const [isLabLoading, setIsLabLoading] = useState(false);
+  const { data: lab, isLoading, isError } = useLabQuery(labId ?? "");
+  const containerName = user.data?.username;
+
   const [progress, setProgress] = useState<LabProgress>({
-    labId: lab.id,
+    labId: labId ?? "",
     userId: "current_user",
     currentSection: 0,
     completedSections: [],
@@ -67,9 +70,11 @@ export default function LabPageRoute() {
     status: "not_started",
   });
 
-  if (!containerName) {
-    return;
+  if (!containerName || !labId) {
+    return <Navigate to={"errorPage"} />;
   }
+  if (isLoading) return <Loader />;
+  if (isError || !lab) return <Navigate to={"errorPage"} />;
 
   const handleLaunchLab = async () => {
     setIsLabLoading(true);
@@ -84,6 +89,7 @@ export default function LabPageRoute() {
           status: "in_progress",
           startedAt: new Date(),
         }));
+        socket.emit("start-container-logs", { containerName: containerName });
         return response.data.message;
       },
       error: () => {
@@ -91,7 +97,6 @@ export default function LabPageRoute() {
         return "Error starting lab instance";
       },
     });
-    socket.emit("start-container-logs", { containerName: containerName });
   };
 
   const handleStopLab = async () => {
@@ -130,12 +135,6 @@ export default function LabPageRoute() {
         completedSections: [...prev.completedSections, sectionIndex],
         lastAccessedAt: new Date(),
       }));
-
-      // Update lab guide
-      lab.guide.completedSections = [
-        ...lab.guide.completedSections,
-        sectionIndex,
-      ];
     }
   };
 
@@ -164,7 +163,7 @@ export default function LabPageRoute() {
 
     // Update verification in lab guide
     lab.guide.sections.forEach((section) => {
-      const verification = section.verification.find(
+      const verification = section.verifications.find(
         (v) => v.id === verificationId,
       );
       if (verification) {
@@ -185,7 +184,7 @@ export default function LabPageRoute() {
   };
 
   const handleExitLab = () => {
-    router.navigate("/");
+    router.navigate(`/classrooms/${classroomId}/project/${projectId}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -202,13 +201,14 @@ export default function LabPageRoute() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageMeta title="Labs" description="Labs hands on experience" />
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-4 mb-4">
             <Button onClick={handleExitLab} variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Labs
+              Go Back
             </Button>
           </div>
 
@@ -236,6 +236,10 @@ export default function LabPageRoute() {
                   <div className="flex items-center gap-1">
                     <Target className="h-4 w-4" />
                     {lab.objectives.length} objectives
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <IconDirectionArrowsFilled className="h-4 w-4" />
+                    {lab.guide.sections.length} Guides
                   </div>
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
@@ -269,6 +273,7 @@ export default function LabPageRoute() {
                   <LockLabGuideOverlay isLabRunning={isLabRunning} />
                   <LabGuideComponent
                     guide={lab.guide}
+                    labProgress={progress}
                     onSectionComplete={handleSectionComplete}
                     onTaskComplete={handleTaskComplete}
                     onVerificationComplete={handleVerificationComplete}
@@ -280,7 +285,7 @@ export default function LabPageRoute() {
 
               <TabsContent value="environment">
                 <LabEnvironmentComponent
-                  environment={lab.labEnvironment}
+                  environment={lab.environment}
                   onLaunch={handleLaunchLab}
                   onStop={handleStopLab}
                   onReset={handleResetLab}

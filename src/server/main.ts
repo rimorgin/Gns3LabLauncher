@@ -54,13 +54,14 @@ app.use("/static", express.static(path.join(__dirname, "/public")));
 console.log("Serving static files from:", path.join(__dirname, "/public"));
 
 // SECURITY
+app.set("trust proxy", 1);
 app.use(helmetMiddleware());
 app.use(csrfTokenMiddleware);
-//app.use(csrfSynchronisedProtection);
+app.use(csrfSynchronisedProtection);
 // Reduce fingerprinting
 app.disable("x-powered-by");
 // prevent DDos or Brute Force
-app.use(rateLimiterMiddleware); //disable in development
+//app.use(rateLimiterMiddleware); //disable in development
 // enforce single session only
 //app.use(enforceSingleSessionOnly)
 // enforce validation of session every client mounts
@@ -82,14 +83,15 @@ if (MODE === "production" || MODE === "staging") {
     path.resolve("./cert/vite-express.cert.pem"),
     "utf8",
   );
-  server = https.createServer({ key, cert }, app);
+  server = http.createServer(app);
+  //server = https.createServer({ key, cert }, app);
   console.log("🌐 HTTPS server configured");
 
-  const { default: vpnConnect } = await import("@srvr/configs/vpn.config.js");
+  /* const { default: vpnConnect } = await import("@srvr/configs/vpn.config.js");
   // enable vpn when not in development
   console.log("🔗 Connecting to VPN...");
   await vpnConnect();
-  app.use(vpnOnlyMiddleware);
+  app.use(vpnOnlyMiddleware); */
 
   /*   ViteExpress.config({
     //@ts-expect-error type staging no allowed

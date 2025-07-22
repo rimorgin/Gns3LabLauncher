@@ -1,6 +1,48 @@
 import { Request, Response } from "express";
-import * as progressService from "./progress.service.ts";
+import { ProgressService } from "./progress.service.ts";
 import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
+
+export const getMyProgress = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const studentId = req.session.passport?.user;
+
+  if (!studentId) {
+    res
+      .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+      .json({ message: "studentId is required." });
+    return;
+  }
+
+  /* if (status) {
+    const enumValues = Object.values(ProgressStatus);
+    const validateStatus = enumValues.includes(status as ProgressStatus);
+
+    if (!validateStatus) {
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ message: `Status ${status} is not allowed.` });
+      return;
+    }
+  } */
+
+  const progress = await ProgressService.getMyProgress({
+    studentId,
+  });
+
+  if (!progress) {
+    res
+      .status(HTTP_RESPONSE_CODE.NOT_FOUND)
+      .json({ message: "Progress not found." });
+    return;
+  }
+
+  res
+    .status(HTTP_RESPONSE_CODE.SUCCESS)
+    .json({ message: "progress return", progress: progress });
+  return;
+};
 
 /**
  * Retrieves progress for a specific student in a project.
@@ -38,7 +80,7 @@ export const getProgressByUniqueStudentProjectKey = async (
     }
   } */
 
-  const progress = await progressService.getProgressByUniqueStudentProjectKey({
+  const progress = await ProgressService.getByUniqueStudentProjectKey({
     projectId,
     studentId,
   });
@@ -81,7 +123,7 @@ export const updateProgressById = async (
     return;
   }
 
-  const updatedProgress = await progressService.updateProgressById({
+  const updatedProgress = await ProgressService.updateById({
     id,
     percentComplete,
     status,

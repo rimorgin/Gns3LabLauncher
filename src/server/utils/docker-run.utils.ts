@@ -8,7 +8,7 @@ export async function isContainerRunning(
 ): Promise<boolean> {
   try {
     const { stdout } = await execAsync(
-      `docker ps --filter "name=^/${containerName}$" --filter "status=running" --format "{{.ID}}"`
+      `docker ps --filter "name=^/${containerName}$" --filter "status=running" --format "{{.ID}}"`,
     );
     return !!stdout.trim();
   } catch {
@@ -50,6 +50,28 @@ export async function checkContainerHealth(containerId: string) {
   return false;
 }
 
+export async function waitForContainerToBeCreated(
+  containerName: string,
+  timeout = 30000,
+) {
+  const start = Date.now();
+
+  return new Promise<void>((resolve, reject) => {
+    const interval = setInterval(() => {
+      const inspect = spawn("docker", ["inspect", containerName]);
+      inspect.on("close", (code) => {
+        if (code === 0) {
+          clearInterval(interval);
+          resolve();
+        } else if (Date.now() - start > timeout) {
+          clearInterval(interval);
+          reject(new Error("Container was not created in time"));
+        }
+      });
+    }, 500);
+  });
+}
+
 export async function waitForContainer(containerName: string, timeout = 5000) {
   const start = Date.now();
 
@@ -78,4 +100,21 @@ export async function waitForContainer(containerName: string, timeout = 5000) {
       });
     }, 500);
   });
+}
+
+export async function onProcessShutdownStopGns3Containers() {
+  try {
+    const { stdout } = await execAsync(
+      "docker ps --filter ancestor=rimorgin/gns3server -q",
+    );
+    const ids = stdout.trim().split("\n").filter(Boolean);
+    if (ids.length > 0) {
+      await execAsync(`docker stop ${ids.join(" ")}`);
+      console.log("✅ GNS3 containers stopped.");
+    } else {
+      console.log("ℹ️ No GNS3 containers to stop.");
+    }
+  } catch (err) {
+    console.error("⚠️ Error stopping GNS3 containers:", err);
+  }
 }

@@ -8,21 +8,50 @@ model Progress {
   projectId   String // the project being tracked
   classroomId String? // optionally, to scope it to a classroom
 
-  currentStep     Int?            @default(0)
-  totalSteps      Int?            @default(0)
+  currentStep Int? @default(0)
+  totalSteps  Int? @default(0)
 
   percentComplete Float           @default(0) // 0–100
   status          ProgressStatus? @default(NOT_STARTED)
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  startedAt   DateTime? // optional — when progress started
   completedAt DateTime? // optional — when marked complete
 
-  student   Student?    @relation("StudentProgresses", fields: [studentId], references: [userId], onDelete: Cascade)
-  group     UserGroups? @relation("GroupProgresses", fields: [groupId], references: [id], onDelete: Cascade)
-  project   Project     @relation("ProjectProgresses", fields: [projectId], references: [id], onDelete: Cascade)
-  classroom Classroom?  @relation("ClassroomProgresses", fields: [classroomId], references: [id])
+  student     Student?      @relation("StudentProgresses", fields: [studentId], references: [userId], onDelete: Cascade)
+  group       UserGroups?   @relation("GroupProgresses", fields: [groupId], references: [id], onDelete: Cascade)
+  project     Project       @relation("ProjectProgresses", fields: [projectId], references: [id], onDelete: Cascade)
+  classroom   Classroom?    @relation("ClassroomProgresses", fields: [classroomId], references: [id])
+  LabProgress LabProgress[]
 
   @@unique([studentId, projectId], name: "uniqueStudentProjectProgress")
   @@unique([groupId, projectId], name: "uniqueGroupProjectProgress")
+}
+
+model LabProgress {
+  id         String          @id @default(uuid())
+  studentId  String?
+  groupId    String?
+  progressId String // link to the Project's Progress record
+  labId      String // which lab
+  status     ProgressStatus? @default(NOT_STARTED)
+
+  currentSection         Int?     @default(0)
+  completedSections      Int[]    @default([])
+  completedTasks         String[] @default([])
+  completedVerifications String[] @default([])
+  percentComplete        Float    @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  student  Student?    @relation("StudentLabProgresses", fields: [studentId], references: [userId], onDelete: Cascade)
+  group    UserGroups? @relation("GroupLabProgresses", fields: [groupId], references: [id], onDelete: Cascade)
+  progress Progress    @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  lab      Lab         @relation(fields: [labId], references: [id], onDelete: Cascade)
+
+  @@unique([progressId, labId], name: "uniqueProgressPerLab")
 }

@@ -1,13 +1,6 @@
-import { Prisma, UserRolesEnum } from "@prisma/client";
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import {
-  createUser,
-  createUsersBulk,
-  deleteManyUsersById,
-  deleteUserById,
-  updateUserById,
-} from "./users.service.ts";
+import { UserService } from "./users.service.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
@@ -31,89 +24,45 @@ import {
 
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { role, only_ids, includeRoleData, includeRoleRelations } = req.query;
-
-    // Role filter
-    const where: Prisma.UserWhereInput = role
-      ? { role: role as UserRolesEnum }
-      : { role: { not: UserRolesEnum.administrator } };
-
-    // Handle selection fields
-    let select: Prisma.UserSelect | undefined;
-    let selectRelation: Prisma.UserSelect | undefined;
-
-    if (only_ids === "true") {
-      select = { id: true };
-    } else {
-      select = {
-        id: true,
-        username: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-        student: includeRoleData
-          ? {
-              select: {
-                userGroups: includeRoleRelations ? true : false,
-                classrooms: includeRoleRelations
-                  ? {
-                      include: {
-                        course: {
-                          select: {
-                            courseCode: true,
-                            courseName: true,
-                          },
-                        },
-                      },
-                    }
-                  : false,
-                submissions: includeRoleRelations ? true : false,
-                progress: includeRoleRelations ? true : false,
-                isOnline: true,
-                lastActiveAt: true,
-              },
-            }
-          : false,
-        instructor: includeRoleData
-          ? {
-              select: {
-                classrooms: includeRoleRelations
-                  ? {
-                      include: {
-                        course: {
-                          select: {
-                            courseCode: true,
-                            courseName: true,
-                          },
-                        },
-                      },
-                    }
-                  : false,
-                expertise: includeRoleRelations ? true : false,
-                isOnline: true,
-                lastActiveAt: true,
-              },
-            }
-          : false,
-      };
-    }
-    const combinedSelect = { ...select, ...selectRelation };
-
-    const users = await prisma.user.findMany({
-      where,
-      ...(combinedSelect && { select: combinedSelect }),
-    });
+    const users = await UserService.getAll(req.query);
 
     res.status(200).json({
       message: APP_RESPONSE_MESSAGE.user.usersReturned,
-      users: users,
+      users,
     });
   } catch {
     res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
   }
-  return;
+};
+
+/**
+ * Fetches a user by id.
+ *
+ * @function getUserById
+ *
+ * @param {Request} req - Express request object containing session and user data.
+ * @param {Response} res - Express response object to send JSON response.
+ *
+ * @returns {Promise<void>} Sends:
+ *  - 200 JSON array of user objects matching the filter
+ *  - 500 Internal Server Error if database query fails
+ */
+
+export const getUserById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const id = req.params.id;
+  try {
+    const users = await UserService.getById(id, req.query);
+
+    res.status(200).json({
+      message: APP_RESPONSE_MESSAGE.user.usersReturned,
+      users,
+    });
+  } catch {
+    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+  }
 };
 
 /**
@@ -153,7 +102,7 @@ export const postUsers = async (req: Request, res: Response): Promise<void> => {
     return;
   }
   try {
-    const newUser = await createUser(req.body);
+    const newUser = await UserService.create(req.body);
     res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: APP_RESPONSE_MESSAGE.user.userCreated,
       newData: newUser,
@@ -178,7 +127,7 @@ export const bulkPostUsers = async (req: Request, res: Response) => {
       return;
     }
 
-    const createdUsers = await createUsersBulk(users);
+    const createdUsers = await UserService.createBulk(users);
 
     res.status(201).json({
       message: `${createdUsers.length} users created successfully`,
@@ -214,7 +163,7 @@ export const patchUser = async (req: Request, res: Response): Promise<void> => {
   const id = req.params.id;
 
   try {
-    const updatedUser = await updateUserById(id, req.body);
+    const updatedUser = await UserService.updateById(id, req.body);
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.userUpdated,
       newData: updatedUser,
@@ -247,7 +196,7 @@ export const deleteUser = async (
 ): Promise<void> => {
   const id = req.params.id;
   try {
-    const deletedUser = await deleteUserById(id);
+    const deletedUser = await UserService.deleteById(id);
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.userDeleted,
       newData: deletedUser,
@@ -274,7 +223,7 @@ export const deleteUsersMany = async (
       return;
     }
 
-    const deletedUsers = await deleteManyUsersById(ids);
+    const deletedUsers = await UserService.deleteManyById(ids);
 
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.userDeleted,

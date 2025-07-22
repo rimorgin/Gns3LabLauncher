@@ -1,16 +1,10 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import {
-  createProject,
-  deleteManyProjectById,
-  deleteProjectById,
-  updateProjectById,
-} from "./projects.service.ts";
+import { ProjectService } from "./projects.service.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
 } from "@srvr/configs/constants.config.ts";
-import { Prisma } from "@prisma/client";
 
 /**
  * Retrieves a list of projects, optionally including classroom data or selecting specific fields.
@@ -33,73 +27,16 @@ export const getProjects = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { classrooms, submissions, only_ids, partial } = req.query;
-  // Convert query params to booleans
-  const isClassroom = classrooms === "true";
-  const isSubmission = submissions === "true";
-  const isOnlyIds = only_ids === "true";
-
-  const includeOptions: Prisma.ProjectSelect | undefined = {
-    classrooms: isClassroom
-      ? {
-          select: {
-            id: true,
-            classroomName: true,
-            course: {
-              select: {
-                courseCode: true,
-                courseName: true,
-              },
-            },
-          },
-        }
-      : false,
-    submissions: isSubmission
-      ? {
-          select: {
-            id: true,
-            student: true,
-            group: true,
-            grade: true,
-            feedback: true,
-            files: true,
-          },
-        }
-      : false,
-  };
-
-  const projects = isOnlyIds
-    ? await prisma.project.findMany({
-        select: {
-          id: true,
-          ...includeOptions,
-        },
-      })
-    : partial
-      ? await prisma.project.findMany({
-          select: {
-            id: true,
-            projectName: true,
-            ...includeOptions,
-          },
-        })
-      : await prisma.project.findMany({
-          select: {
-            projectName: true,
-            duration: true,
-            id: true,
-            visible: true,
-            tags: true,
-            createdAt: true,
-            updatedAt: true,
-            imageUrl: true,
-            ...includeOptions,
-          },
-        });
+  const projects = await ProjectService.getAll({
+    classrooms: req.query.classrooms === "true",
+    submissions: req.query.submissions === "true",
+    only_ids: req.query.only_ids === "true",
+    partial: req.query.partial === "true",
+  });
 
   res.status(200).json({
     message: APP_RESPONSE_MESSAGE.project.projectsReturned,
-    projects: projects,
+    projects,
   });
 };
 
@@ -125,47 +62,13 @@ export const getProjectsById = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
-  const { id: projectId } = req.params;
-  const { partial, studentsCount, projectContent } = req.query;
+  const { id } = req.params;
 
-  // Convert query params to booleans
-  const isStudentsCount = studentsCount === "true";
-  const isProjectContent = projectContent === "true";
-
-  const include: Prisma.ProjectInclude = {};
-  if (isStudentsCount) {
-    include.classrooms = {
-      select: {
-        _count: {
-          select: {
-            students: true,
-          },
-        },
-      },
-    };
-  }
-  if (isProjectContent) {
-    include.steps = {
-      include: {
-        contents: true,
-        quizQuestions: true,
-      },
-    };
-    include.discussions = true;
-  }
-  const where = { where: { id: projectId } };
-  const project = partial
-    ? await prisma.project.findUnique({
-        ...where,
-        select: {
-          id: true,
-          projectName: true,
-        },
-      })
-    : await prisma.project.findUnique({
-        ...where,
-        include,
-      });
+  const project = await ProjectService.getById(id, {
+    partial: req.query.partial === "true",
+    labs: req.query.labs === "true",
+    studentsCount: req.query.studentsCount === "true",
+  });
 
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.project.projectReturned,
@@ -202,7 +105,7 @@ export const postProjects = async (
     return;
   }
   try {
-    const newProject = await createProject(req.body);
+    const newProject = await ProjectService.create(req.body);
     res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: APP_RESPONSE_MESSAGE.project.projectCreated,
       newData: newProject,
@@ -235,7 +138,7 @@ export const patchProject = async (
   const { id } = req.params;
 
   try {
-    const updatedProject = await updateProjectById(id, req.body);
+    const updatedProject = await ProjectService.updateById(id, req.body);
 
     if (!updatedProject) {
       res
@@ -276,7 +179,7 @@ export const deleteProject = async (
   const { id } = req.params;
 
   try {
-    const deletedProject = await deleteProjectById(id);
+    const deletedProject = await ProjectService.deleteById(id);
 
     if (!deletedProject) {
       res
@@ -317,7 +220,7 @@ export const deleteManyProjects = async (
   const ids = req.body.ids;
 
   try {
-    const deletedProject = await deleteManyProjectById(ids);
+    const deletedProject = await ProjectService.deleteManyById(ids);
 
     if (!deletedProject) {
       res

@@ -9,12 +9,7 @@ const execAsync = promisify(exec);
  * * @param {function} callback - The callback function to handle the result.
  * * @returns {void}
  */
-
 async function runGns3ServerDockerContainer(containerName: string) {
-  if (!containerName) {
-    throw new Error("Container name is required");
-  }
-
   const command = `docker run -d --rm \
                 --name ${containerName} \
                 -h gns3vm --privileged \
@@ -22,7 +17,7 @@ async function runGns3ServerDockerContainer(containerName: string) {
                 --cap-add=NET_ADMIN \
                 -e GNS3_USERNAME=${containerName} \
                 -e SSL=true\
-                -v ${process.cwd()}/src/server/var/:/data \
+                -v /var/opt/gns3lablauncher/gns3:/data \
                 rimorgin/gns3server`;
 
   try {
@@ -36,4 +31,17 @@ async function runGns3ServerDockerContainer(containerName: string) {
   }
 }
 
-export { runGns3ServerDockerContainer };
+async function stopGns3ServerDockerContainer(containerName: string) {
+  const command = `docker stop ${containerName}`;
+  try {
+    const { stdout, stderr } = await execAsync(command);
+    if (stderr) console.warn(`Docker stderr: ${stderr}`);
+    //console.log(`Docker stdout: ${stdout}`);
+    return stdout.trim(); // container ID
+  } catch (error) {
+    console.error(`Docker error: ${error}`);
+    throw error;
+  }
+}
+
+export { runGns3ServerDockerContainer, stopGns3ServerDockerContainer };

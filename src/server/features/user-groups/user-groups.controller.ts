@@ -1,17 +1,10 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { Request, Response } from "express";
-import {
-  createUserGroup,
-  deleteManyUserGroupsById,
-  deleteUserGroupById,
-  updateUserGroupById,
-} from "./user-groups.service.ts";
+import { UserGroupService } from "./user-groups.service.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
 } from "@srvr/configs/constants.config.ts";
-import { Prisma } from "@prisma/client";
-
 /**
  * Retrieves all user groups from the database.
  *
@@ -22,64 +15,18 @@ import { Prisma } from "@prisma/client";
  *  - 200 JSON containing the list of user groups.
  *  - 500 Internal Server Error on failure.
  */
-export const getUserGroups = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { student, classroom, ids } = req.query;
-
-  const include: Prisma.UserGroupsInclude = {};
-  if (student) {
-    include.student = {
-      include: {
-        user: {
-          select: {
-            name: true,
-            username: true,
-            email: true,
-          },
-        },
-      },
-    };
-  }
-
-  if (classroom) {
-    include.classrooms = {
-      select: {
-        id: true,
-        classroomName: true,
-        course: {
-          select: {
-            courseName: true,
-            courseCode: true,
-          },
-        },
-      },
-    };
-  }
-
-  // ✅ Parse ids[] properly
-  const idArray = Array.isArray(ids)
-    ? ids.map(String)
-    : ids
-      ? [String(ids)]
-      : [];
-
+export const getUserGroups = async (req: Request, res: Response) => {
   try {
-    const userGroups = await prisma.userGroups.findMany({
-      where: {
-        ...(idArray.length > 0 ? { id: { in: idArray } } : {}),
-      },
-      ...(Object.keys(include).length > 0 ? { include } : {}),
-    });
-
-    res.status(200).json({
-      message: "User groups returned successfully",
+    const userGroups = await UserGroupService.getAll(req.query);
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: APP_RESPONSE_MESSAGE.userGroup.userGroupsReturned,
       user_groups: userGroups,
     });
-  } catch (error) {
-    console.error("Error fetching user groups:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ error: "Internal Server Error" });
   }
 };
 
@@ -93,22 +40,15 @@ export const getUserGroups = async (
  *  - 200 JSON containing the list of user groups.
  *  - 500 Internal Server Error on failure.
  */
-export const getUserGroupById = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const id = req.params.id;
+export const getUserGroupById = async (req: Request, res: Response) => {
   try {
-    const userGroup = await prisma.userGroups.findUnique({
-      where: { id },
-    });
-
+    const userGroup = await UserGroupService.getById(req.params.id);
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.userGroup.userGroupReturned,
       user_groups: userGroup,
     });
-  } catch (error) {
-    console.error("Error fetching user groups:", error);
+  } catch (err) {
+    console.error(err);
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
       .json({ error: "Internal Server Error" });
@@ -158,7 +98,7 @@ export const postUserGroup = async (
     }
   }
   try {
-    const newUserGroup = await createUserGroup(req.body);
+    const newUserGroup = await UserGroupService.create(req.body);
     res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: APP_RESPONSE_MESSAGE.userGroup.userGroupCreated,
       newData: newUserGroup,
@@ -185,7 +125,7 @@ export const patchUserGroup = async (
   res: Response,
 ): Promise<void> => {
   const id = req.params.id;
-  const updatedUserGroup = await updateUserGroupById(id, req.body);
+  const updatedUserGroup = await UserGroupService.updateById(id, req.body);
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.userGroup.userGroupUpdated,
     newData: updatedUserGroup,
@@ -207,7 +147,7 @@ export const deleteUserGroup = async (
   res: Response,
 ): Promise<void> => {
   const id = req.params.id;
-  const deletedUserGroup = await deleteUserGroupById(id);
+  const deletedUserGroup = await UserGroupService.deleteById(id);
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.userGroup.userGroupDeleted,
     newData: deletedUserGroup,
@@ -229,7 +169,7 @@ export const deleteManyUserGroup = async (
   res: Response,
 ): Promise<void> => {
   const ids = req.body.ids;
-  const deletedUserGroups = await deleteManyUserGroupsById(ids);
+  const deletedUserGroups = await UserGroupService.deleteManyById(ids);
   res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.userGroup.userGroupDeleted,
     newData: deletedUserGroups,

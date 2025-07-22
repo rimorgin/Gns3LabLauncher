@@ -111,7 +111,9 @@ const roles: RolesCollection = {
       name: "student",
       permissions: [
         "read_dashboard",
+        "create_user-groups",
         "read_user-groups",
+        "update_user-groups",
         "read_lectures",
         "read_courses",
         "read_tasks",

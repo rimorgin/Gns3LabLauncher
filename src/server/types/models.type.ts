@@ -138,6 +138,7 @@ export interface IClassroom {
  * @property {string} description - A detailed description of the project requirements and goals.
  * @property {string[]} classroomId - An array of classroom IDs where this project is visible or assigned.
  * @property {boolean} visible - Indicates whether the project is currently visible to students.
+ * @property {boolean} byGroupSubmissions - Indicates whether the project is by group or individual.
  * @property {Date} duration - indicates when will the project expire
  * @property {string} imageUrl - indicates url path on the frontend side
  * @property {Enum<"networking" | "cyberscurity">} enum of networking or cybersecurity
@@ -148,8 +149,10 @@ export interface IProject {
   visible?: boolean | null;
   imageUrl: string | null; // Always included
   duration?: Date | null;
+  byGroupSubmissions?: boolean | null;
   tags: ProjectTagsEnum | null; // Change this line to allow string or null
   classroomIds?: string[] | null;
+  labId?: string | null;
 }
 
 export interface IStudentProgress {

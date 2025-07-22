@@ -1,0 +1,190 @@
+/**
+ * Lab (root)
+ * ├── LabEnvironment (1:1)
+ * │   └── NetworkTopology (1:1)
+ * │       ├── TopologyNote[] (1:many)
+ * │       ├── TopologyNode[] (1:many)
+ * │       │   └── DeviceInterface[] (1:many)
+ * │       └── TopologyLink[] (1:many)
+ * ├── LabGuide (1:1)
+ * │   └── LabSection[] (1:many)
+ * │       ├── LabContent[] (1:many)
+ * │       │   └── LabContentMetadata (1:1)
+ * │       ├── LabTask[] (1:many)
+ * │       └── VerificationStep[] (1:many)
+ * └── LabResource[] (1:many)
+ */
+
+model Lab {
+  id            String     @id @default(uuid())
+  title         String
+  description   String
+  difficulty    Difficulty
+  estimatedTime Int
+  category      String
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  createdBy String?
+
+  tags          String[]
+  objectives    String[]
+  prerequisites String[]
+
+  status LabStatus @default(DRAFT)
+
+  project     Project[]       @relation("ProjectLabs")
+  environment LabEnvironment?
+  guide       LabGuide?
+  resources   LabResource[]
+  LabProgress LabProgress[]
+
+  @@index([status])
+}
+
+model LabEnvironment {
+  labId         String          @id @unique
+  type          EnvironmentType
+  startupConfig String?
+
+  topology NetworkTopology?
+
+  lab Lab @relation(fields: [labId], references: [id], onDelete: Cascade)
+}
+
+model NetworkTopology {
+  environmentId String @id @unique
+  layout        Json
+
+  notes TopologyNote[]
+  nodes TopologyNode[]
+  links TopologyLink[]
+
+  environment LabEnvironment @relation(fields: [environmentId], references: [labId], onDelete: Cascade)
+}
+
+model TopologyNote {
+  id         String          @id @unique
+  topologyId String
+  text       String
+  x          Float
+  y          Float
+  width      Float
+  height     Float
+  topology   NetworkTopology @relation(fields: [topologyId], references: [environmentId], onDelete: Cascade)
+}
+
+model TopologyNode {
+  id            String      @id @unique
+  topologyId    String
+  name          String
+  x             Float
+  y             Float
+  icon          String
+  applianceName String?
+  credentials   Json? // router login creds 
+  type          NodeType
+  status        NodeStatus?
+
+  interfaces DeviceInterface[]
+  topology   NetworkTopology   @relation(fields: [topologyId], references: [environmentId], onDelete: Cascade)
+}
+
+model TopologyLink {
+  id         String      @id @unique
+  topologyId String
+  source     String
+  target     String
+  sourcePort String
+  targetPort String
+  status     LinkStatus?
+
+  topology NetworkTopology @relation(fields: [topologyId], references: [environmentId], onDelete: Cascade)
+}
+
+model DeviceInterface {
+  id             String           @id @default(uuid())
+  topologyNodeId String
+  name           String
+  ipAddress      String?
+  subnet         String?
+  enabled        Boolean?
+  status         InterfaceStatus?
+
+  device TopologyNode @relation(fields: [topologyNodeId], references: [id], onDelete: Cascade)
+}
+
+model LabGuide {
+  labId          String       @id @unique
+  currentSection Int
+  lab            Lab          @relation(fields: [labId], references: [id], onDelete: Cascade)
+  sections       LabSection[]
+}
+
+model LabSection {
+  id            String             @id @default(uuid())
+  guideId       String
+  title         String
+  type          SectionType
+  order         Int
+  estimatedTime Int
+  guide         LabGuide           @relation(fields: [guideId], references: [labId], onDelete: Cascade)
+  content       LabContent[]
+  tasks         LabTask[]
+  verifications VerificationStep[]
+  hints         String[]
+}
+
+model LabContent {
+  id        String              @id @default(uuid())
+  sectionId String
+  type      ContentType
+  content   String
+  metadata  LabContentMetadata?
+
+  section LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+model LabContentMetadata {
+  labContentId    String              @id
+  language        String?
+  device          String?
+  command         String?
+  expected_output String?
+  callout_type    ContentMetadataType
+
+  labContent LabContent @relation(fields: [labContentId], references: [id], onDelete: Cascade)
+}
+
+model LabTask {
+  id          String     @id @default(uuid())
+  sectionId   String
+  description String
+  device      String?
+  isCompleted Boolean    @default(false)
+  section     LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  hints       String[]
+}
+
+model VerificationStep {
+  id             String  @id @default(uuid())
+  sectionId      String
+  description    String?
+  command        String?
+  expectedOutput String?
+  device         String?
+  isCompleted    Boolean
+
+  section LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+model LabResource {
+  id          String       @id @default(uuid())
+  labId       String
+  title       String
+  type        ResourceType
+  url         String
+  description String
+
+  lab Lab @relation(fields: [labId], references: [id], onDelete: Cascade)
+}

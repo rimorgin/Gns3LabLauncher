@@ -66,11 +66,11 @@ export function TemplateEnvironmentEditor({
   });
 
   const handleEnvironmentTypeChange = (
-    value: LabTemplate["labEnvironment"]["type"],
+    value: LabTemplate["environment"]["type"],
   ) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: { ...prev.labEnvironment, type: value },
+      environment: { ...prev.environment, type: value },
     }));
   };
 
@@ -79,7 +79,7 @@ export function TemplateEnvironmentEditor({
   ) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: { ...prev.labEnvironment, startupConfig: e.target.value },
+      environment: { ...prev.environment, startupConfig: e.target.value },
     }));
   };
 
@@ -89,14 +89,14 @@ export function TemplateEnvironmentEditor({
     field: keyof TopologyNode,
     value: string | number,
   ) => {
-    const updatedNodes = template.labEnvironment.topology.nodes.map(
-      (node, i) => (i === index ? { ...node, [field]: value } : node),
+    const updatedNodes = template.environment.topology.nodes.map((node, i) =>
+      i === index ? { ...node, [field]: value } : node,
     );
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
-        topology: { ...prev.labEnvironment.topology, nodes: updatedNodes },
+      environment: {
+        ...prev.environment,
+        topology: { ...prev.environment.topology, nodes: updatedNodes },
       },
     }));
   };
@@ -113,12 +113,12 @@ export function TemplateEnvironmentEditor({
     if (newNode.name && newNode.type) {
       setTemplate((prev) => ({
         ...prev,
-        labEnvironment: {
-          ...prev.labEnvironment,
+        environment: {
+          ...prev.environment,
           topology: {
-            ...prev.labEnvironment.topology,
+            ...prev.environment.topology,
             nodes: [
-              ...prev.labEnvironment.topology.nodes,
+              ...prev.environment.topology.nodes,
               { ...newNode, id: `node-${Date.now()}` },
             ],
           },
@@ -131,11 +131,11 @@ export function TemplateEnvironmentEditor({
   const removeNode = (id: string) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
+      environment: {
+        ...prev.environment,
         topology: {
-          ...prev.labEnvironment.topology,
-          nodes: prev.labEnvironment.topology.nodes.filter(
+          ...prev.environment.topology,
+          nodes: prev.environment.topology.nodes.filter(
             (node) => node.id !== id,
           ),
         },
@@ -149,14 +149,14 @@ export function TemplateEnvironmentEditor({
     field: keyof TopologyLink,
     value: string,
   ) => {
-    const updatedLinks = template.labEnvironment.topology.links.map(
-      (link, i) => (i === index ? { ...link, [field]: value } : link),
+    const updatedLinks = template.environment.topology.links.map((link, i) =>
+      i === index ? { ...link, [field]: value } : link,
     );
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
-        topology: { ...prev.labEnvironment.topology, links: updatedLinks },
+      environment: {
+        ...prev.environment,
+        topology: { ...prev.environment.topology, links: updatedLinks },
       },
     }));
   };
@@ -170,12 +170,12 @@ export function TemplateEnvironmentEditor({
     if (newLink.source && newLink.target) {
       setTemplate((prev) => ({
         ...prev,
-        labEnvironment: {
-          ...prev.labEnvironment,
+        environment: {
+          ...prev.environment,
           topology: {
-            ...prev.labEnvironment.topology,
+            ...prev.environment.topology,
             links: [
-              ...prev.labEnvironment.topology.links,
+              ...prev.environment.topology.links,
               { ...newLink, id: `link-${Date.now()}` },
             ],
           },
@@ -194,11 +194,11 @@ export function TemplateEnvironmentEditor({
   const removeLink = (id: string) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
+      environment: {
+        ...prev.environment,
         topology: {
-          ...prev.labEnvironment.topology,
-          links: prev.labEnvironment.topology.links.filter(
+          ...prev.environment.topology,
+          links: prev.environment.topology.links.filter(
             (link) => link.id !== id,
           ),
         },
@@ -212,12 +212,12 @@ export function TemplateEnvironmentEditor({
     field: keyof LabDevice,
     value: string | string[] | { username: string; password: string },
   ) => {
-    const updatedDevices = template.labEnvironment.devices.map((device, i) =>
+    const updatedDevices = template.environment.devices.map((device, i) =>
       i === index ? { ...device, [field]: value } : device,
     );
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: { ...prev.labEnvironment, devices: updatedDevices },
+      environment: { ...prev.environment, devices: updatedDevices },
     }));
   };
 
@@ -241,10 +241,10 @@ export function TemplateEnvironmentEditor({
     if (newDevice.name && newDevice.type) {
       setTemplate((prev) => ({
         ...prev,
-        labEnvironment: {
-          ...prev.labEnvironment,
+        environment: {
+          ...prev.environment,
           devices: [
-            ...prev.labEnvironment.devices,
+            ...prev.environment.devices,
             { ...newDevice, id: `device-${Date.now()}` },
           ],
         },
@@ -263,11 +263,9 @@ export function TemplateEnvironmentEditor({
   const removeDevice = (id: string) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
-        devices: prev.labEnvironment.devices.filter(
-          (device) => device.id !== id,
-        ),
+      environment: {
+        ...prev.environment,
+        devices: prev.environment.devices.filter((device) => device.id !== id),
       },
     }));
   };
@@ -278,13 +276,13 @@ export function TemplateEnvironmentEditor({
     field: keyof LabConnection,
     value: string,
   ) => {
-    const updatedConnections = (template.labEnvironment.connections || []).map(
+    const updatedConnections = (template.environment.connections || []).map(
       (conn, i) => (i === index ? { ...conn, [field]: value } : conn),
     );
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
+      environment: {
+        ...prev.environment,
         connections: updatedConnections,
       },
     }));
@@ -301,10 +299,10 @@ export function TemplateEnvironmentEditor({
     if (newConnection.from && newConnection.to) {
       setTemplate((prev) => ({
         ...prev,
-        labEnvironment: {
-          ...prev.labEnvironment,
+        environment: {
+          ...prev.environment,
           connections: [
-            ...(prev.labEnvironment.connections || []),
+            ...(prev.environment.connections || []),
             { ...newConnection, id: `conn-${Date.now()}` },
           ],
         },
@@ -316,9 +314,9 @@ export function TemplateEnvironmentEditor({
   const removeConnection = (id: string) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        ...prev.labEnvironment,
-        connections: (prev.labEnvironment.connections || []).filter(
+      environment: {
+        ...prev.environment,
+        connections: (prev.environment.connections || []).filter(
           (conn) => conn.id !== id,
         ),
       },
@@ -330,8 +328,8 @@ export function TemplateEnvironmentEditor({
       <div className="grid gap-2">
         <Label htmlFor="env-type">Environment Type</Label>
         <Select
-          value={template.labEnvironment.type}
-          onValueChange={(value: LabTemplate["labEnvironment"]["type"]) =>
+          value={template.environment.type}
+          onValueChange={(value: LabTemplate["environment"]["type"]) =>
             handleEnvironmentTypeChange(value)
           }
         >
@@ -348,7 +346,7 @@ export function TemplateEnvironmentEditor({
         <Label htmlFor="startup-config">Startup Configuration (Global)</Label>
         <Textarea
           id="startup-config"
-          value={template.labEnvironment.startupConfig || ""}
+          value={template.environment.startupConfig || ""}
           onChange={handleStartupConfigChange}
           placeholder="Enter global startup configuration or notes for the lab environment."
           rows={5}
@@ -359,7 +357,7 @@ export function TemplateEnvironmentEditor({
       <div className="grid gap-4">
         <Label>Topology Nodes</Label>
         <div className="space-y-4">
-          {template.labEnvironment.topology.nodes.map((node, index) => (
+          {template.environment.topology.nodes.map((node, index) => (
             <Card key={node.id} className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -514,7 +512,7 @@ export function TemplateEnvironmentEditor({
       <div className="grid gap-4">
         <Label>Topology Links</Label>
         <div className="space-y-4">
-          {template.labEnvironment.topology.links.map((link, index) => (
+          {template.environment.topology.links.map((link, index) => (
             <Card key={link.id} className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -628,7 +626,7 @@ export function TemplateEnvironmentEditor({
       <div className="grid gap-4">
         <Label>Devices</Label>
         <div className="space-y-4">
-          {template.labEnvironment.devices.map((device, index) => (
+          {template.environment.devices.map((device, index) => (
             <Card key={device.id} className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -676,7 +674,7 @@ export function TemplateEnvironmentEditor({
                     }
                   />
                 </div>
-                <div  className="grid gap-2">
+                <div className="grid gap-2">
                   <Label htmlFor={`device-password-${index}`}>Password</Label>
                   <Input
                     id={`device-password-${index}`}
@@ -813,7 +811,7 @@ export function TemplateEnvironmentEditor({
       <div className="grid gap-4">
         <Label>Lab Connections</Label>
         <div className="space-y-4">
-          {(template.labEnvironment.connections || []).map((conn, index) => (
+          {(template.environment.connections || []).map((conn, index) => (
             <Card key={conn.id} className="p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-2">

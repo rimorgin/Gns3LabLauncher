@@ -8,25 +8,26 @@ export interface Lab {
   tags: string[];
   objectives: string[];
   prerequisites: string[];
-  labEnvironment: LabEnvironment;
+  environment: LabEnvironment;
   guide: LabGuide;
   resources: LabResource[];
-  createdAt: Date;
-  updatedAt: Date;
+  createdBy?: string;
+  status?: "DRAFT" | "PUBLISHED";
+  createdAt: string | number | Date;
 }
 
 export interface LabEnvironment {
-  id: string;
-  type: "GNS3" | "VIRTUAL_MACHINE" | "CONTAINER" | "SIMULATOR" | "CLOUD";
+  labId: string;
+  type: "GNS3";
   topology: NetworkTopology;
-  devices: LabDevice[];
-  connections?: LabConnection[];
   startupConfig?: string;
 }
 
 export interface NetworkTopology {
+  environmentId?: string;
   nodes: TopologyNode[];
   links: TopologyLink[];
+  notes: TopologyNote[];
   layout: {
     width: number;
     height: number;
@@ -41,6 +42,12 @@ export interface TopologyNode {
   y: number;
   icon: string;
   status?: "running" | "stopped" | "starting" | "error";
+  applianceName?: string; // "Cisco 2901"
+  credentials?: {
+    username: string;
+    password: string;
+  };
+  interfaces: DeviceInterface[];
 }
 
 export interface TopologyLink {
@@ -52,24 +59,23 @@ export interface TopologyLink {
   status?: "up" | "down";
 }
 
-export interface LabDevice {
+export interface TopologyNote {
   id: string;
-  name: string;
-  type: string;
-  ipAddress?: string;
-  credentials?: {
-    username: string;
-    password: string;
-  };
-  interfaces: DeviceInterface[];
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface DeviceInterface {
+  id: string;
+  topologyNodeId?: string;
   name: string;
   ipAddress?: string;
   subnet?: string;
   enabled?: boolean;
-  status?: "up" | "down" | "admin-down";
+  status?: "up" | "down" | "admin_down";
 }
 
 export interface SSHConnection {
@@ -89,7 +95,7 @@ export interface LabConnection {
 }
 
 export interface LabGuide {
-  id: string;
+  labId: string;
   sections: LabSection[];
   currentSection: number;
   completedSections: number[];
@@ -97,6 +103,7 @@ export interface LabGuide {
 
 export interface LabSection {
   id: string;
+  guideId?: string;
   title: string;
   type:
     | "introduction"
@@ -108,12 +115,13 @@ export interface LabSection {
   estimatedTime: number;
   content: LabContent[];
   tasks: LabTask[];
-  verification: VerificationStep[];
+  verifications: VerificationStep[];
   hints: string[];
 }
 
 export interface LabContent {
   id: string;
+  sectionId?: string;
   type:
     | "text"
     | "code"
@@ -134,6 +142,7 @@ export interface LabContent {
 
 export interface LabTask {
   id: string;
+  sectionId?: string;
   description: string;
   device?: string;
   commands?: string[];
@@ -144,6 +153,7 @@ export interface LabTask {
 
 export interface VerificationStep {
   id: string;
+  sectionId?: string;
   description: string;
   command: string;
   expectedOutput: string;
@@ -153,6 +163,7 @@ export interface VerificationStep {
 
 export interface LabResource {
   id: string;
+  labId?: string;
   title: string;
   type: "documentation" | "cheat_sheet" | "reference" | "download";
   url: string;

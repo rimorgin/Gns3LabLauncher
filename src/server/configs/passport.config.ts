@@ -8,6 +8,7 @@ import { IUserWithRoleOutput } from "@srvr/types/models.type.ts";
 import { APP_RESPONSE_MESSAGE } from "./constants.config.ts";
 
 passport.serializeUser((user, done) => {
+  console.log("🚀 ~ passport.serializeUser ~ user:", user);
   //@ts-expect-error no user.id on interface IUserBase but it is present in the response
   done(null, user.id);
 });
@@ -18,9 +19,10 @@ passport.deserializeUser(async (id: string, done) => {
       where: { id },
       omit: { password: true },
     });
+    console.log("🚀 ~ passport.deserializeUser ~ user:", user);
     //console.log("🚀 ~ passport.deserializeUser ~ user:", user)
 
-    if (!user) return done(null, false);
+    if (!user) return done(null, null);
     done(null, user);
   } catch (err) {
     done(err);
@@ -39,12 +41,12 @@ passport.use(
         const user = await prisma.user.findUnique({ where: { email: email } });
         if (!user)
           return done(null, false, {
-            message: APP_RESPONSE_MESSAGE.invalidCredentials,
+            message: APP_RESPONSE_MESSAGE.user.invalidCredentials,
           });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch)
           return done(null, false, {
-            message: APP_RESPONSE_MESSAGE.invalidCredentials,
+            message: APP_RESPONSE_MESSAGE.user.invalidCredentials,
           });
 
         //console.log(user)

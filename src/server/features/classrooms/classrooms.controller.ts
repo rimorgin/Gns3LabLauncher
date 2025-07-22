@@ -26,143 +26,90 @@ import {
  *  - 200 JSON array of classroom objects (with optionally populated course info)
  *  - 500 Internal Server Error if fetching classrooms fails
  */
-export const getClassrooms = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { course, courseId, students, instructor, projects, only_ids } =
-    req.query;
+export const getClassrooms = async (req: Request, res: Response) => {
+  try {
+    const {
+      by_id,
+      only_ids,
+      course,
+      courseId,
+      students,
+      instructor,
+      projects,
+      studentGroups,
+    } = req.query;
 
-  // Convert query params to booleans
-  const isCourse = course === "true";
-  const isCourseId = courseId === "true";
-  const isStudents = students === "true";
-  const isInstructor = instructor === "true";
-  const isProjects = projects === "true";
-  const isOnlyIds = only_ids === "true";
+    // normalize `by_id` to string[]
+    const ids: string[] =
+      typeof by_id === "string"
+        ? [by_id]
+        : Array.isArray(by_id)
+          ? (by_id as string[])
+          : [];
 
-  const includeOptions: Prisma.ClassroomSelect | undefined = {
-    course: isCourse,
-    courseId: isCourseId,
-    students: isStudents
-      ? {
-          select: {
-            userId: true,
-            user: {
+    // normalize flags
+    const isOnlyIds = only_ids === "true";
+
+    const include: Prisma.ClassroomInclude = {
+      course: course === "true",
+      instructor:
+        instructor === "true"
+          ? {
               select: {
-                name: true,
-                email: true,
-                username: true,
+                userId: true,
+                user: { select: { name: true, email: true, username: true } },
               },
-            },
-          },
-        }
-      : false,
-    instructor: isInstructor
-      ? {
-          select: {
-            userId: true,
-            user: {
+            }
+          : false,
+      students:
+        students === "true"
+          ? {
               select: {
-                name: true,
-                email: true,
-                username: true,
+                userId: true,
+                user: { select: { name: true, email: true, username: true } },
               },
-            },
-          },
-        }
-      : false,
-    projects: isProjects
-      ? {
-          select: {
-            id: true,
-            projectName: true,
-            projectDescription: true,
-            visible: true,
-            duration: true,
-            submissions: true,
-          },
-        }
-      : false,
-  };
-  const classrooms = isOnlyIds
-    ? await prisma.classroom.findMany({
-        select: {
-          id: true,
-          ...includeOptions,
-        },
-      })
-    : await prisma.classroom.findMany({
-        select: {
+            }
+          : false,
+      projects: projects === "true",
+      studentGroups: studentGroups === "true",
+    };
+
+    // if only_ids → override to just IDs
+    const select = isOnlyIds
+      ? { id: true }
+      : {
           id: true,
           classroomName: true,
           status: true,
           imageUrl: true,
           createdAt: true,
           updatedAt: true,
-          ...includeOptions,
-        },
+          courseId: courseId === "true",
+        };
+
+    // add relations if not only_ids
+    if (!isOnlyIds) {
+      Object.entries(include).forEach(([key, value]) => {
+        if (value) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (select as any)[key] = value;
+        }
       });
+    }
 
-  //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
-  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
-    message: APP_RESPONSE_MESSAGE.classroom.classroomsReturned,
-    classrooms: classrooms,
-  });
-};
+    const classrooms = await prisma.classroom.findMany({
+      where: ids.length ? { id: { in: ids } } : undefined,
+      select,
+    });
 
-/**
- * Retrieves a classroom by id.
- *
- *
- * * Query Parameters:
- *  - course: If present, includes related course details.
- *  - students: If present, includes related students details.
- *  - instructor: If present, includes related instructor details.
- *  - projects: If present, includes related projects details.
- *
- * @function getClassroomById
- *
- * @param {Request} req - Express request object, may contain request :id as parameter and query parameters.
- * @param {Response} res - Express response object to return classroom data or errors.
- *
- * @returns {Promise<void>} Sends:
- *  - 200 JSON array of classroom objects (with optionally populated course info)
- *  - 500 Internal Server Error if fetching classrooms fails
- */
-export const getClassroomById = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  const { id: classroomID } = req.params;
-  const { course, courseId, students, instructor, projects } = req.query;
-  console.log("🚀 ~ courseId:", courseId);
-
-  const includeOptions: Prisma.ClassroomSelect | undefined = {
-    course: course ? true : false,
-    courseId: courseId ? true : false,
-    students: students ? true : false,
-    instructor: instructor ? true : false,
-    projects: projects ? true : false,
-  };
-  const classrooms = await prisma.classroom.findUnique({
-    where: { id: classroomID },
-    select: {
-      id: true,
-      classroomName: true,
-      status: true,
-      imageUrl: true,
-      createdAt: true,
-      updatedAt: true,
-      ...includeOptions,
-    },
-  });
-
-  //console.log("🚀 ~ getClassrooms ~ classrooms:", classrooms);
-  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
-    message: APP_RESPONSE_MESSAGE.classroom.classroomsReturned,
-    classrooms: classrooms,
-  });
+    res.status(200).json({
+      message: "Classrooms returned successfully",
+      classrooms,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 /**

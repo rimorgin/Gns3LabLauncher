@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { ICourse } from "@srvr/types/models.type.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
+import { getRandomImageUrlImage } from "@srvr/utils/random-image-url.utils.ts";
 
 /**
  * Creates a new course with the provided course code and name.
@@ -16,6 +17,7 @@ import prisma from "@srvr/utils/db/prisma.ts";
  * @throws {Error} If creating the course fails.
  */
 export const createCourse = async (props: ICourse): Promise<ICourse> => {
+  const imageUrl = getRandomImageUrlImage("courses");
   const course = await prisma.course.create({
     data: {
       courseCode: props.courseCode,
@@ -23,7 +25,7 @@ export const createCourse = async (props: ICourse): Promise<ICourse> => {
       classrooms: {
         connect: (props.classroomIds ?? []).map((id) => ({ id })),
       },
-      imageUrl: props.imageUrl,
+      imageUrl: imageUrl,
     },
   });
   return course;

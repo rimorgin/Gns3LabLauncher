@@ -4,6 +4,7 @@ model User {
   username      String         @unique
   email         String         @unique
   password      String
+  bio           String?
   role          UserRolesEnum  @default(student)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

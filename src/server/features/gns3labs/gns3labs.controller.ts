@@ -1,10 +1,15 @@
 import type { Request, Response, NextFunction } from "express";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { runGns3ServerDockerContainer } from "@srvr/scripts/run-gns3server.script.ts";
+import {
+  runGns3ServerDockerContainer,
+  stopGns3ServerDockerContainer,
+} from "@srvr/scripts/run-gns3server.script.ts";
 import {
   checkContainerHealth,
   isContainerRunning,
+  waitForContainer,
+  waitForContainerToBeCreated,
 } from "@srvr/utils/docker-run.utils.ts";
 import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
 
@@ -20,14 +25,12 @@ export async function startGns3Container(
   if (!containerName) {
     res
       .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-      .json({ error: "containerName is required" });
+      .json({ message: "containerName is required" });
     return;
   }
 
   try {
-    console.log(`🚀 Starting GNS3 container: ${containerName}`);
     if (await isContainerRunning(containerName)) {
-      console.log(`${containerName} is already running!`);
       res
         .status(HTTP_RESPONSE_CODE.SUCCESS)
         .json({ message: `Your lab instance is already running` });
@@ -35,7 +38,8 @@ export async function startGns3Container(
     }
 
     const containerId = await runGns3ServerDockerContainer(containerName);
-
+    await waitForContainerToBeCreated(containerName);
+    await waitForContainer(containerName);
     const healthy = await checkContainerHealth(containerId);
 
     if (!healthy) {
@@ -67,10 +71,17 @@ export async function stopGns3Container(
     res.status(400).json({ error: "containerName is required" });
     return;
   }
-  // containers are automatically remove when stopped because of the flag --rm
+
   try {
     console.log(`🛑 Stopping container: ${containerName}`);
-    await execAsync(`docker stop ${containerName}`);
+
+    // Check if we're stopping a critical service
+    if (containerName === "postgres" || containerName === "redis") {
+      console.warn(`⚠️ Stopping critical service: ${containerName}`);
+    }
+
+    await stopGns3ServerDockerContainer(containerName);
+
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: "Container stopped",
       containerName,
@@ -108,44 +119,3 @@ export async function listGns3Containers(
     next(error);
   }
 }
-
-/* export async function streamGns3ContainerLogs(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const { containerName } = req.params;
-
-  if (!containerName) {
-    res.status(400).json({ error: "containerName is required" });
-    return;
-  }
-
-  try {
-    console.log(`📄 Streaming logs for container: ${containerName}`);
-
-    // You could optionally emit an event here to notify the frontend to start listening
-    io.to(containerName).emit("log", `📄 Starting logs for ${containerName}`);
-
-    const dockerLogs = spawn("docker", ["logs", "-f", containerName]);
-
-    dockerLogs.stdout.on("data", (data) => {
-      io.to(containerName).emit("log", data.toString());
-    });
-
-    dockerLogs.stderr.on("data", (data) => {
-      io.to(containerName).emit("log", data.toString());
-    });
-
-    dockerLogs.on("close", (code) => {
-      io.to(containerName).emit("log", `📄 Log stream ended with code ${code}`);
-    });
-
-    res.status(200).json({
-      message: `Started streaming logs for ${containerName}`,
-    });
-  } catch (error) {
-    console.error("❌ Error streaming container logs:", error);
-    next(error);
-  }
-} */

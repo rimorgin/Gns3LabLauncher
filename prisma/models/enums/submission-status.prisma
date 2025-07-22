@@ -1,6 +1,0 @@
-enum SubmissionStatus {
-  submitted
-  graded
-  late
-  idle
-}

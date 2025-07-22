@@ -30,11 +30,11 @@ export function TemplateAccessInfoEditor({
   const handleConsoleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        // Nested under labEnvironment
-        ...prev.labEnvironment,
+      environment: {
+        // Nested under environment
+        ...prev.environment,
         accessInfo: {
-          ...prev.labEnvironment.accessInfo,
+          ...prev.environment.accessInfo,
           consoleUrl: e.target.value,
         },
       },
@@ -44,11 +44,11 @@ export function TemplateAccessInfoEditor({
   const handleWebInterfaceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        // Nested under labEnvironment
-        ...prev.labEnvironment,
+      environment: {
+        // Nested under environment
+        ...prev.environment,
         accessInfo: {
-          ...prev.labEnvironment.accessInfo,
+          ...prev.environment.accessInfo,
           webInterface: e.target.value,
         },
       },
@@ -60,21 +60,19 @@ export function TemplateAccessInfoEditor({
     field: keyof SSHConnection,
     value: string | number,
   ) => {
-    const updatedSshInfo = (
-      template.labEnvironment.accessInfo?.sshInfo || []
-    ).map(
+    const updatedSshInfo = (template.environment.accessInfo?.sshInfo || []).map(
       (
         info,
-        i, // Nested under labEnvironment
+        i, // Nested under environment
       ) => (i === index ? { ...info, [field]: value } : info),
     );
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        // Nested under labEnvironment
-        ...prev.labEnvironment,
+      environment: {
+        // Nested under environment
+        ...prev.environment,
         accessInfo: {
-          ...prev.labEnvironment.accessInfo,
+          ...prev.environment.accessInfo,
           sshInfo: updatedSshInfo,
         },
       },
@@ -93,13 +91,13 @@ export function TemplateAccessInfoEditor({
     if (newSshInfo.host && newSshInfo.port) {
       setTemplate((prev) => ({
         ...prev,
-        labEnvironment: {
-          // Nested under labEnvironment
-          ...prev.labEnvironment,
+        environment: {
+          // Nested under environment
+          ...prev.environment,
           accessInfo: {
-            ...prev.labEnvironment.accessInfo,
+            ...prev.environment.accessInfo,
             sshInfo: [
-              ...(prev.labEnvironment.accessInfo?.sshInfo || []),
+              ...(prev.environment.accessInfo?.sshInfo || []),
               { ...newSshInfo },
             ],
           },
@@ -118,12 +116,12 @@ export function TemplateAccessInfoEditor({
   const removeSshInfo = (index: number) => {
     setTemplate((prev) => ({
       ...prev,
-      labEnvironment: {
-        // Nested under labEnvironment
-        ...prev.labEnvironment,
+      environment: {
+        // Nested under environment
+        ...prev.environment,
         accessInfo: {
-          ...prev.labEnvironment.accessInfo,
-          sshInfo: (prev.labEnvironment.accessInfo?.sshInfo || []).filter(
+          ...prev.environment.accessInfo,
+          sshInfo: (prev.environment.accessInfo?.sshInfo || []).filter(
             (_, i) => i !== index,
           ),
         },
@@ -137,7 +135,7 @@ export function TemplateAccessInfoEditor({
         <Label htmlFor="console-url">Console URL</Label>
         <Input
           id="console-url"
-          value={template.labEnvironment.accessInfo?.consoleUrl || ""} // Nested under labEnvironment
+          value={template.environment.accessInfo?.consoleUrl || ""} // Nested under environment
           onChange={handleConsoleUrlChange}
           placeholder="e.g., http://localhost:8000/console"
         />
@@ -146,7 +144,7 @@ export function TemplateAccessInfoEditor({
         <Label htmlFor="web-interface">Web Interface URL</Label>
         <Input
           id="web-interface"
-          value={template.labEnvironment.accessInfo?.webInterface || ""} // Nested under labEnvironment
+          value={template.environment.accessInfo?.webInterface || ""} // Nested under environment
           onChange={handleWebInterfaceChange}
           placeholder="e.g., http://localhost:8080/web-ui"
         />
@@ -155,10 +153,10 @@ export function TemplateAccessInfoEditor({
       <div className="grid gap-4">
         <Label>SSH Connections</Label>
         <div className="space-y-4">
-          {(template.labEnvironment.accessInfo?.sshInfo || []).map(
+          {(template.environment.accessInfo?.sshInfo || []).map(
             (
               ssh,
-              index, // Nested under labEnvironment
+              index, // Nested under environment
             ) => (
               <Card key={index} className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

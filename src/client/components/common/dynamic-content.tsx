@@ -2,7 +2,6 @@ import LoadingContent from "@clnt/components/contents/loading-content";
 import { Suspense, lazy } from "react";
 import { prismaStudioUrl } from "@clnt/constants/api";
 import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
-import CoursesContent from "../contents/courses-content";
 import CompletionsContent from "../contents/completions-content";
 
 // Lazy imports
@@ -15,14 +14,36 @@ const UsersContent = lazy(
 const UserGroupsContent = lazy(
   () => import("@clnt/components/contents/user-groups-content"),
 );
+
+const CoursesContent = lazy(
+  () => import("@clnt/components/contents/courses-content"),
+);
+
 const ClassroomsContent = lazy(
   () => import("@clnt/components/contents/classrooms-content"),
 );
 const ProjectsContent = lazy(
   () => import("@clnt/components/contents/projects-content"),
 );
+
+const LabsLibraryContent = lazy(
+  () => import("@clnt/components/contents/labs-library-content"),
+);
+
+const LabsPlaygroundContent = lazy(
+  () => import("@clnt/components/contents/labs-playground-content"),
+);
+
 const CalendarContent = lazy(
   () => import("@clnt/components/contents/calendar-content"),
+);
+
+const SystemHealthContent = lazy(
+  () => import("@clnt/components/contents/system-health-content"),
+);
+
+const AccountContent = lazy(
+  () => import("@clnt/components/contents/account-content"),
 );
 
 export default function DynamicContent() {
@@ -42,6 +63,10 @@ export default function DynamicContent() {
         return <CoursesContent />;
       case "Projects":
         return <ProjectsContent />;
+      case "Labs Library":
+        return <LabsLibraryContent />;
+      case "Labs Playground":
+        return <LabsPlaygroundContent />;
       case "Completions":
         return <CompletionsContent />;
       case "Calendar":
@@ -56,6 +81,10 @@ export default function DynamicContent() {
           />
         );
       }
+      case "System Health":
+        return <SystemHealthContent />;
+      case "Account":
+        return <AccountContent />;
       default:
         return (
           <div className="px-4 lg:px-6 text-muted-foreground">

@@ -13,6 +13,8 @@ import {
   IconMessage2Code,
   IconUsersGroup,
   IconDatabase,
+  IconLibrary,
+  IconSandbox,
 } from "@tabler/icons-react";
 import type {
   LabTemplate,
@@ -69,6 +71,14 @@ export const data = {
       {
         title: "Projects",
         icon: IconFolder,
+      },
+      {
+        title: "Labs Library",
+        icon: IconLibrary,
+      },
+      {
+        title: "Labs Playground",
+        icon: IconSandbox,
       },
     ],
     /*   documents: [
@@ -139,6 +149,8 @@ export const data = {
       "Course",
       "Classroom",
       "Projects",
+      "Labs Library",
+      "Labs Playground",
       "Completions",
       "Calendar",
       "Data Library",
@@ -152,10 +164,12 @@ export const data = {
       "Course",
       "Classroom",
       "Projects",
+      "Labs Library",
+      "Labs Playground",
       "Completions",
       "Calender",
     ],
-    student: ["Classroom", "Projects", "Completions", "Calendar"],
+    student: ["Classroom", "Completions", "Calendar"],
   },
 
   images: {
@@ -312,7 +326,7 @@ export const labTemplates: LabTemplate[] = [
       "Familiarity with command line interfaces",
       "Knowledge of OSI model and TCP/IP stack",
     ],
-    labEnvironment: {
+    environment: {
       id: "lab_env_1",
       type: "GNS3",
       topology: {
@@ -389,7 +403,8 @@ export const labTemplates: LabTemplate[] = [
         {
           id: "r1",
           name: "Router1",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "192.168.1.1",
           credentials: {
             username: "admin",
@@ -415,7 +430,8 @@ export const labTemplates: LabTemplate[] = [
         {
           id: "r2",
           name: "Router2",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "192.168.2.1",
           credentials: {
             username: "admin",
@@ -441,7 +457,8 @@ export const labTemplates: LabTemplate[] = [
         {
           id: "pc1",
           name: "PC1",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.1.10",
           interfaces: [
             {
@@ -456,7 +473,8 @@ export const labTemplates: LabTemplate[] = [
         {
           id: "pc2",
           name: "PC2",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.2.10",
           interfaces: [
             {
@@ -934,7 +952,7 @@ Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/4 ms`,
       "Familiarity with command line interfaces",
       "GNS3 software installed (provided in lab environment)",
     ],
-    labEnvironment: {
+    environment: {
       id: "env_1",
       type: "GNS3",
       topology: {
@@ -1050,7 +1068,8 @@ Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/4 ms`,
         {
           id: "pc1",
           name: "PC1",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.1.10",
           interfaces: [
             {
@@ -1064,7 +1083,8 @@ Success rate is 100 percent (5/5), round-trip min/avg/max = 1/1/4 ms`,
         {
           id: "pc2",
           name: "PC2",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.2.10",
           interfaces: [
             {
@@ -1728,7 +1748,7 @@ S    192.168.2.0/24 [1/0] via 10.0.0.2`,
       "Familiarity with Cisco IOS commands",
       "Knowledge of Ethernet frame structure",
     ],
-    labEnvironment: {
+    environment: {
       id: "lab_env_1",
       type: "GNS3",
       topology: {
@@ -1891,7 +1911,8 @@ S    192.168.2.0/24 [1/0] via 10.0.0.2`,
         {
           id: "r1",
           name: "Router1",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           credentials: {
             username: "admin",
             password: "cisco",
@@ -1907,7 +1928,8 @@ S    192.168.2.0/24 [1/0] via 10.0.0.2`,
         {
           id: "pc1",
           name: "PC1-Sales",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.10.10",
           interfaces: [
             {
@@ -1922,7 +1944,8 @@ S    192.168.2.0/24 [1/0] via 10.0.0.2`,
         {
           id: "pc2",
           name: "PC2-Engineering",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.20.10",
           interfaces: [
             {
@@ -1937,7 +1960,8 @@ S    192.168.2.0/24 [1/0] via 10.0.0.2`,
         {
           id: "pc3",
           name: "PC3-Sales",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.10.20",
           interfaces: [
             {
@@ -2516,7 +2540,7 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
       "Familiarity with routing tables and metrics",
       "Understanding of network design principles",
     ],
-    labEnvironment: {
+    environment: {
       id: "lab_env_1",
       type: "GNS3",
       topology: {
@@ -2635,7 +2659,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "r1",
           name: "Router1",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "10.1.1.1",
           credentials: {
             username: "admin",
@@ -2668,7 +2693,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "r2",
           name: "Router2",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "10.1.2.1",
           credentials: {
             username: "admin",
@@ -2694,7 +2720,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "r3",
           name: "Router3",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "10.1.3.1",
           credentials: {
             username: "admin",
@@ -2720,7 +2747,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "r4",
           name: "Router4",
-          type: "Cisco 2901",
+          type: "router",
+          applianceName: "Cisco 2901",
           ipAddress: "10.2.4.1",
           credentials: {
             username: "admin",
@@ -2753,7 +2781,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "pc1",
           name: "PC1",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.1.10",
           interfaces: [
             {
@@ -2768,7 +2797,8 @@ Router1(config-subif)# ip address 192.168.20.1 255.255.255.0`,
         {
           id: "pc2",
           name: "PC2",
-          type: "Virtual PC",
+          type: "pc",
+          applianceName: "Virtual PC",
           ipAddress: "192.168.4.10",
           interfaces: [
             {

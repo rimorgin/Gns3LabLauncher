@@ -23,7 +23,6 @@ import {
   Monitor,
   Network,
   Server,
-  Wifi,
   Router,
   Activity,
   CheckCircle,
@@ -31,10 +30,12 @@ import {
   Clock,
   BrickWallFire,
 } from "lucide-react";
-import type { LabDevice, LabEnvironment } from "@clnt/types/lab";
+import type { LabEnvironment, TopologyNode } from "@clnt/types/lab";
 import socket from "@clnt/lib/socket";
-import { IconWorld } from "@tabler/icons-react";
+import { IconCloud, IconWorld } from "@tabler/icons-react";
 import { NavLink } from "react-router";
+import { ScrollArea } from "@clnt/components/ui/scroll-area";
+import { cn } from "@clnt/lib/utils";
 
 interface LabEnvironmentProps {
   environment: LabEnvironment;
@@ -53,7 +54,7 @@ export function LabEnvironmentComponent({
   isRunning,
   isLoading,
 }: LabEnvironmentProps) {
-  const [selectedDevices, setSelectedDevices] = useState<LabDevice | null>(
+  const [selectedDevices, setSelectedDevices] = useState<TopologyNode | null>(
     null,
   );
 
@@ -77,6 +78,24 @@ export function LabEnvironmentComponent({
     };
   }, []);
 
+  useEffect(() => {
+    const area = document.getElementById("logs-scroll");
+    area?.scrollTo({ top: area.scrollHeight, behavior: "smooth" });
+  }, [logs]);
+
+  const getdevicesColor = (type: string) => {
+    const colors = {
+      router: "text-blue-700",
+      switch: "text-green-600",
+      pc: "text-gray-700",
+      server: "text-amber-700",
+      firewall: "text-red-900",
+      cloud: "text-cyan-600",
+    };
+    const color = colors[type as keyof typeof colors] || "text-blue-700";
+    return color;
+  };
+
   const getdevicesIcon = (type: string) => {
     const icons = {
       router: Router,
@@ -84,23 +103,11 @@ export function LabEnvironmentComponent({
       pc: Monitor,
       server: Server,
       firewall: BrickWallFire,
-      cloud: Wifi,
+      cloud: IconCloud,
     };
     const Icon = icons[type as keyof typeof icons] || Monitor;
-    return <Icon className="h-6 w-6" />;
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors = {
-      running: "bg-green-500",
-      stopped: "bg-red-500",
-      starting: "bg-yellow-500",
-      error: "bg-red-600",
-      up: "bg-green-500",
-      down: "bg-red-500",
-      "admin-down": "bg-gray-500",
-    };
-    return colors[status as keyof typeof colors] || "bg-gray-400";
+    const iconColor = getdevicesColor(type);
+    return <Icon className={cn(iconColor, "h-6 w-6")} />;
   };
 
   const getStatusIcon = (status: string) => {
@@ -119,55 +126,123 @@ export function LabEnvironmentComponent({
   };
 
   const renderTopology = () => {
+    const nodes = environment.topology?.nodes ?? [];
+    const notes = environment.topology?.notes ?? [];
+    const links = environment.topology?.links ?? [];
+
+    if (nodes.length === 0 && notes.length === 0) return;
+
+    const offset = 100;
+
+    // collect all x/y points for nodes and notes
+    const allPoints = [
+      ...nodes.map((n) => ({ x: n.x, y: n.y })),
+      ...notes.map((n) => ({ x: n.x, y: n.y })),
+      ...notes.map((n) => ({ x: n.x + n.width, y: n.y + n.height })),
+    ];
+
+    const minX = Math.min(...allPoints.map((p) => p.x));
+    const maxX = Math.max(...allPoints.map((p) => p.x));
+    const minY = Math.min(...allPoints.map((p) => p.y));
+    const maxY = Math.max(...allPoints.map((p) => p.y));
+
+    const newWidth = maxX - minX + offset * 2;
+    const newHeight = maxY - minY + offset * 2;
+
     return (
-      <div className="relative bg-gray-50 rounded-lg p-6 min-h-[400px] border-2 border-dashed border-gray-200">
-        <div className="absolute inset-0 flex items-center justify-center">
+      <div className="relative bg-gray-50 rounded-lg">
+        <div className="w-full h-full border border-gray-200 rounded bg-white">
           <svg
-            width={environment.topology.layout.width || 600}
-            height={environment.topology.layout.height || 400}
-            className="border rounded"
+            viewBox={`${minX - offset} ${minY - offset} ${newWidth} ${newHeight}`}
           >
-            {/* Render links first (behind nodes) */}
-            {environment.topology.links.map((link) => {
-              const sourceNode = environment.topology.nodes.find(
-                (n) => n.id === link.source,
-              );
-              const targetNode = environment.topology.nodes.find(
-                (n) => n.id === link.target,
-              );
+            {/* grid */}
+            <defs>
+              <pattern
+                id="grid"
+                width="30"
+                height="30"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M 30 0 L 0 0 0 30"
+                  fill="none"
+                  stroke="#f0f0f0"
+                  strokeWidth="1"
+                />
+              </pattern>
+            </defs>
+
+            <rect
+              x={minX - offset}
+              y={minY - offset}
+              width={newWidth}
+              height={newHeight}
+              fill="url(#grid)"
+            />
+
+            {/* Links */}
+            {links.map((link) => {
+              const sourceNode = nodes.find((n) => n.id === link.source);
+              const targetNode = nodes.find((n) => n.id === link.target);
               if (!sourceNode || !targetNode) return null;
 
+              const dx = targetNode.x - sourceNode.x;
+              const dy = targetNode.y - sourceNode.y;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const unitX = dx / length;
+              const unitY = dy / length;
+              const portOffset = 100;
+
               return (
-                <line
-                  key={link.id}
-                  x1={sourceNode.x}
-                  y1={sourceNode.y}
-                  x2={targetNode.x}
-                  y2={targetNode.y}
-                  stroke={link.status === "up" ? "#10b981" : "#ef4444"}
-                  strokeWidth="2"
-                  strokeDasharray={link.status === "down" ? "5,5" : "none"}
-                />
+                <g key={link.id}>
+                  <line
+                    x1={sourceNode.x}
+                    y1={sourceNode.y}
+                    x2={targetNode.x}
+                    y2={targetNode.y}
+                    stroke="#3B3B3B"
+                    strokeWidth="2"
+                    strokeDasharray={link.status === "down" ? "5,5" : "none"}
+                  />
+
+                  <foreignObject
+                    x={sourceNode.x + unitX * portOffset}
+                    y={sourceNode.y + unitY * portOffset}
+                    width="100"
+                    height="50"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    <p className="w-max text-xs md:text-lg text-black bg-white/80 shadow">
+                      {link.sourcePort}
+                    </p>
+                  </foreignObject>
+
+                  <foreignObject
+                    x={targetNode.x - unitX * portOffset}
+                    y={targetNode.y - unitY * portOffset}
+                    width="100"
+                    height="50"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    <p className="w-max text-xs md:text-lg text-black bg-white/50 rounded shadow">
+                      {link.targetPort}
+                    </p>
+                  </foreignObject>
+                </g>
               );
             })}
 
-            {/* Render nodes */}
-            {environment.topology.nodes.map((node) => (
+            {/* Nodes */}
+            {nodes.map((node) => (
               <g key={node.id}>
                 <circle
                   cx={node.x}
                   cy={node.y}
                   r="25"
                   fill="white"
-                  stroke={node.status === "running" ? "#10b981" : "#ef4444"}
+                  stroke="#3B3B3B"
                   strokeWidth="3"
                   className="cursor-pointer hover:stroke-blue-500"
-                  onClick={() => {
-                    const devices = environment.devices.find(
-                      (d) => d.name === node.name,
-                    );
-                    if (devices) setSelectedDevices(devices);
-                  }}
                 />
                 <text
                   x={node.x}
@@ -186,6 +261,20 @@ export function LabEnvironmentComponent({
                   <div className="flex items-center justify-center text-gray-600">
                     {getdevicesIcon(node.type)}
                   </div>
+                </foreignObject>
+              </g>
+            ))}
+
+            {/* Notes */}
+            {notes.map((note) => (
+              <g key={note.id}>
+                <foreignObject
+                  x={note.x}
+                  y={note.y}
+                  width={note.width}
+                  height={note.height}
+                >
+                  <p className="font-medium text-gray-700">{note.text}</p>
                 </foreignObject>
               </g>
             ))}
@@ -211,7 +300,7 @@ export function LabEnvironmentComponent({
                   {isRunning ? "Running" : "Stopped"}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {environment.devices.length} devices •{" "}
+                  {environment.topology.nodes.length} devices •{" "}
                   {environment.topology.links.length} connections
                 </span>
               </div>
@@ -258,8 +347,8 @@ export function LabEnvironmentComponent({
         </TabsContent>
 
         <TabsContent value="devices" className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            {environment.devices.map((devices) => (
+          <div className="grid md:grid-cols-2 gap-5">
+            {environment.topology.nodes.map((devices) => (
               <Card
                 key={devices.id}
                 className={`cursor-pointer transition-colors ${
@@ -278,7 +367,9 @@ export function LabEnvironmentComponent({
                           {devices.name}
                         </CardTitle>
                         <div className="text-sm text-muted-foreground">
-                          {devices.type}
+                          {devices.type}{" "}
+                          {devices.applianceName &&
+                            ` - ${devices.applianceName}`}
                         </div>
                       </div>
                     </div>
@@ -287,12 +378,35 @@ export function LabEnvironmentComponent({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
-                    {devices.ipAddress && (
-                      <div className="text-sm">
-                        <span className="font-medium">IP:</span>{" "}
-                        {devices.ipAddress}
+                    <div className="text-sm">
+                      <span className="font-medium">Interfaces:</span>{" "}
+                      {devices.interfaces.length}
+                    </div>
+                    {devices.interfaces.map((iface) => (
+                      <div className="space-y-2">
+                        <Card className="text-sm p-2 gap-2 flex flex-row justify-between">
+                          <div className="flex flex-col items-end">
+                            <span className="font-medium">Interface</span>
+                            <span className="text-muted-foreground">
+                              {iface.name}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="font-medium">IP Address</span>
+                            <span className="text-muted-foreground">
+                              {iface.ipAddress ?? "not specified"}
+                            </span>
+                          </div>
+                          <div className="flex flex-col items-end">
+                            <span className="font-medium">Subnet Mask</span>
+                            <span className="text-muted-foreground">
+                              {iface.subnet ?? "not specified"}
+                            </span>
+                          </div>
+                        </Card>
+                        <div className="text-sm"></div>
                       </div>
-                    )}
+                    ))}
                     {devices.credentials && (
                       <div className="text-sm">
                         <span className="font-medium">Login:</span>{" "}
@@ -300,75 +414,11 @@ export function LabEnvironmentComponent({
                         {devices.credentials.password}
                       </div>
                     )}
-                    <div className="text-sm">
-                      <span className="font-medium">Interfaces:</span>{" "}
-                      {devices.interfaces.length}
-                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {selectedDevices && (
-            <Card>
-              <CardHeader>
-                <CardTitle>devices Details: {selectedDevices.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="font-medium">Type:</span>{" "}
-                      {selectedDevices.type}
-                    </div>
-                    <div>
-                      <span className="font-medium">IP Address:</span>{" "}
-                      {selectedDevices.ipAddress || "N/A"}
-                    </div>
-                  </div>
-
-                  {selectedDevices.credentials && (
-                    <div>
-                      <h4 className="font-medium mb-2">Credentials</h4>
-                      <div className="bg-muted p-3 rounded font-mono text-sm">
-                        Username: {selectedDevices.credentials.username}
-                        <br />
-                        Password: {selectedDevices.credentials.password}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <h4 className="font-medium mb-2">Interfaces</h4>
-                    <div className="space-y-2">
-                      {selectedDevices.interfaces.map((iface, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 border rounded"
-                        >
-                          <div>
-                            <span className="font-medium">{iface.name}</span>
-                            {iface.ipAddress && (
-                              <span className="ml-2 text-muted-foreground">
-                                {iface.ipAddress}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`w-2 h-2 rounded-full ${getStatusColor(iface.status ?? "down")}`}
-                            />
-                            <span className="text-sm">{iface.status}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </TabsContent>
         <TabsContent value="console" className="space-y-4">
           {isRunning && (
@@ -425,19 +475,19 @@ export function LabEnvironmentComponent({
               <CardTitle>Container Logs</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-black text-green-400 p-4 rounded font-mono text-xs min-h-[300px] max-h-[400px] overflow-y-auto">
+              <ScrollArea className="bg-black text-green-400 font-mono text-xs p-4 rounded min-h-[300px] max-h-[600px] overflow-x-auto border border-gray-700">
                 {logs.length === 0 ? (
-                  <div className="text-gray-400">
-                    No logs yet. Start a container to see logs.
+                  <div className="text-yellow-400">
+                    No logs yet. Start a lab instance to see logs.
                   </div>
                 ) : (
-                  logs.map((log, idx) => (
-                    <div key={idx} className="whitespace-pre-wrap">
-                      {log}
-                    </div>
-                  ))
+                  <pre>
+                    {logs.map((log, idx) => (
+                      <div key={idx}>{log}</div>
+                    ))}
+                  </pre>
                 )}
-              </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </TabsContent>

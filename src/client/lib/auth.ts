@@ -17,6 +17,7 @@ const loadUser = async (): Promise<IUser | null> => {
   try {
     const res = await axios.get("/auth/me");
     const permRes = await axios.get("/auth/permissions");
+    // to implement const submissions = await axios.get("/submissions");
     return {
       ...(res.data.user ?? {}),
       permissions: permRes.data.permissions,

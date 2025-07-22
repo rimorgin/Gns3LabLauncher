@@ -1,7 +1,7 @@
 import {
   IconDotsVertical,
   IconLogout,
-  IconNotification,
+  //IconNotification,
   IconUserCircle,
 } from "@tabler/icons-react";
 
@@ -30,6 +30,7 @@ import { IUser } from "@clnt/types/auth-types";
 import { useLogout } from "@clnt/lib/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { stringInitials } from "@clnt/lib/utils";
+import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
 
 export default function NavUser({
   user,
@@ -39,6 +40,7 @@ export default function NavUser({
   const queryClient = useQueryClient();
   const logoutUser = useLogout();
   const { isMobile } = useSidebar();
+  const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
 
   const initials = user?.name ? stringInitials(user?.name) : "";
 
@@ -102,14 +104,14 @@ export default function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveNavName("Account")}>
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <IconNotification />
                 Notifications
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>

@@ -11,7 +11,7 @@ export interface LabTemplate {
   thumbnail: string;
   objectives: string[];
   prerequisites: string[];
-  labEnvironment: LabEnvironment;
+  environment: LabEnvironment;
   guide: LabGuide; // Use the same type from lab.ts
   resources: LabResource[]; // Use the same type from lab.ts
   variables: TemplateVariable[];

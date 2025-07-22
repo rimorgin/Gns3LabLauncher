@@ -48,4 +48,4 @@ export const envPostgresUsername = process.env.POSTGRES_USER;
 export const envPostgresPassword = process.env.POSTGRES_PASSWORD;
 export const envPostgresDb = process.env.POSTGRES_DB;
 export const envPostgresSchema = process.env.POSTGRES_SCHEMA || "public";
-export const envPostgresUrl = `postgresql://${envPostgresUsername}:${envPostgresPassword}@${envPostgresHost}:${envPostgresPort}/${envPostgresDb}?schema=${envPostgresSchema}`;
+export const envPostgresUrl = process.env.POSTGRES_DATABASE_URL;

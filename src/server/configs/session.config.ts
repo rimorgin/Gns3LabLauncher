@@ -10,9 +10,10 @@ const sessionConfig = {
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 3, // 3 hours
     //1000 * 60 * 2,
+    sameSite: MODE === "production" || MODE === "staging" ? "none" : "lax",
   },
-  sessionSaveUninitialized: true,
-  sessionResave: true,
+  sessionSaveUninitialized: false,
+  sessionResave: false,
 };
 
 export default sessionConfig;

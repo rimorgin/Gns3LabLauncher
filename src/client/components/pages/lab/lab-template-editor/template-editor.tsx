@@ -31,8 +31,8 @@ export function TemplateEditor() {
     thumbnail: "",
     objectives: [],
     prerequisites: [],
-    labEnvironment: {
-      // Nested labEnvironment
+    environment: {
+      // Nested environment
       id: "",
       type: "GNS3",
       topology: {

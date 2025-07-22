@@ -27,9 +27,9 @@ export function LockLabGuideOverlay({
       {Array.from({ length: rows }).map((_, idx) => (
         <div
           key={idx}
-          className="flex flex-col items-center justify-center flex-1"
+          className="flex flex-col items-center justify-center flex-1 text-gray-500"
         >
-          <LockIcon className="h-10 w-10 text-gray-500" />
+          <LockIcon className="h-10 w-10" />
           <p className="text-lg mt-4 text-center">
             Start the lab instance to access the guide.
           </p>

@@ -34,7 +34,6 @@ import {
   StudentWithGroups,
   UserGroup,
 } from "@clnt/types/student-types";
-import { getRandomImage } from "@clnt/lib/utils";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 
 export function UserGroupCreateForm() {
@@ -214,12 +213,6 @@ export function UserGroupCreateForm() {
               <FormMessage />
             </FormItem>
           )}
-        />
-        {/* Set imageUrl programmatically with hidden input */}
-        <input
-          type="hidden"
-          {...form.register("imageUrl")}
-          value={getRandomImage("userGroups")}
         />
 
         <Button type="submit" className="w-full">

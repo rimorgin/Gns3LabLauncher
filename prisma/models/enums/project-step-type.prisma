@@ -1,6 +1,0 @@
-enum ProjectStepType {
-  READING
-  QUIZ
-  LAB
-  PROJECT
-}

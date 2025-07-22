@@ -8,6 +8,8 @@ export const projectFormSchema = z.object({
   tags: z.enum(["networking", "cybersecurity"]).describe("Tags is required"),
   duration: z.date().nullable().optional(),
   imageUrl: z.string().optional(),
+  labId: z.string().optional(),
+  byGroupSubmissions: z.boolean().optional(),
 });
 
 export const projectDbSchema = z.object({
@@ -21,6 +23,8 @@ export const projectDbSchema = z.object({
   updatedAt: z.date().optional(),
   visible: z.boolean(),
   duration: z.string().nullable(),
+  labId: z.string().optional(),
+  byGroupSubmissions: z.boolean().optional(),
   classrooms: z.array(
     z.object({
       id: z.string(),
