@@ -33,11 +33,12 @@ model Lab {
 
   status LabStatus @default(DRAFT)
 
-  project     Project[]       @relation("ProjectLabs")
-  environment LabEnvironment?
-  guide       LabGuide?
-  resources   LabResource[]
-  LabProgress LabProgress[]
+  project       Project[]       @relation("ProjectLabs")
+  environment   LabEnvironment?
+  guide         LabGuide?
+  resources     LabResource[]
+  LabProgress   LabProgress[]
+  LabSubmission LabSubmission[]
 
   @@index([status])
 }
@@ -167,13 +168,14 @@ model LabTask {
 }
 
 model VerificationStep {
-  id             String  @id @default(uuid())
-  sectionId      String
-  description    String?
-  command        String?
-  expectedOutput String?
-  device         String?
-  isCompleted    Boolean
+  id                 String   @id @default(uuid())
+  sectionId          String
+  description        String?
+  command            String?
+  expectedOutput     String?
+  device             String?
+  isCompleted        Boolean  @default(false)
+  requiresScreenshot Boolean? @default(false) // if step requires screenshot
 
   section LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 }

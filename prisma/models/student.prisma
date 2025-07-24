@@ -2,16 +2,14 @@ model Student {
   userId       String    @id
   isOnline     Boolean   @default(false)
   lastActiveAt DateTime?
-  enrolledAt   DateTime?
 
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userGroups  UserGroups[] @relation("UserGroups")
-  classrooms  Classroom[]  @relation("ClassroomStudents")
-  submissions Submission[] @relation("StudentSubmissions")
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userGroups  UserGroups[]    @relation("UserGroups")
+  classrooms  Classroom[]     @relation("ClassroomStudents")
+  submissions LabSubmission[] @relation("StudentLabSubmissions")
 
-  submissionFile SubmissionFile[] @relation("StudentSubmissionFiles")
-  progress       Progress[]       @relation("StudentProgresses")
-  labProgress    LabProgress[]    @relation("StudentLabProgresses")
+  progress    Progress[]    @relation("StudentProgresses")
+  labProgress LabProgress[] @relation("StudentLabProgresses")
 
   @@index([isOnline])
   @@index([lastActiveAt])

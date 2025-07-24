@@ -51,7 +51,11 @@ app.use(passport.session());
 
 // Serve static files from the 'public' directory
 app.use("/static", express.static(path.join(__dirname, "/public")));
-console.log("Serving static files from:", path.join(__dirname, "/public"));
+app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+console.log(
+  "Serving static files from:",
+  path.join(__dirname, "/public /uploads"),
+);
 
 // SECURITY
 app.set("trust proxy", 1);

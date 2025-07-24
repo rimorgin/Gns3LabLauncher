@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@clnt/components/ui/card";
-import { Button } from "@clnt/components/ui/button";
+import { Button, CopyButton } from "@clnt/components/ui/button";
 import { Badge } from "@clnt/components/ui/badge";
 import {
   Tabs,
@@ -214,29 +214,16 @@ export function LabGuide({
                     <span className="text-xs font-medium">
                       Router Configuration
                     </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        copyToClipboard(`enable
-configure terminal
-hostname R1
-interface gigabitethernet0/0
-ip address 192.168.1.1 255.255.255.0
-no shutdown`)
-                      }
-                    >
-                      <Copy className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  <pre className="text-xs">
-                    {`enable
+                    <CopyButton
+                      text={`enable
 configure terminal
 hostname R1
 interface gigabitethernet0/0
 ip address 192.168.1.1 255.255.255.0
 no shutdown`}
-                  </pre>
+                      onCopy={copyToClipboard}
+                    />
+                  </div>
                 </div>
               </div>
 

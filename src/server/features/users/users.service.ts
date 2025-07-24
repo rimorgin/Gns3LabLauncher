@@ -32,7 +32,6 @@ export class UserService {
             progress: true,
             labProgress: true,
             submissions: true,
-            submissionFile: true,
           },
         },
         instructor: {

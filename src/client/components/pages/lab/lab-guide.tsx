@@ -10,7 +10,6 @@ import {
 import { Button } from "@clnt/components/ui/button";
 import { Badge } from "@clnt/components/ui/badge";
 import { Progress } from "@clnt/components/ui/progress";
-import { Checkbox } from "@clnt/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@clnt/components/ui/alert";
 import {
   Tabs,
@@ -22,27 +21,16 @@ import {
   ChevronLeft,
   ChevronRight,
   CheckCircle,
-  Terminal,
-  Copy,
-  Eye,
-  EyeOff,
-  Lightbulb,
   AlertTriangle,
   Info,
   CheckSquare,
   Clock,
   Target,
-  Code,
-  Monitor,
 } from "lucide-react";
-import type {
-  LabGuide,
-  LabSection,
-  LabContent,
-  LabTask,
-  VerificationStep,
-  LabProgress,
-} from "@clnt/types/lab";
+import type { LabGuide, LabSection, LabProgress } from "@clnt/types/lab";
+import LabGuideVerification from "./lab-guide-verification";
+import LabGuideTask from "./lab-guide-task";
+import LabGuideContent from "./lab-guide-content";
 
 interface LabGuideProps {
   guide: LabGuide;
@@ -52,6 +40,12 @@ interface LabGuideProps {
   onVerificationComplete: (verificationId: string) => void;
   onNavigateSection: (sectionIndex: number) => void;
   isLabRunning: boolean;
+  onSubmitLab: (
+    verificationFiles: {
+      verificationId: string;
+      file: File;
+    }[],
+  ) => void;
 }
 
 export function LabGuideComponent({
@@ -62,11 +56,18 @@ export function LabGuideComponent({
   onVerificationComplete,
   onNavigateSection,
   isLabRunning,
+  onSubmitLab,
 }: LabGuideProps) {
   const [showHints, setShowHints] = useState<{ [key: string]: boolean }>({});
   const [activeTab, setActiveTab] = useState("tasks");
   const [expandedOutputs, setExpandedOutputs] = useState<{
     [key: string]: boolean;
+  }>({});
+  const [verificationFiles, setVerificationFiles] = useState<{
+    [verificationId: string]: File;
+  }>({});
+  const [previewUrls, setPreviewUrls] = useState<{
+    [verificationId: string]: string;
   }>({});
 
   const currentSection = guide.sections[guide.currentSection];
@@ -87,6 +88,17 @@ export function LabGuideComponent({
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+  };
+
+  const handleSubmitLab = () => {
+    const entries = Object.entries(verificationFiles);
+
+    const verificationFileArray = entries.map(([verificationId, file]) => ({
+      verificationId,
+      file,
+    }));
+
+    onSubmitLab(verificationFileArray);
   };
 
   const getSectionIcon = (type: LabSection["type"]) => {
@@ -112,284 +124,15 @@ export function LabGuideComponent({
     return colors[type];
   };
 
-  const renderContent = (content: LabContent) => {
-    switch (content.type) {
-      case "text":
-        return (
-          <div className="prose dark:prose-invert max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: content.content }} />
-          </div>
-        );
-
-      case "code":
-        return (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Code className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {content.metadata?.device
-                    ? `${content.metadata.device} Configuration`
-                    : "Code"}
-                </span>
-                {content.metadata?.language && (
-                  <Badge variant="outline" className="text-xs">
-                    {content.metadata.language}
-                  </Badge>
-                )}
-              </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => copyToClipboard(content.content)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-              <pre>{content.content}</pre>
-            </div>
-          </div>
-        );
-
-      case "terminal":
-        return (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Terminal className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {content.metadata?.device
-                    ? `${content.metadata.device} Terminal`
-                    : "Terminal Command"}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() =>
-                    copyToClipboard(content.metadata?.command || "")
-                  }
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                {content.metadata?.expected_output && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toggleOutput(content.id)}
-                  >
-                    {expandedOutputs[content.id] ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="bg-black text-green-400 p-4 rounded-lg font-mono text-sm">
-              <div className="mb-2">
-                <span className="text-blue-400">
-                  {content.metadata?.device || "device"}@lab:~$
-                </span>{" "}
-                {content.metadata?.command || content.content}
-              </div>
-              {expandedOutputs[content.id] &&
-                content.metadata?.expected_output && (
-                  <div className="text-gray-300 whitespace-pre-wrap">
-                    {content.metadata.expected_output}
-                  </div>
-                )}
-            </div>
-          </div>
-        );
-
-      case "callout": {
-        const calloutType = content.metadata?.callout_type || "info";
-        const calloutIcons = {
-          info: Info,
-          warning: AlertTriangle,
-          success: CheckCircle,
-          error: AlertTriangle,
-          tip: Lightbulb,
-        };
-        const CalloutIcon =
-          calloutIcons[calloutType as keyof typeof calloutIcons];
-
-        return (
-          <Alert
-            className={`border-l-4 ${
-              calloutType === "warning" || calloutType === "error"
-                ? "border-l-yellow-500"
-                : calloutType === "success"
-                  ? "border-l-green-500"
-                  : calloutType === "tip"
-                    ? "border-l-blue-500"
-                    : "border-l-gray-500"
-            }`}
-          >
-            <CalloutIcon className="h-4 w-4" />
-            <AlertDescription>{content.content}</AlertDescription>
-          </Alert>
-        );
-      }
-      case "image":
-        return (
-          <div className="text-center">
-            <img
-              src={content.content || "/placeholder.svg"}
-              alt="Lab illustration"
-              className="max-w-full h-auto rounded-lg border mx-auto"
-            />
-          </div>
-        );
-
-      case "topology":
-        return (
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <div className="flex items-center gap-2 mb-3">
-              <Monitor className="h-4 w-4" />
-              <span className="font-medium">Network Topology</span>
-            </div>
-            <div className="text-center text-muted-foreground">
-              Interactive topology view would be rendered here
-            </div>
-          </div>
-        );
-
-      default:
-        return <div>{content.content}</div>;
-    }
-  };
-
-  const renderTask = (task: LabTask) => {
-    return (
-      <Card
-        key={task.id}
-        className={`${task.isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              checked={task.isCompleted}
-              onCheckedChange={() => onTaskComplete(task.id)}
-              className="mt-1"
-            />
-            <div className="flex-1 space-y-3">
-              <div className="font-medium">{task.description}</div>
-
-              {task.device && (
-                <Badge variant="outline" className="text-xs">
-                  Device: {task.device}
-                </Badge>
-              )}
-
-              {task.commands && task.commands.length > 0 && (
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">
-                    Commands to execute:
-                  </div>
-                  {task.commands.map((command, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="bg-gray-900/90 text-gray-100 p-2 rounded font-mono text-sm flex-1">
-                        {command}
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => copyToClipboard(command)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {task.expectedResult && (
-                <div className="text-sm text-muted-foreground">
-                  <strong>Expected Result:</strong> {task.expectedResult}
-                </div>
-              )}
-
-              {task.hints.length > 0 && (
-                <div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => toggleHint(task.id)}
-                    className="text-blue-600"
-                  >
-                    <Lightbulb className="h-4 w-4 mr-1" />
-                    {showHints[task.id] ? "Hide Hints" : "Show Hints"}
-                  </Button>
-                  {showHints[task.id] && (
-                    <div className="mt-2 space-y-1">
-                      {task.hints.map((hint, index) => (
-                        <div
-                          key={index}
-                          className="text-sm text-blue-600 bg-blue-50 p-2 rounded"
-                        >
-                          💡 {hint}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderVerification = (verification: VerificationStep) => {
-    return (
-      <Card
-        key={verification.id}
-        className={`${verification.isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""}`}
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Checkbox
-              checked={verification.isCompleted}
-              onCheckedChange={() => onVerificationComplete(verification.id)}
-              className="mt-1"
-            />
-            <div className="flex-1 space-y-3">
-              <div className="font-medium">{verification.description}</div>
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Verification Command:</div>
-                <div className="flex items-center gap-2">
-                  <div className="bg-gray-900 text-gray-100 p-2 rounded font-mono text-sm flex-1">
-                    {verification.device}# {verification.command}
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => copyToClipboard(verification.command)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="text-sm font-medium">Expected Output:</div>
-                <div className="p-2 rounded font-mono text-sm whitespace-pre-wrap border-2 w-[95%]">
-                  {verification.expectedOutput}
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
+  const canSubmitLab = guide.sections.every(
+    (section) =>
+      section.tasks.every((t) => t.isCompleted) &&
+      section.verifications.every((v) => {
+        if (!v.isCompleted) return false;
+        if (v.requiresScreenshot && !verificationFiles[v.id]) return false;
+        return true;
+      }),
+  );
 
   if (!currentSection) {
     return (
@@ -455,69 +198,95 @@ export function LabGuideComponent({
         <CardContent className="p-6">
           <div className="space-y-6">
             {currentSection.content.map((content) => (
-              <div key={content.id}>{renderContent(content)}</div>
+              <LabGuideContent
+                key={content.id}
+                content={content}
+                expandedOutputs={expandedOutputs}
+                toggleOutput={toggleOutput}
+                copyToClipboard={copyToClipboard}
+              />
             ))}
           </div>
         </CardContent>
       </Card>
 
       {/* Tasks and Verification */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="tasks">
-            Tasks ({currentSection.tasks.filter((t) => t.isCompleted).length}/
-            {currentSection.tasks.length})
-          </TabsTrigger>
-          <TabsTrigger value="verification">
-            Verification (
-            {currentSection.verifications.filter((v) => v.isCompleted).length}/
-            {currentSection.verifications.length})
-          </TabsTrigger>
-        </TabsList>
+      {(currentSection.tasks.length > 0 ||
+        currentSection.verifications.length > 0) && (
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tasks">
+              Tasks ({currentSection.tasks.filter((t) => t.isCompleted).length}/
+              {currentSection.tasks.length})
+            </TabsTrigger>
+            <TabsTrigger value="verification">
+              Verification (
+              {currentSection.verifications.filter((v) => v.isCompleted).length}
+              /{currentSection.verifications.length})
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="tasks" className="space-y-4">
-          {currentSection.tasks.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <CheckSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No tasks for this section
-                </h3>
-                <p className="text-muted-foreground">
-                  This section is informational only.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {currentSection.tasks.map((task) => renderTask(task))}
-            </div>
-          )}
-        </TabsContent>
+          <TabsContent value="tasks" className="space-y-4">
+            {currentSection.tasks.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <CheckSquare className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">
+                    No tasks for this section
+                  </h3>
+                  <p className="text-muted-foreground">
+                    This section is informational only.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {currentSection.tasks.map((task) => (
+                  <LabGuideTask
+                    key={task.id}
+                    task={task}
+                    showHint={showHints[task.id]}
+                    onTaskComplete={onTaskComplete}
+                    toggleHint={toggleHint}
+                    copyToClipboard={copyToClipboard}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-        <TabsContent value="verification" className="space-y-4">
-          {currentSection.verifications.length === 0 ? (
-            <Card>
-              <CardContent className="text-center py-8">
-                <CheckCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-medium mb-2">
-                  No verification steps
-                </h3>
-                <p className="text-muted-foreground">
-                  Complete the tasks to proceed.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {currentSection.verifications.map((verification) =>
-                renderVerification(verification),
-              )}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
+          <TabsContent value="verification" className="space-y-4">
+            {currentSection.verifications.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <CheckCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">
+                    No verification steps
+                  </h3>
+                  <p className="text-muted-foreground">
+                    Complete the tasks to proceed.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {currentSection.verifications.map((verification) => (
+                  <LabGuideVerification
+                    key={verification.id}
+                    verification={verification}
+                    file={verificationFiles[verification.id] || null}
+                    previewUrl={previewUrls[verification.id] || null}
+                    onVerificationComplete={onVerificationComplete}
+                    setVerificationFiles={setVerificationFiles}
+                    setPreviewUrls={setPreviewUrls}
+                    copyToClipboard={copyToClipboard}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
       {/* Navigation */}
       <Card>
         <CardContent className="p-4">
@@ -554,16 +323,26 @@ export function LabGuideComponent({
               )}
             </div>
 
-            <Button
-              onClick={() => onNavigateSection(guide.currentSection + 1)}
-              disabled={
-                guide.currentSection === guide.sections.length - 1 ||
-                !labProgress.completedSections.includes(guide.currentSection)
-              }
-            >
-              Next Section
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </Button>
+            {/* Next Section or Submit */}
+            {guide.currentSection === guide.sections.length - 1 ? (
+              <Button
+                variant={canSubmitLab ? "default" : "outline"}
+                onClick={handleSubmitLab}
+                disabled={!canSubmitLab}
+              >
+                Submit Lab Progress
+              </Button>
+            ) : (
+              <Button
+                onClick={() => onNavigateSection(guide.currentSection + 1)}
+                disabled={
+                  !labProgress.completedSections.includes(guide.currentSection)
+                }
+              >
+                Next Section
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

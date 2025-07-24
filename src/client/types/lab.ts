@@ -159,6 +159,7 @@ export interface VerificationStep {
   expectedOutput: string;
   device: string;
   isCompleted: boolean;
+  requiresScreenshot?: boolean;
 }
 
 export interface LabResource {

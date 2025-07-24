@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  listGns3Containers,
   startGns3Container,
   stopGns3Container,
 } from "@srvr/features/gns3labs/gns3labs.controller.ts";
@@ -19,10 +18,12 @@ router.post("/start/:containerName", startGns3Container);
  */
 router.post("/stop/:containerName", stopGns3Container);
 
-/**
+/*
  * @route GET /gns3labs/list
  * @desc Lists all Docker containers (running & stopped)
  */
-router.get("/list", listGns3Containers);
+/**
+router.get("/list", listGns3Containers); 
+*/
 
 export default router;

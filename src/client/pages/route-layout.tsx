@@ -1,19 +1,22 @@
 import { createBrowserRouter, Outlet, useLocation } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
+import { Suspense, lazy } from "react";
 
-import HomePage from "@clnt/pages/home";
+import Loader from "@clnt/components/common/loader";
+import { AuthLoader } from "@clnt/lib/auth";
 import LoginPage from "@clnt/pages/login";
 import ErrorPage from "@clnt/pages/error";
-import { AuthLoader } from "@clnt/lib/auth";
-import Loader from "@clnt/components/common/loader";
-import ClassroomPageRoute from "./classrooms";
-import LabPageRoute from "./lab";
-import LabTemplatesPageRoute from "./lab-builder/template";
-import LabBuilderPageRoute from "./lab-builder";
-import LabEditorPageRoute from "./lab-builder/editor";
-import ProjectPageRoute from "./classrooms/project";
 
-const Layout = () => {
+// 👇 Lazy-loaded pages
+const HomePage = lazy(() => import("@clnt/pages/home"));
+const ClassroomPageRoute = lazy(() => import("./classrooms"));
+const LabPageRoute = lazy(() => import("./lab"));
+const LabTemplatesPageRoute = lazy(() => import("./lab-builder/template"));
+const LabBuilderPageRoute = lazy(() => import("./lab-builder"));
+const LabEditorPageRoute = lazy(() => import("./lab-builder/editor"));
+const ProjectPageRoute = lazy(() => import("./classrooms/project"));
+
+const AuthenticatedLayout = () => {
   const location = useLocation();
   return (
     <AuthLoader
@@ -27,14 +30,81 @@ const Layout = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="fixed inset-0 bg-background z-50 h-1/1 flex-1 overflow-y-auto"
+          className="fixed inset-0 bg-background z-50 h-full flex-1 overflow-y-auto"
         >
-          <Outlet />
+          <Suspense fallback={<Loader />}>
+            <Outlet />
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </AuthLoader>
   );
 };
+
+// 📄 Nested route constants
+const projectChildren = [
+  {
+    path: ":projectId",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <ProjectPageRoute />
+      </Suspense>
+    ),
+  },
+  {
+    path: ":projectId/labs/:labId",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <LabPageRoute />
+      </Suspense>
+    ),
+  },
+];
+
+const classroomChildren = [
+  {
+    path: ":classroomId",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <ClassroomPageRoute />
+      </Suspense>
+    ),
+    children: [
+      {
+        path: "project",
+        element: <Outlet />,
+        children: projectChildren,
+      },
+    ],
+  },
+];
+
+const labBuilderChildren = [
+  {
+    index: true,
+    element: (
+      <Suspense fallback={<Loader />}>
+        <LabBuilderPageRoute />
+      </Suspense>
+    ),
+  },
+  {
+    path: "editor/:labId",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <LabEditorPageRoute />
+      </Suspense>
+    ),
+  },
+  {
+    path: "templates",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <LabTemplatesPageRoute />
+      </Suspense>
+    ),
+  },
+];
 
 const router = createBrowserRouter([
   {
@@ -44,68 +114,39 @@ const router = createBrowserRouter([
         renderLoading={() => <Loader />}
         renderUnauthenticated={() => <LoginPage />}
       >
-        <HomePage />
+        <Suspense fallback={<Loader />}>
+          <HomePage />
+        </Suspense>
       </AuthLoader>
     ),
   },
-  // sample nested route http://localhost:5000/classrooms/c70695db-4269-46d6-9172-3622f32904d7/labs/45eeda7e-7845-4112-8c42-7dfb1cd71964
   {
     path: "classrooms",
-    element: <Layout />,
-    children: [
-      {
-        path: ":classroomId",
-        element: <ClassroomPageRoute />,
-        children: [
-          {
-            path: "project",
-            element: <Layout />,
-            children: [
-              {
-                path: ":projectId",
-                element: <ProjectPageRoute />,
-              },
-              {
-                path: ":projectId/labs/:labId",
-                element: <LabPageRoute />,
-              },
-            ],
-          },
-        ],
-      },
-    ],
+    element: <AuthenticatedLayout />,
+    children: classroomChildren,
   },
   {
     path: "lab-builder",
-    element: <Layout />,
-    children: [
-      {
-        index: true,
-        element: <LabBuilderPageRoute />,
-      },
-      {
-        path: "editor/:labId",
-        element: <LabEditorPageRoute />,
-      },
-      {
-        path: "templates",
-        element: <LabTemplatesPageRoute />,
-      },
-    ],
+    element: <AuthenticatedLayout />,
+    children: labBuilderChildren,
   },
   {
     path: "lab-builder-2",
-    element: <Layout />,
+    element: <AuthenticatedLayout />,
     children: [
       {
         index: true,
-        element: <LabTemplatesPageRoute />,
+        element: (
+          <Suspense fallback={<Loader />}>
+            <LabTemplatesPageRoute />
+          </Suspense>
+        ),
       },
     ],
   },
   {
     path: "*",
-    element: <ErrorPage />,
+    element: <ErrorPage />, // You can also lazy-load ErrorPage if desired
   },
 ]);
 

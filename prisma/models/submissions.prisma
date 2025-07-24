@@ -16,7 +16,7 @@ model Submission {
   groupId   String? // used if it's a group submission
 
   project Project          @relation("ProjectSubmissions", fields: [projectId], references: [id], onDelete: Cascade)
-  student Student?         @relation("StudentSubmissions", fields: [studentId], references: [userId])
+  //student Student?         @relation("StudentSubmissions", fields: [studentId], references: [userId])
   group   UserGroups?      @relation("GroupSubmissions", fields: [groupId], references: [id])
   files   SubmissionFile[] @relation("SubmissionFiles")
 
@@ -36,5 +36,35 @@ model SubmissionFile {
   uploadedById String
 
   submission Submission @relation("SubmissionFiles", fields: [submissionId], references: [id], onDelete: Cascade)
-  uploadedBy Student    @relation("StudentSubmissionFiles", fields: [uploadedById], references: [userId], onDelete: Cascade)
+  //uploadedBy Student    @relation("StudentSubmissionFiles", fields: [uploadedById], references: [userId], onDelete: Cascade)
+}
+
+model LabSubmission {
+  id          String            @id @default(uuid())
+  labId       String
+  studentId   String
+  submittedAt DateTime?         @default(now())
+  updatedAt   DateTime          @updatedAt
+  status      SubmissionStatus? // submitted, graded, late, etc.
+  grade       Float?
+  feedback    String?
+  attempt     Int               @default(autoincrement())
+
+  student Student @relation("StudentLabSubmissions", fields: [studentId], references: [userId], onDelete: Cascade)
+  lab     Lab     @relation(fields: [labId], references: [id], onDelete: Cascade)
+
+  files LabSubmissionFile[]
+
+  @@unique([labId, studentId], name: "uniqueLabSubmissionPerStudent")
+  @@index([status])
+}
+              
+model LabSubmissionFile {
+  id              String   @id @default(uuid())
+  labSubmissionId String
+  url             String
+  name            String?
+  uploadedAt      DateTime @default(now())
+
+  labSubmission LabSubmission @relation(fields: [labSubmissionId], references: [id], onDelete: Cascade)
 }

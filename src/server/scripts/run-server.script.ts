@@ -6,9 +6,9 @@ import {
   envServerHost,
   MODE,
   runComposeFile,
-  runEnvFile,
   runScript,
 } from "@srvr/configs/env.config.ts";
+import { downAll, upAll } from "docker-compose";
 import { onProcessShutdownStopGns3Containers } from "@srvr/utils/docker-run.utils.ts";
 
 console.log("Environment mode:", MODE);
@@ -65,20 +65,19 @@ async function createCertsIfNeeded(): Promise<void> {
  */
 async function startContainers(): Promise<void> {
   console.log("🐳 Starting Docker containers...");
-  try {
-    const { stdout, stderr } = await execAsync(
-      `docker compose -f ${runComposeFile} --env-file ${runEnvFile} up -d`,
-    );
-    if (stdout) console.log(stdout);
-    if (stderr) console.error(stderr);
-  } catch (error: unknown) {
-    console.error(
-      "❌ Failed to start containers:",
-      (error as { stderr?: string; message?: string }).stderr ||
-        (error as { message?: string }).message,
-    );
-    throw error;
-  }
+  await upAll({
+    cwd: process.cwd(), // root dir where the YAML is
+    config: runComposeFile, // e.g. 'docker-compose.dev.yml'
+    log: true,
+  }).then(
+    () => {
+      console.log("✅ Containers started:");
+    },
+    (err) => {
+      console.log("❌ Failed to start containers:", err.message);
+      process.exit(0);
+    },
+  );
 }
 
 /**
@@ -149,13 +148,9 @@ async function startViteExpress(): Promise<void> {
     Promise.all([
       shutdownPrismaStudio(),
       onProcessShutdownStopGns3Containers(),
-      execAsync(
-        `docker compose -f ${runComposeFile} --env-file ${runEnvFile} down`,
-      )
-        .then(() => console.log("✅ All dependent containers stopped."))
-        .catch((err) =>
-          console.warn("⚠️ Error stopping containers:", err.message),
-        ),
+      downAll({ cwd: process.cwd(), config: runComposeFile }).catch((err) =>
+        console.warn("⚠️ Docker Compose:", err),
+      ),
       shutdownAppProcess(),
     ]);
   };

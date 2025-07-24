@@ -19,7 +19,6 @@ import { Alert, AlertDescription } from "@clnt/components/ui/alert";
 import {
   Play,
   Square,
-  RotateCcw,
   Monitor,
   Network,
   Server,
@@ -29,6 +28,7 @@ import {
   AlertCircle,
   Clock,
   BrickWallFire,
+  MonitorCogIcon,
 } from "lucide-react";
 import type { LabEnvironment, TopologyNode } from "@clnt/types/lab";
 import socket from "@clnt/lib/socket";
@@ -41,7 +41,6 @@ interface LabEnvironmentProps {
   environment: LabEnvironment;
   onLaunch: () => void;
   onStop: () => void;
-  onReset: () => void;
   isRunning: boolean;
   isLoading: boolean;
 }
@@ -50,7 +49,6 @@ export function LabEnvironmentComponent({
   environment,
   onLaunch,
   onStop,
-  onReset,
   isRunning,
   isLoading,
 }: LabEnvironmentProps) {
@@ -313,13 +311,21 @@ export function LabEnvironmentComponent({
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" onClick={onReset}>
+                  <Button variant="default" onClick={() => {}}>
+                    <MonitorCogIcon className="h-4 w-4 mr-2" />
+                    View web console
+                  </Button>
+                  {/* <Button variant="outline" onClick={onReset}>
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
-                  </Button>
-                  <Button variant="destructive" onClick={onStop}>
+                  </Button> */}
+                  <Button
+                    variant="destructive"
+                    onClick={onStop}
+                    disabled={isLoading}
+                  >
                     <Square className="h-4 w-4 mr-2" />
-                    Stop Lab
+                    {isLoading ? "Stopping..." : "Stop Lab"}
                   </Button>
                 </>
               )}

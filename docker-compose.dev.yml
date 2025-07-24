@@ -20,33 +20,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-
-  pgbouncer:
-    image: pgbouncer/pgbouncer:latest
-    container_name: pgbouncer
-    environment:
-      DATABASES_HOST: postgres
-      DATABASES_PORT: 5432
-      DATABASES_USER: ${POSTGRES_USER}
-      DATABASES_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASES_DBNAME: ${POSTGRES_DB}
-      POOL_MODE: session
-      SERVER_RESET_QUERY: DISCARD ALL
-      MAX_CLIENT_CONN: 25
-      DEFAULT_POOL_SIZE: 10
-    ports:
-      - "6432:5432"
-    networks:
-      - gns3netlab-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "pg_isready", "-h", "localhost", "-p", "5432"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
+    deploy:
+      restart_policy:
+        condition: any
+        delay: "5s"
+        window: "60s"
   redis:
     image: redis:8.0-rc1
     container_name: redis
@@ -63,6 +41,11 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    deploy:
+      restart_policy:
+        condition: any
+        delay: "5s"
+        window: "60s"
 
 networks:
   gns3netlab-network:

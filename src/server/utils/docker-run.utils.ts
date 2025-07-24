@@ -1,18 +1,35 @@
+import docker from "@srvr/configs/docker.config.ts";
 import { exec, spawn } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
+export async function ensureImageExists(imageName: string) {
+  try {
+    await docker.getImage(imageName).inspect();
+  } catch {
+    console.log(`Image ${imageName} not found. Pulling...`);
+    const stream = await docker.pull(imageName);
+    await new Promise((resolve, reject) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      docker.modem.followProgress(stream, (err: any, output: any) => {
+        if (err) reject(err);
+        else resolve(output);
+      });
+    });
+    console.log(`Image ${imageName} pulled successfully`);
+  }
+}
+
 export async function isContainerRunning(
   containerName: string,
 ): Promise<boolean> {
   try {
-    const { stdout } = await execAsync(
-      `docker ps --filter "name=^/${containerName}$" --filter "status=running" --format "{{.ID}}"`,
-    );
-    return !!stdout.trim();
+    const container = docker.getContainer(containerName);
+    const data = await container.inspect();
+    return data.State.Running;
   } catch {
-    return false;
+    return false; // Container doesn't exist or inaccessible
   }
 }
 

@@ -9,17 +9,24 @@ import {
   SidebarMenuItem,
 } from "@clnt/components/ui/sidebar";
 import { useSidebarStore } from "@clnt/lib/store/sidebar-store";
+import { useShallow } from "zustand/react/shallow";
 
 export default function NavMain({
   items,
+  role,
 }: {
+  role: string;
   items: {
     title: string;
     icon?: Icon;
   }[];
 }) {
-  const activeNavName = useSidebarStore((state) => state.activeNavName);
-  const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
+  const activeNavName = useSidebarStore(
+    useShallow((state) => state.activeNavName),
+  );
+  const setActiveNavName = useSidebarStore(
+    useShallow((state) => state.setActiveNavName),
+  );
 
   return (
     <SidebarGroup>
@@ -46,7 +53,9 @@ export default function NavMain({
                     }
                   >
                     {item.icon && <SidebarIcon icon={item.icon} />}
-                    <span>{item.title}</span>
+                    <span>
+                      {role === "student" ? "My Learning" : item.title}
+                    </span>
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

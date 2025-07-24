@@ -109,7 +109,10 @@ export function ProjectsOverview({
                       </div>
                     </div>
 
-                    <Button onClick={() => onViewProject(project)}>
+                    <Button
+                      className="cursor-pointer"
+                      onClick={() => onViewProject(project)}
+                    >
                       <Play className="h-4 w-4 mr-2" />
                       View
                     </Button>

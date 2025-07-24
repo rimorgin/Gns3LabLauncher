@@ -6,6 +6,7 @@
     "node_modules",
     "public",
     "src/server/var",
-    "src/server/configs/env.config.ts"
+    "src/server/configs/env.config.ts",
+    "src/client/dist/**/*"
   ]
 }

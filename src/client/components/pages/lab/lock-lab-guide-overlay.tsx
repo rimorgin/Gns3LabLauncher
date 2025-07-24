@@ -22,7 +22,7 @@ export function LockLabGuideOverlay({
   return (
     <div
       ref={containerRef}
-      className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm overflow-hidden flex flex-col"
+      className="absolute inset-0 z-10 bg-white/70 backdrop-blur-sm overflow-hidden flex flex-col rounded-xl"
     >
       {Array.from({ length: rows }).map((_, idx) => (
         <div

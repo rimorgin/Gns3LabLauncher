@@ -48,6 +48,7 @@ import { IconDirectionArrowsFilled } from "@tabler/icons-react";
 import PageMeta from "@clnt/components/common/page-meta";
 import { useLabQuery } from "@clnt/lib/queries/lab-query";
 import Loader from "@clnt/components/common/loader";
+import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submit-mutation";
 
 export default function LabPageRoute() {
   const user = useUser();
@@ -69,8 +70,9 @@ export default function LabPageRoute() {
     startedAt: new Date(),
     status: "not_started",
   });
+  const { mutateAsync } = useSubmitLab();
 
-  if (!containerName || !labId) {
+  if (!containerName || !labId || !classroomId || !projectId) {
     return <Navigate to={"errorPage"} />;
   }
   if (isLoading) return <Loader />;
@@ -82,8 +84,6 @@ export default function LabPageRoute() {
     await toast.promise(startContainer.mutateAsync(containerName), {
       loading: "Starting lab instance...",
       success: (response) => {
-        setIsLabRunning(true);
-        setIsLabLoading(false);
         setProgress((prev) => ({
           ...prev,
           status: "in_progress",
@@ -93,36 +93,29 @@ export default function LabPageRoute() {
         return response.data.message;
       },
       error: () => {
-        setIsLabLoading(false);
         return "Error starting lab instance";
+      },
+      finally: () => {
+        setIsLabRunning(true);
+        setIsLabLoading(false);
       },
     });
   };
 
   const handleStopLab = async () => {
+    setIsLabLoading(true);
     await toast.promise(stopContainer.mutateAsync(containerName), {
       loading: "Stopping lab instance...",
       success: () => {
-        setIsLabRunning(false);
         socket.emit("stop-container-logs", { containerName: containerName });
         return "Stopped lab instance";
       },
       error: "Error stopping lab instance",
+      finally: () => {
+        setIsLabRunning(false);
+        setIsLabLoading(false);
+      },
     });
-  };
-
-  const handleResetLab = async () => {
-    setIsLabLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsLabLoading(false);
-    // Reset progress
-    setProgress((prev) => ({
-      ...prev,
-      completedTasks: [],
-      completedVerifications: [],
-      completedSections: [],
-      currentSection: 0,
-    }));
   };
 
   const handleSectionComplete = (sectionId: string) => {
@@ -185,6 +178,49 @@ export default function LabPageRoute() {
 
   const handleExitLab = () => {
     router.navigate(`/classrooms/${classroomId}/project/${projectId}`);
+  };
+
+  const handleSubmitLab = (
+    verificationFiles: {
+      verificationId: string;
+      file: File;
+    }[],
+  ) => {
+    const formData = new FormData();
+    formData.append("classroomId", classroomId);
+    formData.append("projectId", projectId);
+    formData.append("labId", labId);
+
+    // Include verification files
+    verificationFiles.forEach(({ verificationId, file }) => {
+      formData.append(`files[${verificationId}]`, file);
+    });
+
+    // Include progress metadata
+    formData.append("completedTasks", JSON.stringify(progress.completedTasks));
+    formData.append(
+      "completedVerifications",
+      JSON.stringify(progress.completedVerifications),
+    );
+    formData.append(
+      "completedSections",
+      JSON.stringify(progress.completedSections),
+    );
+
+    // DEBUG: show contents
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+
+    toast.promise(mutateAsync(formData), {
+      loading: "Submitting lab...",
+      success: "Submitted successfully!",
+      error: "Submission failed.",
+      finally: () => {
+        handleStopLab();
+      },
+      position: "top-center",
+    });
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -279,6 +315,7 @@ export default function LabPageRoute() {
                     onVerificationComplete={handleVerificationComplete}
                     onNavigateSection={handleNavigateSection}
                     isLabRunning={isLabRunning}
+                    onSubmitLab={handleSubmitLab}
                   />
                 </div>
               </TabsContent>
@@ -288,7 +325,6 @@ export default function LabPageRoute() {
                   environment={lab.environment}
                   onLaunch={handleLaunchLab}
                   onStop={handleStopLab}
-                  onReset={handleResetLab}
                   isRunning={isLabRunning}
                   isLoading={isLabLoading}
                 />

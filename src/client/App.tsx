@@ -5,17 +5,19 @@ import { useModal } from "@clnt/hooks/use-modal";
 import { SessionKickedAlert } from "@clnt/components/common/session-kicked-alert";
 import router from "@clnt/pages/route-layout";
 import { useLogout, useUser } from "./lib/auth";
+import { useSidebarStore } from "./lib/store/sidebar-store";
 
 function App() {
   const user = useUser();
   const logoutUser = useLogout();
   const { isOpen: isModalOpen, openModal, closeModal } = useModal();
+  const setActiveNavName = useSidebarStore((state) => state.setActiveNavName);
 
   console.log("running in ", import.meta.env.MODE);
 
   useEffect(() => {
     if (!user.data?.id) return;
-
+    if (user.data.role === "student") setActiveNavName("Classroom");
     // Connect on mount
     socket.connect();
 

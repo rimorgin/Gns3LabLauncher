@@ -20,5 +20,6 @@ export const useLabQuery = (id: string) => {
       return data;
     },
     enabled: !!id,
+    refetchOnWindowFocus: false,
   });
 };

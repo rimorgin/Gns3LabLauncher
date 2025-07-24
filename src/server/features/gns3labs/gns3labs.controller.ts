@@ -1,19 +1,10 @@
 import type { Request, Response, NextFunction } from "express";
-import { exec } from "child_process";
-import { promisify } from "util";
-import {
-  runGns3ServerDockerContainer,
-  stopGns3ServerDockerContainer,
-} from "@srvr/scripts/run-gns3server.script.ts";
 import {
   checkContainerHealth,
   isContainerRunning,
-  waitForContainer,
-  waitForContainerToBeCreated,
 } from "@srvr/utils/docker-run.utils.ts";
 import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
-
-const execAsync = promisify(exec);
+import { Gns3DockerService } from "./gns3labs.service.ts";
 
 export async function startGns3Container(
   req: Request,
@@ -37,9 +28,7 @@ export async function startGns3Container(
       return;
     }
 
-    const containerId = await runGns3ServerDockerContainer(containerName);
-    await waitForContainerToBeCreated(containerName);
-    await waitForContainer(containerName);
+    const containerId = await Gns3DockerService.runContainer({ containerName });
     const healthy = await checkContainerHealth(containerId);
 
     if (!healthy) {
@@ -80,7 +69,7 @@ export async function stopGns3Container(
       console.warn(`⚠️ Stopping critical service: ${containerName}`);
     }
 
-    await stopGns3ServerDockerContainer(containerName);
+    await Gns3DockerService.stopContainer(containerName);
 
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: "Container stopped",
@@ -88,34 +77,6 @@ export async function stopGns3Container(
     });
   } catch (error) {
     console.error("❌ Error stopping container:", error);
-    next(error);
-  }
-}
-
-export async function listGns3Containers(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  try {
-    const { stdout } = await execAsync(
-      `docker ps -a --filter ancestor=rimorgin/gns3server --format "{{.ID}} {{.Names}} {{.Status}}"`,
-    );
-
-    const containers = stdout
-      .trim()
-      .split("\n")
-      .filter(Boolean)
-      .map((line) => {
-        const [id, ...rest] = line.split(" ");
-        const name = rest.shift()!;
-        const status = rest.join(" ");
-        return { id, name, status };
-      });
-
-    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({ containers });
-  } catch (error) {
-    console.error("❌ Error listing GNS3 containers:", error);
     next(error);
   }
 }
