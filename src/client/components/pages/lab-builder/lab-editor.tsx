@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@clnt/components/ui/card";
 import { Progress } from "@clnt/components/ui/progress";
 import { CheckCircle, Circle } from "lucide-react";
@@ -9,71 +9,30 @@ import { EnvironmentStep } from "./environment-step";
 import { GuideStep } from "./guide-step";
 import { ResourcesStep } from "./resources-step";
 import { ReviewStep } from "./review-step";
-import type {
-  Lab,
-  LabEnvironment,
-  LabGuide,
-  LabResource,
-} from "@clnt/types/lab";
+import type { Lab } from "@clnt/types/lab";
 import { toast } from "sonner";
 import { useUpdateLab } from "@clnt/lib/mutations/lab/lab-update-mutation";
 import { useUser } from "@clnt/lib/auth";
 import { LabPreview } from "./lab-preview";
-import { useImmer } from "use-immer";
-
-interface LabBuilderData {
-  basicInfo: Partial<Lab>;
-  environment: Partial<LabEnvironment>;
-  guide: Partial<LabGuide>;
-  resources: LabResource[];
-}
-
+import { steps } from "./lab-builder";
+import { SettingsStep } from "./settings-step";
+import router from "@clnt/pages/route-layout";
+import {
+  LabBuilderData,
+  useLabBuilderStore,
+} from "@clnt/lib/store/lab-builder-store";
 interface LabEditorProps {
-  initialLab: Lab;
+  initialLab: LabBuilderData;
 }
-
-const steps = [
-  {
-    id: 1,
-    title: "Basic Information",
-    description: "Lab details and metadata",
-  },
-  {
-    id: 2,
-    title: "Environment Setup",
-    description: "Network topology and devices",
-  },
-  { id: 3, title: "Lab Guide", description: "Step-by-step instructions" },
-  {
-    id: 4,
-    title: "Resources",
-    description: "Additional materials and references",
-  },
-  { id: 5, title: "Review & Save", description: "Final review and publish" },
-];
 
 export function LabEditor({ initialLab }: LabEditorProps) {
   const user = useUser();
   const [currentStep, setCurrentStep] = useState(1); // start at Review by default
 
-  const [labData, setLabData] = useImmer<LabBuilderData>({
-    basicInfo: {
-      id: initialLab.id,
-      title: initialLab.title,
-      description: initialLab.description,
-      category: initialLab.category,
-      difficulty: initialLab.difficulty,
-      tags: initialLab.tags,
-      status: initialLab.status,
-      estimatedTime: initialLab.estimatedTime,
-      objectives: initialLab.objectives,
-      prerequisites: initialLab.prerequisites,
-      createdBy: initialLab.createdBy,
-    },
-    environment: initialLab.environment ?? {},
-    guide: initialLab.guide ?? {},
-    resources: initialLab.resources ?? [],
-  });
+  const hasHydrated = useLabBuilderStore((state) => state.hasHydrated);
+  const labData = useLabBuilderStore((state) => state.lab);
+  const updateLabData = useLabBuilderStore((s) => s.updateSection);
+  const buildLab = useLabBuilderStore((s) => s.buildLab);
 
   // Add state for preview
   const [showPreview, setShowPreview] = useState(false);
@@ -81,75 +40,55 @@ export function LabEditor({ initialLab }: LabEditorProps) {
 
   const updateLab = useUpdateLab();
 
-  function buildLabFromUpdatedData(labData: LabBuilderData): Lab {
-    return {
-      id: labData.basicInfo.id,
-      title: labData.basicInfo.title ?? "Untitled",
-      description: labData.basicInfo.description ?? "",
-      difficulty: labData.basicInfo.difficulty ?? "BEGINNER",
-      estimatedTime: labData.basicInfo.estimatedTime ?? 60,
-      category: labData.basicInfo.category ?? "",
-      tags: labData.basicInfo.tags ?? [],
-      objectives: labData.basicInfo.objectives ?? [],
-      prerequisites: labData.basicInfo.prerequisites ?? [],
-      environment: { ...labData.environment } as LabEnvironment,
-      guide: { ...labData.guide } as LabGuide,
-      resources: [...labData.resources],
-      createdBy: user.data?.username ?? "Unknown",
-      status: "PUBLISHED",
-    } as Lab;
-  }
+  useEffect(() => {
+    if (hasHydrated) {
+      console.log("hydrated labData", labData);
+    }
+  }, [hasHydrated, labData]);
 
   // Handle lab preview
-  const handlePreview = useCallback(
-    (labDataToPreview: LabBuilderData) => {
-      const lab = buildLabFromUpdatedData(labDataToPreview);
-      setPreviewLab(lab);
-      setShowPreview(true);
-    },
-    [user.data?.username],
-  );
+  const handlePreview = useCallback(() => {
+    const lab = buildLab(user.data?.username);
+    setPreviewLab(lab);
+    setShowPreview(true);
+  }, [user.data?.username]);
+
+  const handleTestLabEnvironment = useCallback(() => {
+    const lab = buildLab(user.data?.username);
+    router.navigate("/lab-builder/test-build", {
+      state: {
+        lab,
+        from: router.state.location.pathname, // current route path before navigating
+      },
+      fromRouteId: "/lab-builder/editor",
+    });
+  }, [user.data?.username]);
 
   // Handle lab publishing
-  const handleSaveLab = useCallback(
-    async (labDataToSave: LabBuilderData) => {
-      const lab = buildLabFromUpdatedData(labDataToSave);
-      lab.status = "PUBLISHED";
+  const handleSaveLab = useCallback(async () => {
+    const lab = buildLab(user.data?.username);
+    lab.status = "PUBLISHED";
 
-      return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
-        loading: "Publishing lab...",
-        success: "Lab published successfully",
-        error: "Failed to publish lab",
-      });
-    },
-    [updateLab, user.data?.username],
-  );
+    return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
+      loading: "Publishing lab...",
+      success: "Lab published successfully",
+      error: "Failed to publish lab",
+    });
+  }, [updateLab, user.data?.username]);
 
   // Handle draft saving
-  const handleSaveDraftLab = useCallback(
-    async (labDataToSave: LabBuilderData) => {
-      const lab = buildLabFromUpdatedData(labDataToSave);
-      lab.status = "DRAFT";
+  const handleSaveDraftLab = useCallback(async () => {
+    const lab = buildLab(user.data?.username);
+    lab.status = "DRAFT";
 
-      console.log("🚀 ~ lab:", lab);
+    console.log("🚀 ~ lab:", lab);
 
-      return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
-        loading: "Saving draft...",
-        success: "Draft saved successfully",
-        error: "Failed to save draft",
-      });
-    },
-    [updateLab, user.data?.username],
-  );
-
-  const updateLabData = useCallback(
-    <K extends keyof LabBuilderData>(section: K, data: LabBuilderData[K]) => {
-      setLabData((draft) => {
-        draft[section] = data;
-      });
-    },
-    [setLabData],
-  );
+    return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
+      loading: "Saving draft...",
+      success: "Draft saved successfully",
+      error: "Failed to save draft",
+    });
+  }, [updateLab, user.data?.username]);
 
   const nextStep = useCallback(() => {
     if (currentStep < steps.length) {
@@ -164,6 +103,10 @@ export function LabEditor({ initialLab }: LabEditorProps) {
   }, [currentStep]);
 
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
+
+  if (!hasHydrated) {
+    return null;
+  }
 
   const renderStep = () => {
     switch (currentStep) {
@@ -204,10 +147,20 @@ export function LabEditor({ initialLab }: LabEditorProps) {
         );
       case 5:
         return (
+          <SettingsStep
+            data={labData.settings}
+            onUpdate={(data) => updateLabData("settings", data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        );
+      case 6:
+        return (
           <ReviewStep
             labData={labData}
             onPrev={prevStep}
             onPreview={handlePreview}
+            onTestLabEnvironment={handleTestLabEnvironment}
             onSave={handleSaveLab}
             onSaveDraft={handleSaveDraftLab}
             isLoading={updateLab.isPending}

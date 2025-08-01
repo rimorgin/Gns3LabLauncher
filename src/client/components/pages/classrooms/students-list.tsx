@@ -40,14 +40,17 @@ import type { Student } from "@clnt/types/classroom";
 import { stringInitials } from "@clnt/lib/utils";
 import moment from "moment";
 import { IconAt } from "@tabler/icons-react";
+import { IUser } from "@clnt/types/auth-types";
 
 interface StudentsListProps {
+  currentUser: IUser;
   students: Student[];
   onViewStudent: (student: Student) => void;
   onMessageStudent: (student: Student) => void;
 }
 
 export function StudentsList({
+  currentUser,
   students,
   onViewStudent,
   onMessageStudent,
@@ -120,7 +123,11 @@ export function StudentsList({
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium">{student.user.name}</div>
+                          <div className="font-medium">
+                            {currentUser.name === student.user.name
+                              ? `${student.user.name} (You)`
+                              : student.user.name}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             {student.user.username}
                           </div>

@@ -26,6 +26,7 @@ import {
   Monitor,
   Server,
   BrickWallFire,
+  Cog,
 } from "lucide-react";
 import { IconCloud } from "@tabler/icons-react";
 import type { Lab, TopologyNode } from "@clnt/types/lab";
@@ -280,11 +281,7 @@ export function LabPreview({
         <DrawerContent>
           <ScrollArea className="-mt-7 rounded-t-lg max-h-screen overflow-y-auto">
             <div className="relative">
-              <img
-                src="/placeholder.svg"
-                alt={lab.title}
-                className="w-full h-48 object-cover bg-gradient-to-r from-blue-500 to-purple-600"
-              />
+              <div className="w-full h-48 object-cover bg-gradient-to-r from-blue-500 to-purple-600" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
               <div className="absolute bottom-0 left-0 p-6 text-white">
                 <DrawerTitle className="text-3xl font-bold text-white">
@@ -531,6 +528,55 @@ export function LabPreview({
                 )}
               </div>
 
+              <Separator />
+              {/* Lab Settings Review */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Cog className="w-5 h-5" />
+                  Lab Settings
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">
+                      Max Submission Attempts
+                    </span>
+                    <p className="font-medium">
+                      {lab.settings.maxAttemptSubmission}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-muted-foreground">
+                      Force Exit Upon Timeout
+                    </span>
+                    <p className="font-medium">
+                      {lab.settings.onForceExitUponTimeout
+                        ? "Enabled"
+                        : "Disabled"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-muted-foreground">
+                      Interactive Lab
+                    </span>
+                    <p className="font-medium">
+                      {lab.settings.disableInteractiveLab
+                        ? "Disabled"
+                        : "Enabled"}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="text-muted-foreground">
+                      Strictly no late submission
+                    </span>
+                    <p className="font-medium">
+                      {lab.settings.noLateSubmission ? "Disabled" : "Enabled"}
+                    </p>
+                  </div>
+                </div>
+              </div>
               <Separator />
 
               <div>

@@ -11,8 +11,18 @@ export interface Lab {
   environment: LabEnvironment;
   guide: LabGuide;
   resources: LabResource[];
+  settings: LabSettings;
   createdBy?: string;
   status?: "DRAFT" | "PUBLISHED";
+}
+
+export interface LabSettings {
+  labId: string;
+  maxAttemptSubmission: number;
+  onForceExitUponTimeout: boolean;
+  disableInteractiveLab: boolean;
+  noLateSubmission: boolean;
+  visible: boolean;
 }
 
 export interface LabEnvironment {
@@ -154,10 +164,11 @@ export interface VerificationStep {
   id: string;
   sectionId?: string;
   description: string;
-  command: string;
-  expectedOutput: string;
+  commands: string[];
+  expectedOutput: string[];
   device: string;
   isCompleted: boolean;
+  requiresScreenshot: boolean;
 }
 
 export interface LabResource {

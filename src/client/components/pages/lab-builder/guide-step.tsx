@@ -43,7 +43,7 @@ interface GuideStepProps {
 
 export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
   const [formData, setFormData] = useImmer<Partial<LabGuide>>({
-    labId: data.labId || crypto.randomUUID(),
+    labId: data.labId || undefined,
     sections: data.sections || [],
     currentSection: 0,
     //completedSections: [],
@@ -166,8 +166,11 @@ export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
     const newTask: LabTask = {
       id: crypto.randomUUID(),
       description: "",
+      commands: [],
+      expectedResult: "",
       isCompleted: false,
       hints: [],
+      device: "",
     };
 
     updateFormData((draft) => {
@@ -199,8 +202,8 @@ export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
     const newVerification: VerificationStep = {
       id: crypto.randomUUID(),
       description: "",
-      command: "",
-      expectedOutput: "",
+      commands: [],
+      expectedOutput: [],
       device: "",
       isCompleted: false,
     };
@@ -717,13 +720,13 @@ export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
                             <div>
                               <Label>Commands (one per line)</Label>
                               <Textarea
-                                value={verification.command}
+                                value={(verification.commands || []).join("\n")}
                                 onChange={(e) =>
                                   updateVerification(
                                     sectionIndex,
                                     verificationIndex,
-                                    "command",
-                                    e.target.value,
+                                    "commands",
+                                    e.target.value.split("\n"),
                                   )
                                 }
                               />
@@ -731,13 +734,15 @@ export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
                             <div>
                               <Label>Expected Output</Label>
                               <Textarea
-                                value={verification.expectedOutput}
+                                value={(verification.expectedOutput || []).join(
+                                  "\n",
+                                )}
                                 onChange={(e) =>
                                   updateVerification(
                                     sectionIndex,
                                     verificationIndex,
                                     "expectedOutput",
-                                    e.target.value,
+                                    e.target.value.split("\n"),
                                   )
                                 }
                                 rows={2}

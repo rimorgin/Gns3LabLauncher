@@ -8,13 +8,25 @@ const axiosInstance = axios.create({
 
 // Cached token
 let csrfToken: string | null = null;
+let csrfPromise: Promise<string> | null = null;
 
-async function getCsrfToken() {
-  if (csrfToken) return csrfToken;
+async function getCsrfToken(): Promise<string> {
+  if (csrfToken) return Promise.resolve(csrfToken);
+  if (csrfPromise) return csrfPromise;
 
-  const res = await axiosInstance.get("/csrf");
-  csrfToken = res.data?.csrfToken;
-  return csrfToken;
+  csrfPromise = axiosInstance
+    .get("/csrf")
+    .then((res) => {
+      csrfToken = res.data?.csrfToken;
+      csrfPromise = null;
+      return csrfToken!;
+    })
+    .catch((err) => {
+      csrfPromise = null;
+      throw err;
+    });
+
+  return csrfPromise;
 }
 
 // 🛡️ Request interceptor to inject CSRF
@@ -40,6 +52,8 @@ axiosInstance.interceptors.response.use(
       );
     }
     csrfToken = null;
+    csrfPromise = null;
+
     return response;
   },
   (error) => {
@@ -54,6 +68,8 @@ axiosInstance.interceptors.response.use(
       throw new Error(error?.response?.message);
     }
     csrfToken = null;
+    csrfPromise = null;
+
     return Promise.reject(error);
   },
 );

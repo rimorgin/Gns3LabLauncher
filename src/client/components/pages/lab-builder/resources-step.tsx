@@ -185,7 +185,7 @@ export function ResourcesStep({
           <Button variant="outline" onClick={handlePrev}>
             Previous: Lab Guide
           </Button>
-          <Button onClick={handleNext}>Next: Review & Save</Button>
+          <Button onClick={handleNext}>Next: Settings</Button>
         </div>
       </CardContent>
     </Card>

@@ -4,7 +4,7 @@ import { Button } from "@clnt/components/ui/button";
 import { Input } from "@clnt/components/ui/input";
 import { Label } from "@clnt/components/ui/label";
 import {
-  IconBrandWindowsFilled,
+  //IconBrandWindowsFilled,
   IconEye,
   IconEyeClosed,
 } from "@tabler/icons-react";
@@ -44,14 +44,14 @@ export function LoginForm({
     }
   };
 
-  const handleLoginMicrosoft = async (e: React.FormEvent) => {
+  /* const handleLoginMicrosoft = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await loginUser.mutateAsync(form);
     } catch (error) {
       console.error("Login error:", error);
     }
-  };
+  }; */
   return (
     <form
       onSubmit={handleLoginLocal}
@@ -115,7 +115,7 @@ export function LoginForm({
         <Button type="submit" className="w-full" disabled={loginUser.isPending}>
           {loginUser.isPending ? "Logging in" : "Login"}
         </Button>
-        <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+        {/* <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
           <span className="bg-background text-muted-foreground relative z-10 px-2">
             Or continue with
           </span>
@@ -127,7 +127,7 @@ export function LoginForm({
         >
           <IconBrandWindowsFilled />
           Login with Microsoft
-        </Button>
+        </Button> */}
       </div>
       {/* <div className="text-center text-sm">
         Don&apos;t have an account?{" "}

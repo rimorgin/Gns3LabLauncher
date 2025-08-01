@@ -149,11 +149,10 @@ export function EnvironmentStep({
     field: K,
     value: DeviceInterface[K],
   ) => {
-    updateFormData(
-      (draft) =>
-        (draft.topology!.nodes[nodeIndex].interfaces[interfaceIndex][field] =
-          value),
-    );
+    updateFormData((draft) => {
+      draft.topology!.nodes[nodeIndex].interfaces[interfaceIndex][field] =
+        value;
+    });
   };
 
   const addTopologyNote = () => {
@@ -1171,13 +1170,14 @@ export function EnvironmentStep({
                         {(nodeDevice.interfaces ?? []).map(
                           (intf, intfIndex) => (
                             <div
-                              key={`${nodeDevice.id}-${intfIndex}-${intf.name}`}
+                              key={`${nodeDevice.id}-${intfIndex}`}
                               className="grid sm:grid-cols-2 md:grid-cols-3 gap-4"
                             >
                               <div>
                                 <Label>Interface Name</Label>
                                 <Input
-                                  value={intf.name}
+                                  value={intf.name || ""}
+                                  placeholder="GigabitEthernet0/0/0"
                                   onChange={(e) =>
                                     updateNodeInterface(
                                       index,

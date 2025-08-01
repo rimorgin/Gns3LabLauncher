@@ -1,48 +1,25 @@
-model Submission {
-  id          String            @id @default(uuid())
-  submittedAt DateTime?
-  updatedAt   DateTime          @updatedAt
-  fileUrl     String? // e.g. file path
-  status      SubmissionStatus? // e.g. "submitted", "graded", "late"
-  grade       Float? // optional grading
-  feedback    String? // optional teacher feedback
-  //maxAttempts SubmissionAttempts? //e.g 1 attempt  
-
-  maxAttempts    Int @default(3)
-  currentAttempt Int @default(1)
-
-  projectId String
-  studentId String? // used if it's an individual submission
-  groupId   String? // used if it's a group submission
-
-  project Project          @relation("ProjectSubmissions", fields: [projectId], references: [id], onDelete: Cascade)
-  //student Student?         @relation("StudentSubmissions", fields: [studentId], references: [userId])
-  group   UserGroups?      @relation("GroupSubmissions", fields: [groupId], references: [id])
-  files   SubmissionFile[] @relation("SubmissionFiles")
-
-  @@unique([id, studentId], name: "uniqueSubmissionPerStudent")
-  @@unique([id, groupId], name: "uniqueSubmissionPerGroup")
-  @@index([status])
-  @@index([submittedAt])
-}
-
-model SubmissionFile {
-  id         String   @id @default(uuid())
-  url        String
-  name       String?
-  uploadedAt DateTime @default(now())
-
-  submissionId String
-  uploadedById String
-
-  submission Submission @relation("SubmissionFiles", fields: [submissionId], references: [id], onDelete: Cascade)
-  //uploadedBy Student    @relation("StudentSubmissionFiles", fields: [uploadedById], references: [userId], onDelete: Cascade)
-}
+/**
+ * model Submission {
+ * id          String            @id @default(uuid())
+ * submittedAt DateTime?
+ * updatedAt   DateTime          @updatedAt
+ * fileUrl     String? // e.g. file path
+ * status      SubmissionStatus? // e.g. "submitted", "graded", "late"
+ * grade       Float? // optional grading
+ * feedback    String? // optional teacher feedback
+ * maxAttempts    Int @default(3)
+ * projectId String
+ * project Project          @relation("ProjectSubmissions", fields: [projectId], references: [id], onDelete: Cascade)
+ * @@index([status])
+ * @@index([submittedAt])
+ * }
+ */
 
 model LabSubmission {
   id          String            @id @default(uuid())
   labId       String
   studentId   String
+  projectId   String
   submittedAt DateTime?         @default(now())
   updatedAt   DateTime          @updatedAt
   status      SubmissionStatus? // submitted, graded, late, etc.
@@ -51,14 +28,16 @@ model LabSubmission {
   attempt     Int               @default(autoincrement())
 
   student Student @relation("StudentLabSubmissions", fields: [studentId], references: [userId], onDelete: Cascade)
+  project Project @relation("ProjectLabSubmissions", fields: [projectId], references: [id], onDelete: Cascade)
   lab     Lab     @relation(fields: [labId], references: [id], onDelete: Cascade)
 
   files LabSubmissionFile[]
 
-  @@unique([labId, studentId], name: "uniqueLabSubmissionPerStudent")
+  @@unique([labId, studentId, projectId], name: "uniqueLabSubmissionPerStudentAndPerProject")
   @@index([status])
+  @@index([submittedAt])
 }
-              
+
 model LabSubmissionFile {
   id              String   @id @default(uuid())
   labSubmissionId String

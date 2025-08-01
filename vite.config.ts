@@ -52,6 +52,7 @@ export default defineConfig(() => {
       allowedHosts: [
         "gns3lablauncher.mapua.netlab",
         "adb3f906b4e6.ngrok-free.app",
+        "gns3.loca.lt",
       ],
     },
     resolve: {

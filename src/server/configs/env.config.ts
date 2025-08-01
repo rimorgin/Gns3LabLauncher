@@ -9,9 +9,11 @@ export const runComposeFile =
   MODE === "development" ? "docker-compose.dev.yml" : "docker-compose.yml";
 export const runEnvFile = `.env.${MODE}`;
 export const runScript =
-  MODE === "production" || MODE === "staging"
-    ? `yarn run ${MODE}`
-    : "yarn run dev";
+  MODE === "production"
+    ? "yarn run app:prod"
+    : MODE === "staging"
+      ? "yarn run app:staging"
+      : "yarn run app:dev";
 
 if (!fs.existsSync(runEnvFile)) {
   throw new Error(
@@ -29,6 +31,12 @@ dotenv.config({
   path: path.join(process.cwd(), runEnvFile),
   debug: MODE === "development",
 });
+
+if (!process.env.POSTGRES_DATABASE_URL) {
+  throw new Error(
+    `No database url defined. Please create a connection string to proceed`,
+  );
+}
 
 export const envProtocol =
   MODE === "production" || MODE === "staging" ? "https" : "http";

@@ -2,7 +2,9 @@ import cors, { CorsOptions } from "cors";
 
 const allowedOrigins = [
   "http://localhost:5000",
-  "https://localhost:8443",
+  "http://10.0.0.1:5000",
+  "http://54.252.135.175",
+  "https://54.252.135.175",
   "https://gns3lablauncher.mapua.netlab:8443",
 ];
 

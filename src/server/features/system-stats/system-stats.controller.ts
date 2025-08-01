@@ -9,7 +9,7 @@ export const getDockerStats = async (req: Request, res: Response) => {
   try {
     // Add filters here if needed!
     const { stdout } = await execAsync(
-      `docker stats --no-stream --format "{{json .}}"`,
+      `docker stats postgres redis --no-stream --format "{{json .}}"`,
     );
 
     const stats = stdout

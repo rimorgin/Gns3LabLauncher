@@ -41,7 +41,7 @@ export function TemplateGuideEditor({
     estimatedTime: 0,
     content: [],
     tasks: [],
-    verification: [],
+    verifications: [],
     hints: [],
   });
   const [newContent, setNewContent] = useState<LabContent>({
@@ -58,8 +58,8 @@ export function TemplateGuideEditor({
   const [newVerification, setNewVerification] = useState<VerificationStep>({
     id: "",
     description: "",
-    command: "",
-    expectedOutput: "",
+    commands: [],
+    expectedOutput: [],
     device: "",
     isCompleted: false,
   });
@@ -121,7 +121,7 @@ export function TemplateGuideEditor({
         estimatedTime: 0,
         content: [],
         tasks: [],
-        verification: [],
+        verifications: [],
         hints: [],
       });
     }
@@ -290,7 +290,7 @@ export function TemplateGuideEditor({
   ) => {
     const updatedSections = template.guide.sections.map((section, sIdx) => {
       if (sIdx === sectionIndex) {
-        const updatedVerifications = section.verification.map((v, vIdx) =>
+        const updatedVerifications = section.verifications.map((v, vIdx) =>
           vIdx === verificationIndex ? { ...v, [field]: value } : v,
         );
         return { ...section, verification: updatedVerifications };
@@ -311,13 +311,13 @@ export function TemplateGuideEditor({
   };
 
   const addVerification = (sectionIndex: number) => {
-    if (newVerification.description && newVerification.command) {
+    if (newVerification.description && newVerification.commands) {
       const updatedSections = template.guide.sections.map((section, sIdx) => {
         if (sIdx === sectionIndex) {
           return {
             ...section,
             verification: [
-              ...section.verification,
+              ...section.verifications,
               { ...newVerification, id: `verify-${Date.now()}` },
             ],
           };
@@ -331,8 +331,8 @@ export function TemplateGuideEditor({
       setNewVerification({
         id: "",
         description: "",
-        command: "",
-        expectedOutput: "",
+        commands: [],
+        expectedOutput: [],
         device: "",
         isCompleted: false,
       });
@@ -344,7 +344,7 @@ export function TemplateGuideEditor({
       if (sIdx === sectionIndex) {
         return {
           ...section,
-          verification: section.verification.filter(
+          verification: section.verifications.filter(
             (v) => v.id !== verificationId,
           ),
         };
@@ -872,7 +872,7 @@ export function TemplateGuideEditor({
               {/* Verification Steps */}
               <div className="mt-6 space-y-4">
                 <h4 className="text-md font-semibold">Verification Steps</h4>
-                {section.verification.map((verify, verifyIndex) => (
+                {section.verifications.map((verify, verifyIndex) => (
                   <Card key={verify.id} className="p-4 bg-muted/20">
                     <div className="grid gap-2">
                       <Label
@@ -902,12 +902,12 @@ export function TemplateGuideEditor({
                       </Label>
                       <Input
                         id={`verify-command-${sectionIndex}-${verifyIndex}`}
-                        value={verify.command}
+                        value={verify.commands}
                         onChange={(e) =>
                           handleVerificationChange(
                             sectionIndex,
                             verifyIndex,
-                            "command",
+                            "commands",
                             e.target.value,
                           )
                         }
@@ -987,7 +987,7 @@ export function TemplateGuideEditor({
                     <Input
                       id="new-verify-command"
                       name="command"
-                      value={newVerification.command}
+                      value={newVerification.commands}
                       onChange={handleNewVerificationChange}
                       placeholder="e.g., show ip interface brief"
                     />
@@ -999,7 +999,7 @@ export function TemplateGuideEditor({
                     <Textarea
                       id="new-verify-expectedOutput"
                       name="expectedOutput"
-                      value={newVerification.expectedOutput}
+                      value={newVerification.expectedOutput.join("\n")}
                       onChange={handleNewVerificationChange}
                       rows={3}
                       placeholder="e.g., GigabitEthernet0/0 is up, line protocol is up"

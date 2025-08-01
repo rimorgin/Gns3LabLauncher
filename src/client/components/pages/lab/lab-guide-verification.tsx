@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 interface LabGuideVerificationProps {
   verification: VerificationStep;
+  isCompleted: boolean;
   file: File | null;
   previewUrl: string | null;
   onVerificationComplete: (id: string) => void;
@@ -21,6 +22,7 @@ interface LabGuideVerificationProps {
 
 const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
   verification,
+  isCompleted,
   file,
   previewUrl,
   copyToClipboard,
@@ -43,11 +45,19 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
     }
 
     try {
-      const previewUrl = URL.createObjectURL(file);
+      const renamedFile = new File(
+        [file],
+        `${verification.id}${file.name.slice(file.name.lastIndexOf("."))}`,
+        {
+          type: file.type,
+        },
+      );
+
+      const previewUrl = URL.createObjectURL(renamedFile);
 
       setVerificationFiles((prev) => ({
         ...prev,
-        [verification.id]: file,
+        [verification.id]: renamedFile,
       }));
 
       setPreviewUrls((prev) => ({
@@ -57,7 +67,7 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
 
       return {
         status: "success",
-        result: file,
+        result: renamedFile,
       };
     } catch (err) {
       return {
@@ -90,14 +100,12 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
   return (
     <Card
       key={verification.id}
-      className={`${
-        verification.isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""
-      }`}
+      className={`${isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""}`}
     >
       <CardContent className="p-4 space-y-4">
         <div className="flex items-start gap-3">
           <Checkbox
-            checked={verification.isCompleted}
+            checked={isCompleted}
             onCheckedChange={() => onVerificationComplete(verification.id)}
             className="mt-1"
             disabled={verification.requiresScreenshot && !file}
@@ -107,11 +115,15 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
             <div className="space-y-2">
               <div className="text-sm font-medium">Verification Command:</div>
               <div className="flex items-center gap-2">
-                <div className="bg-gray-900 text-gray-100 p-2 rounded font-mono text-sm flex-1">
-                  {verification.device}# {verification.command}
+                <div className="bg-gray-900 text-gray-100 p-2 rounded font-mono text-sm whitespace-pre-wrap flex-1">
+                  {verification.commands
+                    .map((command) => `${verification.device}# ${command}`)
+                    .join("\n")}
                 </div>
                 <CopyButton
-                  text={verification.command}
+                  text={verification.commands
+                    .map((command) => `${verification.device}# ${command}`)
+                    .join("\n")}
                   onCopy={copyToClipboard}
                 />
               </div>
@@ -120,7 +132,7 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
             <div className="space-y-2">
               <div className="text-sm font-medium">Expected Output:</div>
               <div className="p-2 rounded font-mono text-sm whitespace-pre-wrap border-2 w-[95%]">
-                {verification.expectedOutput}
+                {verification.expectedOutput.join("\n")}
               </div>
             </div>
 
@@ -134,14 +146,11 @@ const LabGuideVerification: React.FC<LabGuideVerificationProps> = ({
                 >
                   <input {...dropzone.getInputProps()} />
                   {file ? (
-                    <div>
-                      <p>{file.name}</p>
-                      <img
-                        src={previewUrl || ""}
-                        alt="preview"
-                        className="max-h-48 mx-auto mt-2 rounded border"
-                      />
-                    </div>
+                    <img
+                      src={previewUrl || ""}
+                      alt="preview"
+                      className="max-h-48 mx-auto rounded border"
+                    />
                   ) : (
                     <p>Drag & drop or click to upload</p>
                   )}

@@ -12,9 +12,9 @@ model Project {
   labId              String?
 
   // relations
-  lab         Lab?                @relation("ProjectLabs", fields: [labId], references: [id])
+  lab         Lab[]               @relation("ProjectLabs")
   progresses  Progress[]          @relation("ProjectProgresses")
   classrooms  Classroom[]         @relation("ClassroomProjects")
-  submissions Submission[]        @relation("ProjectSubmissions")
+  submissions LabSubmission[]     @relation("ProjectLabSubmissions")
   discussions ProjectDiscussion[]
 }

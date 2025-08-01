@@ -29,10 +29,10 @@ export default function errorMiddleware(
     status = error.status;
     message = error.message;
     errors = error.error;
-  } else if (isForbiddenError(error)) {
+  } /* else if (isForbiddenError(error)) {
     status = HttpStatusCode.FORBIDDEN;
     message = APP_RESPONSE_MESSAGE.user.invalidCsrfToken;
-  } else {
+  } */ else {
     console.error(error);
   }
 

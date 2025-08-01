@@ -6,6 +6,7 @@ import Loader from "@clnt/components/common/loader";
 import { AuthLoader } from "@clnt/lib/auth";
 import LoginPage from "@clnt/pages/login";
 import ErrorPage from "@clnt/pages/error";
+import InstancePageRoute from "./lab/instance";
 
 // 👇 Lazy-loaded pages
 const HomePage = lazy(() => import("@clnt/pages/home"));
@@ -14,6 +15,9 @@ const LabPageRoute = lazy(() => import("./lab"));
 const LabTemplatesPageRoute = lazy(() => import("./lab-builder/template"));
 const LabBuilderPageRoute = lazy(() => import("./lab-builder"));
 const LabEditorPageRoute = lazy(() => import("./lab-builder/editor"));
+const LabTestEnvironmentPageRoute = lazy(
+  () => import("./lab-builder/test-build"),
+);
 const ProjectPageRoute = lazy(() => import("./classrooms/project"));
 
 const AuthenticatedLayout = () => {
@@ -59,6 +63,14 @@ const projectChildren = [
       </Suspense>
     ),
   },
+  {
+    path: ":projectId/labs/:labId/instance",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <InstancePageRoute />
+      </Suspense>
+    ),
+  },
 ];
 
 const classroomChildren = [
@@ -93,6 +105,14 @@ const labBuilderChildren = [
     element: (
       <Suspense fallback={<Loader />}>
         <LabEditorPageRoute />
+      </Suspense>
+    ),
+  },
+  {
+    path: "test-build",
+    element: (
+      <Suspense fallback={<Loader />}>
+        <LabTestEnvironmentPageRoute />
       </Suspense>
     ),
   },

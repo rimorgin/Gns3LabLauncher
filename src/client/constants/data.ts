@@ -15,6 +15,7 @@ import {
   IconDatabase,
   IconLibrary,
   IconSandbox,
+  IconBox,
 } from "@tabler/icons-react";
 import type {
   LabTemplate,
@@ -79,6 +80,10 @@ export const data = {
       {
         title: "Labs Playground",
         icon: IconSandbox,
+      },
+      {
+        title: "Lab Instances",
+        icon: IconBox,
       },
     ],
     /*   documents: [
@@ -151,6 +156,7 @@ export const data = {
       "Projects",
       "Labs Library",
       "Labs Playground",
+      "Lab Instances",
       "Completions",
       "Calendar",
       "Data Library",
@@ -166,6 +172,7 @@ export const data = {
       "Projects",
       "Labs Library",
       "Labs Playground",
+      "Lab Instances",
       "Completions",
       "Calender",
     ],
@@ -778,7 +785,7 @@ Router1# show ip route static`,
               ],
             },
           ],
-          verification: [
+          verifications: [
             {
               id: "verify5",
               description: "Verify static route in routing table",

@@ -7,6 +7,7 @@ import { LabTask } from "@clnt/types/lab";
 
 interface LabGuideTaskProps {
   task: LabTask;
+  isCompleted: boolean;
   showHint: boolean;
   onTaskComplete: (id: string) => void;
   toggleHint: (id: string) => void;
@@ -15,6 +16,7 @@ interface LabGuideTaskProps {
 
 const LabGuideTask: React.FC<LabGuideTaskProps> = ({
   task,
+  isCompleted,
   showHint,
   onTaskComplete,
   toggleHint,
@@ -23,12 +25,12 @@ const LabGuideTask: React.FC<LabGuideTaskProps> = ({
   return (
     <Card
       key={task.id}
-      className={`${task.isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""}`}
+      className={`${isCompleted ? "bg-blue-100/20 border-blue-200/80" : ""}`}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           <Checkbox
-            checked={task.isCompleted}
+            checked={isCompleted}
             onCheckedChange={() => onTaskComplete(task.id)}
             className="mt-1"
           />
@@ -43,15 +45,20 @@ const LabGuideTask: React.FC<LabGuideTaskProps> = ({
 
             {task.commands && task.commands.length > 0 && (
               <div className="space-y-2">
-                <div className="text-sm font-medium">Commands to execute:</div>
-                {task.commands.map((command, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <div className="bg-gray-900/90 text-gray-100 p-2 rounded font-mono text-sm flex-1">
-                      {command}
-                    </div>
-                    <CopyButton text={command} onCopy={copyToClipboard} />
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    <strong>Commands to execute:</strong>
                   </div>
-                ))}
+                  <CopyButton
+                    text={(task?.commands ?? [""]).join("\n")}
+                    onCopy={() =>
+                      copyToClipboard((task?.commands ?? [""]).join("\n"))
+                    }
+                  />
+                </div>
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                  <pre>{task.commands.join("\n")}</pre>
+                </div>
               </div>
             )}
 

@@ -36,25 +36,68 @@ export async function isContainerRunning(
 export async function checkContainerHealth(containerId: string) {
   const startPeriod = 10 * 1000; // ms
   const interval = 10 * 1000; // ms
-  const timeout = 5 * 1000; // ms
   const retries = 5;
 
+  console.log(`🔍 Starting health check for container: ${containerId}`);
   console.log(`Waiting ${startPeriod / 1000}s for container to start...`);
+
   await new Promise((resolve) => setTimeout(resolve, startPeriod));
 
   for (let i = 0; i < retries; i++) {
     try {
-      const { stdout } = await execAsync(
-        `docker exec ${containerId} /bin/sh -c "ss -tunl | grep ':3080'"`,
-        { timeout },
-      );
+      console.log(`🔄 Health check attempt ${i + 1}/${retries}`);
 
-      if (stdout.trim()) {
+      const container = docker.getContainer(containerId);
+
+      // Create exec instance
+      const exec = await container.exec({
+        Cmd: ["/bin/sh", "-c", 'ss -tunl | grep ":3080"'],
+        AttachStdout: true,
+        AttachStderr: true,
+      });
+
+      // Start the exec and get the stream
+      const stream = await exec.start({
+        hijack: true,
+        stdin: false,
+      });
+
+      // Collect output from stream
+      const output = await new Promise<string>((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        const timeout = setTimeout(() => {
+          reject(new Error("Command timeout"));
+        }, 5000);
+
+        stream.on("data", (chunk: Buffer) => {
+          chunks.push(chunk);
+        });
+
+        stream.on("end", () => {
+          clearTimeout(timeout);
+          const result = Buffer.concat(chunks).toString();
+          resolve(result);
+        });
+
+        stream.on("error", (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      });
+
+      console.log(`📊 Command output: "${output.trim()}"`);
+
+      if (output.trim()) {
         console.log(`✅ Port 3080 is listening (attempt ${i + 1})`);
         return true;
+      } else {
+        console.log(`⚠️ Port 3080 not found in output (attempt ${i + 1})`);
       }
     } catch (error) {
-      console.warn(`⚠️ Port 3080 check failed (attempt ${i + 1}): ${error}`);
+      console.warn(
+        `⚠️ Port 3080 check failed (attempt ${i + 1}):`,
+        error.message,
+      );
     }
 
     if (i < retries - 1) {

@@ -178,6 +178,9 @@ export function ProjectCreateForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Select Classrooms</FormLabel>
+              <FormDescription>
+                Project lab is a prerequisite to proceed assigning classrooms.
+              </FormDescription>
               <FormControl>
                 <MultiSelect
                   options={classroomOptions}

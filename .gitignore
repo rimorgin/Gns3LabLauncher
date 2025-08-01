@@ -27,6 +27,9 @@ cert
 var
 .env*
 
+uploads/
+submissions/
+
 src/server/var/**/*
 
 prisma/migrations

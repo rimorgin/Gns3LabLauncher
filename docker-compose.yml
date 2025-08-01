@@ -38,30 +38,6 @@ services:
       timeout: 5s
       retries: 10
 
-  openvpn:
-    image: rimorgin/openvpn
-    container_name: openvpn
-    restart: unless-stopped
-    ports:
-      - "${OPENVPN_PORT}:${OPENVPN_PORT}/udp"
-    cap_add:
-      - NET_ADMIN
-      - MKNOD
-    environment:
-      - OPENVPN_SERVER_IP=${OPENVPN_SERVER_IP}
-      - ENABLE_DNS=${OPENVPN_ENABLE_DNS}
-      - STATIC_HOST_MAPPINGS=${OPENVPN_STATIC_HOST_MAPPINGS}
-      - DOMAIN=${OPENVPN_DOMAIN}
-    volumes:
-      - ./src/server/var/openvpn:/data
-    networks:
-      - gns3netlab-network
-    privileged: true
-    healthcheck:
-      test: ["CMD", "pgrep", "openvpn"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
 
 networks:
   gns3netlab-network:

@@ -17,26 +17,30 @@ import {
   FileText,
   Save,
   Eye,
+  Cog,
 } from "lucide-react";
 import type {
   Lab,
   LabEnvironment,
   LabGuide,
   LabResource,
+  LabSettings,
 } from "@clnt/types/lab";
-import { IconFileTextShield } from "@tabler/icons-react";
+import { IconFileTextShield, IconSandbox } from "@tabler/icons-react";
 
 interface LabBuilderData {
   basicInfo: Partial<Lab>;
   environment: Partial<LabEnvironment>;
   guide: Partial<LabGuide>;
   resources: LabResource[];
+  settings: Partial<LabSettings>;
 }
 
 interface ReviewStepProps {
   labData: LabBuilderData;
   onPrev: () => void;
   onPreview: (labData: LabBuilderData) => void;
+  onTestLabEnvironment: (labData: LabBuilderData) => void;
   onSave: (labData: LabBuilderData) => void;
   onSaveDraft: (labData: LabBuilderData) => void;
   isLoading?: boolean;
@@ -46,11 +50,16 @@ export function ReviewStep({
   labData,
   onPrev,
   onPreview,
+  onTestLabEnvironment,
   onSave,
   onSaveDraft,
   isLoading = false,
 }: ReviewStepProps) {
-  const { basicInfo, environment, guide, resources } = labData;
+  const { basicInfo, environment, guide, resources, settings } = labData;
+
+  const handleTestLabEnvironment = () => {
+    onTestLabEnvironment(labData);
+  };
 
   const handlePreview = () => {
     onPreview(labData);
@@ -270,6 +279,54 @@ export function ReviewStep({
 
         <Separator />
 
+        {/* Lab Settings Review */}
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Cog className="w-5 h-5" />
+            Lab Settings
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">
+                Max Submission Attempts
+              </span>
+              <p className="font-medium">{settings.maxAttemptSubmission}</p>
+            </div>
+
+            <div>
+              <span className="text-muted-foreground">
+                Force Exit Upon Timeout
+              </span>
+              <p className="font-medium">
+                {settings.onForceExitUponTimeout ? "Enabled" : "Disabled"}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-muted-foreground">Interactive Lab</span>
+              <p className="font-medium">
+                {settings.disableInteractiveLab ? "Disabled" : "Enabled"}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-muted-foreground">
+                Strictly no late submission
+              </span>
+              <p className="font-medium">
+                {settings.noLateSubmission ? "Disabled" : "Enabled"}
+              </p>
+            </div>
+
+            <div>
+              <span className="text-muted-foreground">Visible to Students</span>
+              <p className="font-medium">{settings.visible ? "Yes" : "No"}</p>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
         {/* Action Buttons */}
         <div className="flex justify-between pt-6">
           <Button variant="outline" onClick={onPrev} disabled={isLoading}>
@@ -278,11 +335,19 @@ export function ReviewStep({
           <div className="space-x-2">
             <Button
               variant="outline"
+              onClick={handleTestLabEnvironment}
+              disabled={isLoading}
+            >
+              <IconSandbox className="w-4 h-4 mr-2" />
+              Test Build Lab Environment
+            </Button>
+            <Button
+              variant="outline"
               onClick={handlePreview}
               disabled={isLoading}
             >
               <Eye className="w-4 h-4 mr-2" />
-              Preview Lab
+              Quick Preview Lab
             </Button>
             <Button
               variant="outline"

@@ -1,4 +1,5 @@
 import Loader from "@clnt/components/common/loader";
+import PageMeta from "@clnt/components/common/page-meta";
 import ProjectPage from "@clnt/components/pages/project/project-page";
 import { useProjectsQuery } from "@clnt/lib/queries/projects-query";
 import { useParams, Navigate } from "react-router";
@@ -19,6 +20,7 @@ export default function ProjectPageRoute() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
+      <PageMeta title="Project" description="Project viewer page route" />
       <ProjectPage project={projectsQry} />
     </main>
   );

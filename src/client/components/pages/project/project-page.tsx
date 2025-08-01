@@ -27,7 +27,7 @@ interface Project {
   visible?: boolean | null;
   duration?: Date | null;
   tags?: string;
-  lab?: Lab;
+  lab?: Lab[];
 }
 
 interface ProjectPageProps {
@@ -94,12 +94,14 @@ export default function ProjectPage({ project }: ProjectPageProps) {
               </div>
             )}
           </div>
-          {project.lab && (
+          {project.lab && project.lab.length && (
             <>
               <Separator />
               <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Associated Lab</h2>
-                <LabCard lab={project.lab} />
+                <h2 className="text-xl font-semibold">Associated Labs</h2>
+                {project.lab.map((lab) => (
+                  <LabCard lab={lab} />
+                ))}
               </div>
             </>
           )}

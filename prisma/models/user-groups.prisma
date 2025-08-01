@@ -9,7 +9,6 @@ model UserGroups {
 
   classrooms  Classroom?    @relation("ClassroomStudentGroups", fields: [classroomId], references: [id])
   student     Student[]     @relation("UserGroups")
-  submissions Submission[]  @relation("GroupSubmissions")
   progress    Progress[]    @relation("GroupProgresses")
   labProgress LabProgress[] @relation("GroupLabProgresses")
 

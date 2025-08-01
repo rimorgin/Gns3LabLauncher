@@ -1,8 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Navigate, useParams } from "react-router";
+import router from "../route-layout";
+import socket from "@clnt/lib/socket";
+import { useUser } from "@clnt/lib/auth";
+import { useLabQuery } from "@clnt/lib/queries/lab-query";
+import {
+  useStartContainerInstance,
+  useStopContainerInstance,
+} from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
+import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submit-mutation";
+import { toast } from "sonner";
+
 import { LabEnvironmentComponent } from "@clnt/components/pages/lab/lab-environment";
 import { LabGuideComponent } from "@clnt/components/pages/lab/lab-guide";
+import { LockLabGuideOverlay } from "@clnt/components/pages/lab/lock-lab-guide-overlay";
+import Loader from "@clnt/components/common/loader";
+import PageMeta from "@clnt/components/common/page-meta";
+
 import {
   Card,
   CardContent,
@@ -23,42 +39,32 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@clnt/components/ui/avatar";
+
+import { LabProgress } from "@clnt/types/lab";
 import {
   ArrowLeft,
+  BookOpen,
+  CheckCircle,
   Clock,
+  Network,
+  Play,
   Target,
   Users,
-  BookOpen,
-  Play,
-  CheckCircle,
-  Network,
 } from "lucide-react";
-import { type LabProgress } from "@clnt/types/lab";
-import router from "../route-layout";
-import socket from "@clnt/lib/socket";
-import { useUser } from "@clnt/lib/auth";
-import {
-  useStartContainerInstance,
-  useStopContainerInstance,
-} from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
-import { toast } from "sonner";
-import { LockLabGuideOverlay } from "@clnt/components/pages/lab/lock-lab-guide-overlay";
-import { Navigate, useParams } from "react-router";
 import { IconDirectionArrowsFilled } from "@tabler/icons-react";
-import PageMeta from "@clnt/components/common/page-meta";
-import { useLabQuery } from "@clnt/lib/queries/lab-query";
-import Loader from "@clnt/components/common/loader";
-import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submit-mutation";
 
 export default function LabPageRoute() {
-  const user = useUser();
   const { classroomId, projectId, labId } = useParams();
+  const user = useUser();
+  const containerName = user.data?.username.toLowerCase();
+
   const startContainer = useStartContainerInstance();
   const stopContainer = useStopContainerInstance();
+  const { mutateAsync } = useSubmitLab();
+  const { data: lab, isLoading, isError } = useLabQuery(labId ?? "");
+  const [labInstanceAddress, setLabInstanceAddress] = useState("");
   const [isLabRunning, setIsLabRunning] = useState(false);
   const [isLabLoading, setIsLabLoading] = useState(false);
-  const { data: lab, isLoading, isError } = useLabQuery(labId ?? "");
-  const containerName = user.data?.username;
 
   const [progress, setProgress] = useState<LabProgress>({
     labId: labId ?? "",
@@ -70,17 +76,71 @@ export default function LabPageRoute() {
     startedAt: new Date(),
     status: "not_started",
   });
-  const { mutateAsync } = useSubmitLab();
+
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+
+  const LAB_TIMEOUT_ENABLED = lab?.settings?.onForceExitUponTimeout;
+  const LAB_ESTIMATED_TIME = lab?.estimatedTime;
+
+  useEffect(() => {
+    if (
+      isLabRunning &&
+      LAB_TIMEOUT_ENABLED &&
+      LAB_ESTIMATED_TIME &&
+      progress?.startedAt
+    ) {
+      const start = new Date(progress.startedAt).getTime();
+      const end = start + LAB_ESTIMATED_TIME * 60 * 1000;
+
+      const updateTimer = () => {
+        const now = Date.now();
+        const timeLeft = end - now;
+
+        if (timeLeft <= 0) {
+          setRemainingTime(0);
+          return;
+        }
+
+        setRemainingTime(Math.floor(timeLeft / 1000)); // in seconds
+      };
+
+      updateTimer(); // immediate update
+      const interval = setInterval(updateTimer, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [
+    isLabRunning,
+    LAB_TIMEOUT_ENABLED,
+    LAB_ESTIMATED_TIME,
+    progress?.startedAt,
+  ]);
 
   if (!containerName || !labId || !classroomId || !projectId) {
-    return <Navigate to={"errorPage"} />;
+    return <Navigate to="errorPage" />;
   }
+
   if (isLoading) return <Loader />;
-  if (isError || !lab) return <Navigate to={"errorPage"} />;
+  if (isError || !lab) return <Navigate to="errorPage" />;
+
+  const formatTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+
+    return h > 0
+      ? `${h.toString().padStart(2, "0")}:${m
+          .toString()
+          .padStart(2, "0")}:${s.toString().padStart(2, "0")}`
+      : `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  const handleOpenLabInstance = () => {
+    window.open(`https://${labInstanceAddress}:3080`, "_blank");
+  };
 
   const handleLaunchLab = async () => {
     setIsLabLoading(true);
-    // Simulate lab startup
     await toast.promise(startContainer.mutateAsync(containerName), {
       loading: "Starting lab instance...",
       success: (response) => {
@@ -89,14 +149,13 @@ export default function LabPageRoute() {
           status: "in_progress",
           startedAt: new Date(),
         }));
-        socket.emit("start-container-logs", { containerName: containerName });
+        socket.emit("start-container-logs", { containerName });
+        setLabInstanceAddress(response.data.tunIp);
+        setIsLabRunning(true);
         return response.data.message;
       },
-      error: () => {
-        return "Error starting lab instance";
-      },
+      error: () => "Error starting lab instance",
       finally: () => {
-        setIsLabRunning(true);
         setIsLabLoading(false);
       },
     });
@@ -107,7 +166,7 @@ export default function LabPageRoute() {
     await toast.promise(stopContainer.mutateAsync(containerName), {
       loading: "Stopping lab instance...",
       success: () => {
-        socket.emit("stop-container-logs", { containerName: containerName });
+        socket.emit("stop-container-logs", { containerName });
         return "Stopped lab instance";
       },
       error: "Error stopping lab instance",
@@ -115,6 +174,39 @@ export default function LabPageRoute() {
         setIsLabRunning(false);
         setIsLabLoading(false);
       },
+    });
+  };
+
+  const handleSubmitLab = (
+    verificationFiles: { verificationId: string; file: File }[],
+  ) => {
+    const formData = new FormData();
+    formData.append("classroomId", classroomId);
+    formData.append("projectId", projectId);
+    formData.append("labId", labId);
+
+    verificationFiles.forEach(({ verificationId, file }) => {
+      formData.append(`files[${verificationId}]`, file);
+    });
+
+    formData.append("completedTasks", JSON.stringify(progress.completedTasks));
+    formData.append(
+      "completedVerifications",
+      JSON.stringify(progress.completedVerifications),
+    );
+    formData.append(
+      "completedSections",
+      JSON.stringify(progress.completedSections),
+    );
+
+    toast.promise(mutateAsync(formData), {
+      loading: "Submitting lab...",
+      success: "Submitted successfully!",
+      error: "Submission failed.",
+      finally: () => {
+        handleStopLab();
+      },
+      position: "top-center",
     });
   };
 
@@ -132,36 +224,27 @@ export default function LabPageRoute() {
   };
 
   const handleTaskComplete = (taskId: string) => {
-    setProgress((prev) => ({
-      ...prev,
-      completedTasks: [...prev.completedTasks, taskId],
-      lastAccessedAt: new Date(),
-    }));
-
-    // Update task in lab guide
-    lab.guide.sections.forEach((section) => {
-      const task = section.tasks.find((t) => t.id === taskId);
-      if (task) {
-        task.isCompleted = true;
-      }
+    setProgress((prev) => {
+      if (prev.completedTasks.includes(taskId)) return prev;
+      return {
+        ...prev,
+        completedTasks: [...prev.completedTasks, taskId],
+        lastAccessedAt: new Date(),
+      };
     });
   };
 
   const handleVerificationComplete = (verificationId: string) => {
-    setProgress((prev) => ({
-      ...prev,
-      completedVerifications: [...prev.completedVerifications, verificationId],
-      lastAccessedAt: new Date(),
-    }));
-
-    // Update verification in lab guide
-    lab.guide.sections.forEach((section) => {
-      const verification = section.verifications.find(
-        (v) => v.id === verificationId,
-      );
-      if (verification) {
-        verification.isCompleted = true;
-      }
+    setProgress((prev) => {
+      if (prev.completedVerifications.includes(verificationId)) return prev;
+      return {
+        ...prev,
+        completedVerifications: [
+          ...prev.completedVerifications,
+          verificationId,
+        ],
+        lastAccessedAt: new Date(),
+      };
     });
   };
 
@@ -178,49 +261,6 @@ export default function LabPageRoute() {
 
   const handleExitLab = () => {
     router.navigate(`/classrooms/${classroomId}/project/${projectId}`);
-  };
-
-  const handleSubmitLab = (
-    verificationFiles: {
-      verificationId: string;
-      file: File;
-    }[],
-  ) => {
-    const formData = new FormData();
-    formData.append("classroomId", classroomId);
-    formData.append("projectId", projectId);
-    formData.append("labId", labId);
-
-    // Include verification files
-    verificationFiles.forEach(({ verificationId, file }) => {
-      formData.append(`files[${verificationId}]`, file);
-    });
-
-    // Include progress metadata
-    formData.append("completedTasks", JSON.stringify(progress.completedTasks));
-    formData.append(
-      "completedVerifications",
-      JSON.stringify(progress.completedVerifications),
-    );
-    formData.append(
-      "completedSections",
-      JSON.stringify(progress.completedSections),
-    );
-
-    // DEBUG: show contents
-    for (const [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
-    toast.promise(mutateAsync(formData), {
-      loading: "Submitting lab...",
-      success: "Submitted successfully!",
-      error: "Submission failed.",
-      finally: () => {
-        handleStopLab();
-      },
-      position: "top-center",
-    });
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -286,9 +326,11 @@ export default function LabPageRoute() {
             </div>
 
             <div className="text-right">
-              {/* <div className="text-2xl font-bold text-primary">
-                {progress.status}
-              </div> */}
+              {remainingTime !== null && (
+                <div className="text-2xl font-bold text-primary">
+                  {formatTime(remainingTime)}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -325,6 +367,7 @@ export default function LabPageRoute() {
                   environment={lab.environment}
                   onLaunch={handleLaunchLab}
                   onStop={handleStopLab}
+                  onOpenLabInstance={handleOpenLabInstance}
                   isRunning={isLabRunning}
                   isLoading={isLabLoading}
                 />

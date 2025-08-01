@@ -1,6 +1,6 @@
 import { Lab } from "@clnt/types/lab";
 import axios from "../axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 export const useLabsQuery = () => {
   return useQuery<Lab[]>({
@@ -12,8 +12,14 @@ export const useLabsQuery = () => {
   });
 };
 
-export const useLabQuery = (id: string) => {
-  return useQuery<Lab>({
+export const useLabQuery = (
+  id: string,
+  options?: Omit<
+    UseQueryOptions<Lab, Error, Lab, [string, string]>,
+    "queryKey" | "queryFn"
+  >,
+) => {
+  return useQuery<Lab, Error, Lab, [string, string]>({
     queryKey: ["lab", id],
     queryFn: async () => {
       const { data } = await axios.get(`/project-labs/${id}`);
@@ -21,5 +27,6 @@ export const useLabQuery = (id: string) => {
     },
     enabled: !!id,
     refetchOnWindowFocus: false,
+    ...options,
   });
 };

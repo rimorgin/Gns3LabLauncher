@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -6,51 +5,29 @@ import {
   CardContent,
 } from "@clnt/components/ui/card";
 import { Progress } from "@clnt/components/ui/progress";
-import axios from "@clnt/lib/axios";
+import { useSystemStatsQuery } from "@clnt/lib/queries/system-stats-query";
+import Loader from "../common/loader";
+import { Navigate } from "react-router";
 
-interface IDockerStats {
-  Container: string;
-  Name: string;
-  CPUPerc: string;
-  MemUsage: string;
-  MemPerc: string;
-  NetIO: string;
-  BlockIO: string;
-  PIDs: string;
+// Helper function to parse percentage strings like "15.32%" to numbers
+function parsePercentage(percentStr: string): number {
+  if (!percentStr) return 0;
+  const numericValue = parseFloat(percentStr.replace("%", ""));
+  return isNaN(numericValue) ? 0 : Math.min(Math.max(numericValue, 0), 100);
 }
 
 export default function DockerStats() {
-  const [stats, setStats] = useState<IDockerStats[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Fix: Correct the destructuring - data should be an array of IDockerStats
+  const { data: stats, isLoading, isError } = useSystemStatsQuery();
 
-  const fetchStats = async () => {
-    try {
-      const statsRes = await axios("/system-stats/docker-stat");
-      setStats(statsRes.data.stats);
-    } catch (err) {
-      console.error("Failed to fetch docker stats", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isLoading) return <Loader />;
+  if (isError) return <Navigate to={"/errorPage"} />;
 
-  // Helper to extract numeric value from percentage strings
-  const parsePercentage = (value: string) => {
-    return parseFloat(value.replace("%", "")) || 0;
-  };
-
-  useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 15000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading && stats.length === 0) {
+  // Add null check for stats
+  if (!stats || !Array.isArray(stats)) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-pulse text-muted-foreground">
-          Loading container stats...
-        </div>
+      <div className="text-center text-muted-foreground">
+        No container stats available
       </div>
     );
   }
@@ -78,10 +55,11 @@ export default function DockerStats() {
               </div>
               <Progress
                 value={parsePercentage(container.CPUPerc)}
-                className="h-2 bg-amber-400"
+                className="h-2"
+                // Fix: Remove bg-amber-400 from className, use indicatorClassName instead
+                indicatorColor="bg-amber-400"
               />
             </div>
-
             <div>
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-muted-foreground">Memory Usage</span>
@@ -91,11 +69,11 @@ export default function DockerStats() {
               </div>
               <Progress
                 value={parsePercentage(container.MemPerc)}
-                indicatorColor="bg-emerald-200"
-                className="h-2 bg-emerald-500"
+                className="h-2"
+                // Fix: Use indicatorClassName instead of indicatorColor
+                indicatorColor="bg-emerald-500"
               />
             </div>
-
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Network I/O</p>

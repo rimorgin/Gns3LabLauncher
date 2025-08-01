@@ -124,15 +124,16 @@ export function LabGuideComponent({
     return colors[type];
   };
 
-  const canSubmitLab = guide.sections.every(
-    (section) =>
-      section.tasks.every((t) => t.isCompleted) &&
+  const canSubmitLab = guide.sections.every((section) => {
+    return (
+      section.tasks.every((t) => labProgress.completedTasks.includes(t.id)) &&
       section.verifications.every((v) => {
-        if (!v.isCompleted) return false;
+        if (!labProgress.completedVerifications.includes(v.id)) return false;
         if (v.requiresScreenshot && !verificationFiles[v.id]) return false;
         return true;
-      }),
-  );
+      })
+    );
+  });
 
   if (!currentSection) {
     return (
@@ -216,12 +217,21 @@ export function LabGuideComponent({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tasks">
-              Tasks ({currentSection.tasks.filter((t) => t.isCompleted).length}/
-              {currentSection.tasks.length})
+              Tasks (
+              {
+                currentSection.tasks.filter((t) =>
+                  labProgress.completedTasks.includes(t.id),
+                ).length
+              }
+              /{currentSection.tasks.length})
             </TabsTrigger>
             <TabsTrigger value="verification">
               Verification (
-              {currentSection.verifications.filter((v) => v.isCompleted).length}
+              {
+                currentSection.verifications.filter((v) =>
+                  labProgress.completedVerifications.includes(v.id),
+                ).length
+              }
               /{currentSection.verifications.length})
             </TabsTrigger>
           </TabsList>
@@ -245,6 +255,7 @@ export function LabGuideComponent({
                   <LabGuideTask
                     key={task.id}
                     task={task}
+                    isCompleted={labProgress.completedTasks.includes(task.id)}
                     showHint={showHints[task.id]}
                     onTaskComplete={onTaskComplete}
                     toggleHint={toggleHint}
@@ -274,6 +285,9 @@ export function LabGuideComponent({
                   <LabGuideVerification
                     key={verification.id}
                     verification={verification}
+                    isCompleted={labProgress.completedVerifications.includes(
+                      verification.id,
+                    )}
                     file={verificationFiles[verification.id] || null}
                     previewUrl={previewUrls[verification.id] || null}
                     onVerificationComplete={onVerificationComplete}
@@ -313,8 +327,12 @@ export function LabGuideComponent({
                 <Button
                   onClick={() => onSectionComplete(currentSection.id)}
                   disabled={
-                    currentSection.tasks.some((t) => !t.isCompleted) ||
-                    currentSection.verifications.some((v) => !v.isCompleted)
+                    currentSection.tasks.some(
+                      (t) => !labProgress.completedTasks.includes(t.id),
+                    ) ||
+                    currentSection.verifications.some(
+                      (v) => !labProgress.completedVerifications.includes(v.id),
+                    )
                   }
                 >
                   <CheckCircle className="h-4 w-4 mr-2" />

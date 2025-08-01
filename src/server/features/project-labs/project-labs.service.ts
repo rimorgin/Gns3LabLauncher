@@ -114,6 +114,8 @@ export class LabService {
                     id: t.id,
                     description: t.description,
                     device: t.device,
+                    commands: t.commands,
+                    expectedResult: t.expectedResult,
                     isCompleted: t.isCompleted,
                     hints: t.hints,
                   })),
@@ -122,8 +124,9 @@ export class LabService {
                   create: s.verifications.map((v) => ({
                     id: v.id,
                     description: v.description,
-                    command: v.command,
+                    commands: v.commands,
                     expectedOutput: v.expectedOutput,
+                    requiresScreenshot: v.requiresScreenshot,
                     device: v.device,
                     isCompleted: v.isCompleted,
                   })),
@@ -142,6 +145,15 @@ export class LabService {
             url: r.url,
             description: r.description,
           })),
+        },
+        settings: {
+          create: {
+            maxAttemptSubmission: data.settings.maxAttemptSubmission,
+            visible: data.settings.visible,
+            disableInteractiveLab: data.settings.disableInteractiveLab,
+            noLateSubmission: data.settings.noLateSubmission,
+            onForceExitUponTimeout: data.settings.onForceExitUponTimeout,
+          },
         },
       },
       omit: { createdBy: true },
@@ -181,6 +193,7 @@ export class LabService {
           },
         },
         resources: true,
+        settings: true,
       },
     });
   }
@@ -215,6 +228,7 @@ export class LabService {
           },
         },
         resources: true,
+        settings: true,
       },
     });
   }
@@ -224,7 +238,7 @@ export class LabService {
   }
 
   static async updateLab(id: string, data: ILab) {
-    const { environment, guide, resources, ...labData } = data;
+    const { environment, guide, resources, settings, ...labData } = data;
 
     const actions: Prisma.PrismaPromise<unknown>[] = [];
     // 🔷 Update lab basic info
@@ -396,13 +410,16 @@ export class LabService {
                     device: t.device,
                     isCompleted: t.isCompleted,
                     hints: t.hints,
+                    commands: t.commands,
+                    expectedResult: t.expectedResult,
                   })) ?? [],
               },
               verifications: {
                 create:
                   verifications?.map((v) => ({
+                    requiresScreenshot: v.requiresScreenshot,
                     description: v.description,
-                    command: v.command,
+                    commands: v.commands,
                     expectedOutput: v.expectedOutput,
                     device: v.device,
                     isCompleted: v.isCompleted,
@@ -444,6 +461,30 @@ export class LabService {
           }),
         );
       }
+    }
+
+    if (settings) {
+      actions.push(
+        prisma.labSettings.upsert({
+          where: { labId: id },
+          update: {
+            labId: id,
+            disableInteractiveLab: settings.disableInteractiveLab,
+            visible: settings.visible,
+            maxAttemptSubmission: settings.maxAttemptSubmission,
+            noLateSubmission: settings.noLateSubmission,
+            onForceExitUponTimeout: settings.onForceExitUponTimeout,
+          },
+          create: {
+            labId: id,
+            disableInteractiveLab: settings.disableInteractiveLab,
+            visible: settings.visible,
+            maxAttemptSubmission: settings.maxAttemptSubmission,
+            noLateSubmission: settings.noLateSubmission,
+            onForceExitUponTimeout: settings.onForceExitUponTimeout,
+          },
+        }),
+      );
     }
 
     // 🚀 Run all actions atomically

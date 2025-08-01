@@ -28,7 +28,12 @@ export async function startGns3Container(
       return;
     }
 
-    const containerId = await Gns3DockerService.runContainer({ containerName });
+    const {
+      id: containerId,
+      ip: ipAddress,
+      tunIp,
+    } = await Gns3DockerService.runContainer({ containerName });
+
     const healthy = await checkContainerHealth(containerId);
 
     if (!healthy) {
@@ -39,10 +44,15 @@ export async function startGns3Container(
       return;
     }
 
+    console.log("About to send success response...");
+    console.log("Response values:", { containerId, ipAddress, tunIp });
+
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: "Gns3 instance started successfully",
-      containerId,
+      tunIp,
     });
+
+    console.log("Success response sent!");
   } catch (error) {
     console.error("❌ Error starting GNS3 container:", error);
     next(error);
@@ -78,5 +88,38 @@ export async function stopGns3Container(
   } catch (error) {
     console.error("❌ Error stopping container:", error);
     next(error);
+  }
+}
+
+export async function listAllGns3Containers(req: Request, res: Response) {
+  try {
+    const gns3Containers = await Gns3DockerService.listContainers();
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: "Fetched Running Gns3 Containers",
+      gns3Containers,
+    });
+    return;
+  } catch {
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
+      error: "Failed to fetch GNS3 containers",
+    });
+  }
+}
+
+export async function listAllGns3ContainersWithUsersInfo(
+  req: Request,
+  res: Response,
+) {
+  try {
+    const gns3Containers = await Gns3DockerService.listContainersWithUserInfo();
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+      message: "Fetched Running Gns3 Containers with User Info",
+      gns3Containers,
+    });
+    return;
+  } catch {
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
+      error: "Failed to fetch GNS3 containers",
+    });
   }
 }

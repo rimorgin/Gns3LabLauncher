@@ -2,8 +2,9 @@ import { useClassroomsQuery } from "@clnt/lib/queries/classrooms-query";
 import { ClassroomList } from "../cards/classroom-cards";
 import RBACWrapper from "../common/rbac-wrapper";
 import { ClassroomDataTable } from "../tables/classroom-data-table";
-import { Skeleton } from "../ui/skeleton";
 import { useUser } from "@clnt/lib/auth";
+import { Navigate } from "react-router";
+import Loader from "../common/loader";
 
 export default function ClassroomsContent() {
   const user = useUser();
@@ -17,20 +18,11 @@ export default function ClassroomsContent() {
     ...(student?.classrooms?.length && {
       by_id: student.classrooms.map((cls) => cls.id),
     }),
-    includes: ["course", "students", "instructor"],
+    includes: ["course", "students", "instructor", "projects"],
   });
 
-  if (isLoading) {
-    return <Skeleton className="h-100 w-auto rounded-xl" />;
-  }
-
-  if (error) {
-    return (
-      <div className="content-center">
-        <p>Something went wrong!...</p>
-      </div>
-    );
-  }
+  if (isLoading) return <Loader />;
+  if (error) return <Navigate to={"/errorPage"} />;
   return (
     <>
       <RBACWrapper requiredRoles={["instructor", "administrator"]}>

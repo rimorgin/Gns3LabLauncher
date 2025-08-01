@@ -34,6 +34,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  List,
 } from "lucide-react";
 import {
   Column,
@@ -79,6 +80,8 @@ import {
   IconPencilX,
   IconSearch,
   IconSubtask,
+  IconTable,
+  IconWorldWww,
 } from "@tabler/icons-react";
 import { Input } from "@clnt/components/ui/input";
 import { useQueryClient } from "@tanstack/react-query";
@@ -103,6 +106,8 @@ import { ClassroomDbData } from "@clnt/lib/validators/classroom-schema";
 import moment from "moment";
 import { ClassroomDeleteForm } from "@clnt/components/forms/classroom/classroom-delete-form";
 import { ClassroomUpdateForm } from "../forms/classroom/classroom-update-form";
+import { NavLink } from "react-router";
+import { ClassroomList } from "../cards/classroom-cards";
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: string }) {
@@ -352,7 +357,7 @@ const columns: ColumnDef<ClassroomDbData>[] = [
       <SortableHeader column={column}>Projects</SortableHeader>
     ),
     cell: ({ row }) => {
-      const projects = row.original.projects;
+      const projects = row.original.projects ?? [];
       const projectsCount = projects.length;
 
       return (
@@ -422,7 +427,7 @@ const columns: ColumnDef<ClassroomDbData>[] = [
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
+            <DropdownMenuContent align="end" className="w-fit">
               <DropdownMenuItem
                 onClick={() => {
                   setDrawerMode("edit");
@@ -440,6 +445,15 @@ const columns: ColumnDef<ClassroomDbData>[] = [
               >
                 <IconEye />
                 View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <NavLink
+                  to={`classrooms/${row.original.id}`}
+                  className="flex gap-2"
+                >
+                  <IconWorldWww />
+                  View Full Details in Page
+                </NavLink>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -707,6 +721,7 @@ function TableCellViewer({
 }
 
 export function ClassroomDataTable({ data }: { data?: ClassroomDbData[] }) {
+  const [viewMode, setViewMode] = React.useState<"table" | "cards">("table");
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({ createdAt: false, updatedAt: false });
@@ -782,6 +797,11 @@ export function ClassroomDataTable({ data }: { data?: ClassroomDbData[] }) {
     }
   }
 
+  console.log(
+    "filteredRows",
+    table.getFilteredRowModel().rows.map((row) => row.original),
+  );
+
   return (
     <Tabs
       defaultValue="outline"
@@ -800,6 +820,41 @@ export function ClassroomDataTable({ data }: { data?: ClassroomDbData[] }) {
           />
         </div>
         <div className="flex items-center gap-2">
+          {viewMode === "table" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <IconLayoutColumns />
+                  <span className="hidden lg:inline">Customize Columns</span>
+                  <span className="lg:hidden">Columns</span>
+                  <IconChevronDown />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                {table
+                  .getAllColumns()
+                  .filter(
+                    (column) =>
+                      typeof column.accessorFn !== "undefined" &&
+                      column.getCanHide(),
+                  )
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
@@ -848,163 +903,156 @@ export function ClassroomDataTable({ data }: { data?: ClassroomDbData[] }) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <IconLayoutColumns />
-                <span className="hidden lg:inline">Customize Columns</span>
-                <span className="lg:hidden">Columns</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide(),
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex border rounded-md">
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="rounded-r-none"
+            >
+              <IconTable className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "cards" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("cards")}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Table */}
-      <TabsContent
-        value="outline"
-        className="relative flex flex-col gap-4 overflow-auto"
-      >
-        <div className="overflow-hidden rounded-lg border h-full">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
+      {viewMode === "table" ? (
+        <>
+          <TabsContent
+            value="outline"
+            className="relative flex flex-col gap-4 overflow-auto"
           >
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-muted sticky top-0 z-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className="px-4 py-3 text-left text-xs font-medium bg-muted uppercase tracking-wider"
-                          style={{ width: header.getSize() }}
+            <div className="overflow-hidden rounded-lg border h-full">
+              <DndContext
+                collisionDetection={closestCenter}
+                modifiers={[restrictToVerticalAxis]}
+                onDragEnd={handleDragEnd}
+                sensors={sensors}
+              >
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted sticky top-0 z-10">
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => (
+                            <TableHead
+                              key={header.id}
+                              className="px-4 py-3 text-left text-xs font-medium bg-muted uppercase tracking-wider"
+                              style={{ width: header.getSize() }}
+                            >
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                  )}
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows?.length ? (
+                        <SortableContext
+                          items={dataIds}
+                          strategy={verticalListSortingStrategy}
                         >
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    <SortableContext
-                      items={dataIds}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {table.getRowModel().rows.map((row) => (
-                        <DraggableRow key={row.id} row={row} />
-                      ))}
-                    </SortableContext>
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="text-center py-8 align-middle"
-                      >
-                        <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                          <BookOpen className="w-8 h-8" />
-                          <p>No classrooms found</p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                          {table.getRowModel().rows.map((row) => (
+                            <DraggableRow key={row.id} row={row} />
+                          ))}
+                        </SortableContext>
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="text-center py-8 align-middle"
+                          >
+                            <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                              <BookOpen className="w-8 h-8" />
+                              <p>No classrooms found</p>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </DndContext>
             </div>
-          </DndContext>
-        </div>
-      </TabsContent>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3 border-t bg-muted rounded-lg">
-        <div className="flex items-center text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm">Rows per page:</label>
-            <select
-              className="border rounded px-2 py-1 text-sm"
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => table.setPageSize(Number(e.target.value))}
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  {pageSize}
-                </option>
-              ))}
-            </select>
+          </TabsContent>
+          <div className="flex items-center justify-between px-4 py-3 border-t bg-muted rounded-lg">
+            <div className="flex items-center text-sm">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm">Rows per page:</label>
+                <select
+                  className="border rounded px-2 py-1 text-sm"
+                  value={table.getState().pagination.pageSize}
+                  onChange={(e) => table.setPageSize(Number(e.target.value))}
+                >
+                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                    <option key={pageSize} value={pageSize}>
+                      {pageSize}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="text-sm">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </div>
+              <div className="flex items-center gap-1">
+                <button
+                  className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </button>
+                <button
+                  className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <button
+                  className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </button>
-            <button
-              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-            <button
-              className="p-1 border rounded hover:bg-gray-100 disabled:opacity-50"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+        </>
+      ) : (
+        <ClassroomList
+          classrooms={table
+            .getFilteredRowModel()
+            .rows.map((row) => row.original)}
+        />
+      )}
     </Tabs>
   );
 }

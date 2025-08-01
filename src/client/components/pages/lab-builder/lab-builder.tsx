@@ -9,26 +9,16 @@ import { EnvironmentStep } from "./environment-step";
 import { GuideStep } from "./guide-step";
 import { ResourcesStep } from "./resources-step";
 import { ReviewStep } from "./review-step";
-import type {
-  Lab,
-  LabEnvironment,
-  LabGuide,
-  LabResource,
-} from "@clnt/types/lab";
+import type { Lab } from "@clnt/types/lab";
 import { toast } from "sonner";
 import { useCreateLab } from "@clnt/lib/mutations/lab/lab-create-mutation";
 import { useUser } from "@clnt/lib/auth";
 import { LabPreview } from "./lab-preview";
-import { useImmer } from "use-immer";
+import { SettingsStep } from "./settings-step";
+import router from "@clnt/pages/route-layout";
+import { useLabBuilderStore } from "@clnt/lib/store/lab-builder-store";
 
-interface LabBuilderData {
-  basicInfo: Partial<Lab>;
-  environment: Partial<LabEnvironment>;
-  guide: Partial<LabGuide>;
-  resources: LabResource[];
-}
-
-const steps = [
+export const steps = [
   {
     id: 1,
     title: "Basic Information",
@@ -45,18 +35,22 @@ const steps = [
     title: "Resources",
     description: "Additional materials and references",
   },
-  { id: 5, title: "Review & Save", description: "Final review and publish" },
+  {
+    id: 5,
+    title: "Settings",
+    description: "Additional settings",
+  },
+  { id: 6, title: "Review & Save", description: "Final review and publish" },
 ];
 
 export function LabBuilder() {
   const user = useUser();
   const [currentStep, setCurrentStep] = useState(1);
-  const [labData, setLabData] = useImmer<LabBuilderData>({
-    basicInfo: {},
-    environment: {},
-    guide: {},
-    resources: [],
-  });
+  const labData = useLabBuilderStore((state) => state.lab);
+  const updateLabData = useLabBuilderStore((state) => state.updateSection);
+  const buildLab = useLabBuilderStore((s) => s.buildLab);
+  //const resetLab = useLabBuilderStore((s) => s.resetLab);
+  //const storeLabData = useLabBuilderStore((state) => state.setLab);
 
   // Add state for preview
   const [showPreview, setShowPreview] = useState(false);
@@ -64,75 +58,47 @@ export function LabBuilder() {
 
   const createLab = useCreateLab();
 
-  function buildLabFromData(labData: LabBuilderData): Lab {
-    return {
-      id: crypto.randomUUID(),
-      title: labData.basicInfo.title ?? "Untitled",
-      description: labData.basicInfo.description ?? "",
-      difficulty: labData.basicInfo.difficulty ?? "BEGINNER",
-      estimatedTime: labData.basicInfo.estimatedTime ?? 60,
-      category: labData.basicInfo.category ?? "",
-      tags: labData.basicInfo.tags ?? [],
-      objectives: labData.basicInfo.objectives ?? [],
-      prerequisites: labData.basicInfo.prerequisites ?? [],
-      environment: { ...labData.environment } as LabEnvironment,
-      guide: { ...labData.guide } as LabGuide,
-      resources: [...labData.resources],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      createdBy: user.data?.username ?? "Unknown",
-      status: "PUBLISHED",
-    } as Lab;
-  }
-
-  // Handle lab preview
-  const handlePreview = useCallback(
-    (labDataToPreview: LabBuilderData) => {
-      const lab = buildLabFromData(labDataToPreview);
-      setPreviewLab(lab);
-      setShowPreview(true);
-    },
-    [user.data?.username],
-  );
+  // Handle lab previewoh
+  const handlePreview = useCallback(() => {
+    const lab = buildLab(user.data?.username);
+    setPreviewLab(lab);
+    setShowPreview(true);
+  }, [user.data?.username]);
 
   // Handle lab publishing
-  const handleSaveLab = useCallback(
-    async (labDataToSave: LabBuilderData) => {
-      const lab = buildLabFromData(labDataToSave);
-      lab.status = "PUBLISHED";
+  const handleSaveLab = useCallback(async () => {
+    const lab = buildLab(user.data?.username);
+    lab.status = "PUBLISHED";
 
-      return toast.promise(createLab.mutateAsync(lab), {
-        loading: "Publishing lab...",
-        success: "Lab published successfully",
-        error: "Failed to publish lab",
-      });
-    },
-    [createLab, user.data?.username],
-  );
+    return toast.promise(createLab.mutateAsync(lab), {
+      loading: "Publishing lab...",
+      success: "Lab published successfully",
+      error: "Failed to publish lab",
+    });
+  }, [createLab, user.data?.username]);
+
+  const handleTestLabEnvironment = useCallback(() => {
+    const lab = buildLab(user.data?.username);
+    console.log("🚀 ~ LabBuilder ~ lab:", lab);
+    router.navigate("/lab-builder/test-build", {
+      state: {
+        from: router.state.location.pathname, // current route path before navigating
+        step: currentStep, // track current step
+      },
+    });
+  }, [user.data?.username]);
 
   // Handle draft saving
-  const handleSaveDraftLab = useCallback(
-    async (labDataToSave: LabBuilderData) => {
-      const lab = buildLabFromData(labDataToSave);
-      lab.status = "DRAFT";
+  const handleSaveDraftLab = useCallback(async () => {
+    const lab = buildLab(user.data?.username);
+    lab.status = "DRAFT";
 
-      return toast.promise(createLab.mutateAsync(lab), {
-        loading: "Saving draft...",
-        success: "Draft saved successfully",
-        error: "Failed to save draft",
-      });
-    },
-    [createLab, user.data?.username],
-  );
-
-  const updateLabData = useCallback(
-    <K extends keyof LabBuilderData>(section: K, data: LabBuilderData[K]) => {
-      setLabData((draft) => {
-        draft[section] = data;
-      });
-    },
-    [setLabData],
-  );
+    return toast.promise(createLab.mutateAsync(lab), {
+      loading: "Saving draft...",
+      success: "Draft saved successfully",
+      error: "Failed to save draft",
+    });
+  }, [createLab, user.data?.username]);
 
   const nextStep = useCallback(() => {
     if (currentStep < steps.length) {
@@ -147,6 +113,11 @@ export function LabBuilder() {
   }, [currentStep]);
 
   const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
+  /* 
+  // Reset on load
+  useEffect(() => {
+    resetLab();
+  }, []); */
 
   const renderStep = () => {
     switch (currentStep) {
@@ -187,10 +158,20 @@ export function LabBuilder() {
         );
       case 5:
         return (
+          <SettingsStep
+            data={labData.settings}
+            onUpdate={(data) => updateLabData("settings", data)}
+            onNext={nextStep}
+            onPrev={prevStep}
+          />
+        );
+      case 6:
+        return (
           <ReviewStep
             labData={labData}
             onPrev={prevStep}
             onPreview={handlePreview}
+            onTestLabEnvironment={handleTestLabEnvironment}
             onSave={handleSaveLab}
             onSaveDraft={handleSaveDraftLab}
             isLoading={createLab.isPending}

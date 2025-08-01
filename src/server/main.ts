@@ -1,10 +1,8 @@
 import ViteExpress from "vite-express";
 import express from "express";
 import http from "http";
-import https from "https";
 import { Server as SocketIOServer } from "socket.io";
 import path from "path";
-import fs from "fs";
 import cookieParser from "cookie-parser";
 import passport from "passport";
 
@@ -13,6 +11,7 @@ import Postgres from "@srvr/database/postgres.database.ts";
 
 import registerFeatures from "@srvr/features/index.features.ts";
 
+import corsMiddleware from "@srvr/middlewares/cors.middleware.ts";
 import helmetMiddleware from "@srvr/middlewares/helmet.middleware.ts";
 import loggerMiddleware from "@srvr/middlewares/logger.middleware.ts";
 import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
@@ -34,14 +33,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-let server;
 
 // Initialize Data Storage
 await Redis();
 await Postgres();
 
 // Middleware stack
-//app.use(corsMiddleware);
+app.use(corsMiddleware);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -51,14 +49,14 @@ app.use(passport.session());
 
 // Serve static files from the 'public' directory
 app.use("/static", express.static(path.join(__dirname, "/public")));
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+app.use("/submissions", express.static(path.join(__dirname, "/submissions")));
 console.log(
   "Serving static files from:",
-  path.join(__dirname, "/public /uploads"),
+  path.join(__dirname, "/public /submissions"),
 );
 
 // SECURITY
-app.set("trust proxy", 1);
+
 app.use(helmetMiddleware());
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
@@ -74,38 +72,24 @@ app.disable("x-powered-by");
 app.use(loggerMiddleware);
 // ERROR HANDLING
 app.use(errorMiddleware);
+if (MODE !== "development") {
+  app.set("trust proxy", true);
+  app.use((req, res, next) => {
+    console.log("🔒 req.secure:", req.secure);
+    console.log("📦 x-forwarded-proto:", req.get("x-forwarded-proto"));
+    next();
+  });
+}
 
 // Routes
 await registerFeatures(app);
 
-if (MODE === "production" || MODE === "staging") {
-  const key = fs.readFileSync(
-    path.resolve("./cert/vite-express.key.pem"),
-    "utf8",
-  );
-  const cert = fs.readFileSync(
-    path.resolve("./cert/vite-express.cert.pem"),
-    "utf8",
-  );
-  server = http.createServer(app);
-  //server = https.createServer({ key, cert }, app);
-  console.log("🌐 HTTPS server configured");
+/* app.use("*", (req, res) => {
+  res.sendFile(path.resolve("index.html"));
+}); */
 
-  /* const { default: vpnConnect } = await import("@srvr/configs/vpn.config.js");
-  // enable vpn when not in development
-  console.log("🔗 Connecting to VPN...");
-  await vpnConnect();
-  app.use(vpnOnlyMiddleware); */
-
-  /*   ViteExpress.config({
-    //@ts-expect-error type staging no allowed
-    mode: MODE,
-    inlineViteConfig({})
-  }) */
-} else {
-  server = http.createServer(app);
-  console.log("🌐 HTTP server running (non-production)");
-}
+const server = http.createServer(app);
+console.log(`🌐 HTTP server running in (${MODE})`);
 
 export const io = new SocketIOServer(server);
 

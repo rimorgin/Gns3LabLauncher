@@ -36,11 +36,23 @@ model Lab {
   project       Project[]       @relation("ProjectLabs")
   environment   LabEnvironment?
   guide         LabGuide?
+  settings      LabSettings?
   resources     LabResource[]
   LabProgress   LabProgress[]
   LabSubmission LabSubmission[]
 
   @@index([status])
+}
+
+model LabSettings {
+  labId                  String  @id
+  maxAttemptSubmission   Int
+  onForceExitUponTimeout Boolean
+  disableInteractiveLab  Boolean
+  visible                Boolean
+  noLateSubmission       Boolean
+
+  lab Lab @relation(fields: [labId], references: [id], onDelete: Cascade)
 }
 
 model LabEnvironment {
@@ -158,21 +170,23 @@ model LabContentMetadata {
 }
 
 model LabTask {
-  id          String     @id @default(uuid())
-  sectionId   String
-  description String
-  device      String?
-  isCompleted Boolean    @default(false)
-  section     LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  hints       String[]
+  id             String     @id @default(uuid())
+  sectionId      String
+  description    String
+  commands       String[]
+  expectedResult String?
+  device         String?
+  isCompleted    Boolean    @default(false)
+  section        LabSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  hints          String[]
 }
 
 model VerificationStep {
   id                 String   @id @default(uuid())
   sectionId          String
   description        String?
-  command            String?
-  expectedOutput     String?
+  commands            String[]
+  expectedOutput     String[]
   device             String?
   isCompleted        Boolean  @default(false)
   requiresScreenshot Boolean? @default(false) // if step requires screenshot

@@ -6,8 +6,10 @@ export const useStartContainerInstance = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (containerName: string) =>
-      axios.post(`/gns3labs/start/${containerName}`),
+    mutationFn: async (containerName: string) => {
+      const response = await axios.post(`/gns3labs/start/${containerName}`);
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["containers"] });
     },

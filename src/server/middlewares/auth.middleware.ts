@@ -13,13 +13,13 @@ export const checkAuthentication = (
   res: Response,
   next: NextFunction,
 ): void => {
-  if (!req.isAuthenticated?.()) {
+  if (!req.isAuthenticated?.() || !req.user) {
     res.status(HttpStatusCode.UNAUTHORIZED).json({
       message: APP_RESPONSE_MESSAGE.user.userUnauthorized,
     });
     return;
   }
-  console.log("authenticated");
+
   next();
 };
 

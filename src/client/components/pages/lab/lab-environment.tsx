@@ -29,11 +29,12 @@ import {
   Clock,
   BrickWallFire,
   MonitorCogIcon,
+  AlertTriangle,
 } from "lucide-react";
 import type { LabEnvironment, TopologyNode } from "@clnt/types/lab";
 import socket from "@clnt/lib/socket";
 import { IconCloud, IconWorld } from "@tabler/icons-react";
-import { NavLink } from "react-router";
+//import { NavLink } from "react-router";
 import { ScrollArea } from "@clnt/components/ui/scroll-area";
 import { cn } from "@clnt/lib/utils";
 
@@ -41,6 +42,7 @@ interface LabEnvironmentProps {
   environment: LabEnvironment;
   onLaunch: () => void;
   onStop: () => void;
+  onOpenLabInstance: () => void;
   isRunning: boolean;
   isLoading: boolean;
 }
@@ -49,14 +51,17 @@ export function LabEnvironmentComponent({
   environment,
   onLaunch,
   onStop,
+  onOpenLabInstance,
   isRunning,
   isLoading,
 }: LabEnvironmentProps) {
   const [selectedDevices, setSelectedDevices] = useState<TopologyNode | null>(
     null,
   );
-
   const [logs, setLogs] = useState<string[]>([]);
+  const nodes = environment.topology?.nodes ?? [];
+  const notes = environment.topology?.notes ?? [];
+  const links = environment.topology?.links ?? [];
 
   useEffect(() => {
     const handleLog = ({
@@ -124,11 +129,15 @@ export function LabEnvironmentComponent({
   };
 
   const renderTopology = () => {
-    const nodes = environment.topology?.nodes ?? [];
-    const notes = environment.topology?.notes ?? [];
-    const links = environment.topology?.links ?? [];
-
-    if (nodes.length === 0 && notes.length === 0) return;
+    if (nodes.length === 0 && notes.length === 0)
+      return (
+        <div className="text-center py-8">
+          <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-medium mb-2">
+            Lab Environment is not yet configured
+          </h3>
+        </div>
+      );
 
     const offset = 100;
 
@@ -311,7 +320,7 @@ export function LabEnvironmentComponent({
                 </Button>
               ) : (
                 <>
-                  <Button variant="default" onClick={() => {}}>
+                  <Button variant="default" onClick={onOpenLabInstance}>
                     <MonitorCogIcon className="h-4 w-4 mr-2" />
                     View web console
                   </Button>
@@ -353,6 +362,12 @@ export function LabEnvironmentComponent({
         </TabsContent>
 
         <TabsContent value="devices" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Devices</CardTitle>
+            </CardHeader>
+            <CardContent>{renderTopology()}</CardContent>
+          </Card>
           <div className="grid md:grid-cols-2 gap-5">
             {environment.topology.nodes.map((devices) => (
               <Card
@@ -437,14 +452,14 @@ export function LabEnvironmentComponent({
                   Start accessing gns3 web instance via clicking the link
                   below...
                 </p>
-                <NavLink
-                  to={"https://localhost:3080"}
-                  target="_blank"
+                <Button
+                  onClick={onOpenLabInstance}
+                  variant={"outline"}
                   className="flex flex-row gap-2.5 text-accent-foreground border-1 rounded-xl w-fit p-2 hover:bg-blue-100/40"
                 >
                   <IconWorld />
                   Open lab instance
-                </NavLink>
+                </Button>
               </CardContent>
             </Card>
           )}

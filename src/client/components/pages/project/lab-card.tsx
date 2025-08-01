@@ -7,9 +7,17 @@ import {
 } from "@clnt/components/ui/card";
 import { Badge } from "@clnt/components/ui/badge";
 import { Button } from "@clnt/components/ui/button";
-import { Clock, Target, Play } from "lucide-react";
+import {
+  Clock,
+  Target,
+  Play,
+  ListRestart,
+  FlaskConicalOff,
+  LogOut,
+} from "lucide-react";
 import { Lab } from "@clnt/types/lab";
 import { NavLink } from "react-router";
+import { IconCancel } from "@tabler/icons-react";
 
 // Helper function to get difficulty color
 const getDifficultyColor = (difficulty: Lab["difficulty"]) => {
@@ -37,7 +45,7 @@ const formatDuration = (minutes: number) => {
 
 export default function LabCard({ lab }: { lab: Lab }) {
   // Only show published labs
-  if (lab.status === "DRAFT") {
+  if (lab.status === "DRAFT" || lab.settings.visible === false) {
     return null;
   }
 
@@ -70,6 +78,28 @@ export default function LabCard({ lab }: { lab: Lab }) {
               <Target className="h-4 w-4" />
               {lab.objectives.length} objectives
             </div>
+            <div className="flex items-center gap-1">
+              <ListRestart className="h-4 w-4" />
+              {lab.settings.maxAttemptSubmission} attempts
+            </div>
+            {lab.settings.disableInteractiveLab && (
+              <div className="flex items-center gap-1">
+                <FlaskConicalOff className="h-4 w-4" />
+                No interactive lab
+              </div>
+            )}
+            {lab.settings.onForceExitUponTimeout && (
+              <div className="flex items-center gap-1">
+                <LogOut className="h-4 w-4" />
+                Automatic exit on lab expiry
+              </div>
+            )}
+            {lab.settings.noLateSubmission && (
+              <div className="flex items-center gap-1">
+                <IconCancel className="h-4 w-4" />
+                No late submissions
+              </div>
+            )}
           </div>
           {/* Tags */}
           <div className="flex flex-wrap gap-1">

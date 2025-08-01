@@ -36,10 +36,10 @@ export async function getDashboardSummaryMetrics() {
     prisma.student.count({ where: { isOnline: true } }),
     prisma.instructor.count({ where: { isOnline: true } }),
 
-    prisma.submission.count({
+    prisma.labSubmission.count({
       where: { submittedAt: { gte: startOfThisMonth } },
     }),
-    prisma.submission.count({
+    prisma.labSubmission.count({
       where: {
         submittedAt: { gte: startOfLastMonth, lt: startOfThisMonth },
       },

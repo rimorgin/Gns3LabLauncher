@@ -143,32 +143,8 @@ export default function CommentsSection() {
           id: "1-1",
           userName: "Charlie Brown",
           commentText:
-            "I agree, the quantum computing aspect is particularly intriguing.",
+            "I agree, you can follow easily because of network topology and easy to follow lab guide.",
           timestamp: new Date("2024-07-20T15:30:00Z"),
-        },
-      ],
-    },
-    {
-      id: "2",
-      userName: "Bob Smith",
-      commentText:
-        "Could you elaborate on the quantum algorithm development part?",
-      timestamp: new Date("2024-07-20T16:15:00Z"),
-      replies: [
-        {
-          id: "2-1",
-          userName: "Alice Johnson",
-          commentText:
-            "We're focusing on Shor's algorithm and Grover's algorithm for now.",
-          timestamp: new Date("2024-07-20T16:30:00Z"),
-          replies: [
-            {
-              id: "2-1-1",
-              userName: "Bob Smith",
-              commentText: "That's great! Looking forward to updates.",
-              timestamp: new Date("2024-07-20T16:45:00Z"),
-            },
-          ],
         },
       ],
     },

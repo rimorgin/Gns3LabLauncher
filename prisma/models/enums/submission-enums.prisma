@@ -2,7 +2,7 @@ enum SubmissionStatus {
   submitted
   graded
   late
-  idle
+  pending
 }
 
 enum SubmissionAttempts {

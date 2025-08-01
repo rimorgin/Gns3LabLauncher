@@ -9,13 +9,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@clnt/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@clnt/components/ui/card";
-import { Users, BookOpen } from "lucide-react";
 import type { Student, UserGroups } from "@clnt/types/classroom";
 import type { Project } from "@clnt/types/project";
 import router from "../route-layout";
@@ -26,32 +19,56 @@ import { StudentGroupView } from "@clnt/components/pages/classrooms/student-grou
 import ClassroomOverview from "@clnt/components/pages/classrooms/classroom-overview";
 import { useUser } from "@clnt/lib/auth";
 import PageMeta from "@clnt/components/common/page-meta";
+import { LabSubmissionsOverview } from "@clnt/components/pages/classrooms/submissions-overview";
+import { useState } from "react";
+import { LabSubmissionGradingModal } from "@clnt/components/pages/classrooms/submissions-grading-modal";
+import type { LabSubmission, LabSubmissionFile } from "@clnt/types/submission";
+import type { Lab } from "@clnt/types/lab";
+import { useLabSubmissionsQuery } from "@clnt/lib/queries/lab-submission-query";
 
 export default function ClassroomPageRoute() {
   const location = useLocation();
   const { classroomId } = useParams();
+  const [selectedLabSubmission, setSelectedLabSubmission] =
+    useState<LabSubmission | null>(null);
+  const [selectedLab, setSelectedLab] = useState<Lab | null>(null);
+  const [isLabGradingModalOpen, setIsLabGradingModalOpen] = useState(false);
 
   const isBaseClassroomPage =
     location.pathname === `/classrooms/${classroomId}`;
   const user = useUser();
   const {
     data: classroomQry,
-    isLoading,
-    isError,
+    isLoading: isClassroomLoading,
+    isError: isClassroomError,
   } = useClassroomsQuery({
     by_id: classroomId,
     includes: ["course", "students", "instructor", "projects", "studentGroups"],
   });
 
-  const [classroom] = classroomQry ?? [];
+  const {
+    data: labSubmissionsQry,
+    isLoading: isLabSubmissionLoading,
+    isError: isLabSubmissionError,
+  } = useLabSubmissionsQuery({
+    classroomId,
+    studentId: user.data?.role === "student" ? user.data.id : undefined,
+  });
 
-  if (isLoading) return <Loader />;
-  if (isError || !classroom || !user.data)
+  const [classroom] = classroomQry ?? [];
+  const submissions = labSubmissionsQry?.submissions ?? [];
+  const labs = labSubmissionsQry?.labs ?? [];
+
+  /* const {
+    data: classroomLabSubmissions
+  }  */
+
+  if (isClassroomLoading || isLabSubmissionLoading) return <Loader />;
+  if (isClassroomError || isLabSubmissionError || !classroom || !user.data)
     return <Navigate to={"/errorPage"} />;
 
   const handleViewStudent = (student: Student) => {
-    console.log("View student profile:", student);
-    // Navigate to student profile
+    console.log("viewing student:", student);
   };
 
   const handleMessageStudent = (student: Student) => {
@@ -68,18 +85,52 @@ export default function ClassroomPageRoute() {
     console.log("Joining", group);
   };
 
+  const handleViewLabSubmission = (submission: LabSubmission) => {
+    setSelectedLabSubmission(submission);
+    setSelectedLab(labs.find((lab) => submission.labId === lab.id) || null);
+    setIsLabGradingModalOpen(true);
+  };
+
+  const handleGradeLabSubmission = (submission: LabSubmission) => {
+    setSelectedLabSubmission(submission);
+    setSelectedLab(labs.find((lab) => submission.labId === lab.id) || null);
+    setIsLabGradingModalOpen(true);
+  };
+
+  const handleDownloadLabSubmission = (submission: LabSubmission) => {
+    console.log("Download lab submission:", submission);
+    // Download all files or open them in new tabs
+    submission.files.forEach((file: LabSubmissionFile) => {
+      window.open(file.url, "_blank");
+    });
+  };
+
+  const handleSaveLabGrade = async (
+    submissionId: string,
+    grade: number,
+    feedback: string,
+  ) => {
+    console.log("Save lab grade:", { submissionId, grade, feedback });
+    alert(
+      `Lab submission ${submissionId} graded: ${grade}/100 with feedback: "${feedback}"`,
+    );
+  };
+
   const handleExitClassroom = () => {
     router.navigate("/");
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <PageMeta title="Classrooms" description="Classrooms viewer page route" />
       {/* RENDER CHILD PATHS USING OUTLET */}
       {!isBaseClassroomPage ? (
         <Outlet />
       ) : (
         <>
+          <PageMeta
+            title="Classrooms"
+            description="Classrooms viewer page route"
+          />
           <ClassroomHeader
             classroom={classroom}
             onExitClassroom={handleExitClassroom}
@@ -92,15 +143,21 @@ export default function ClassroomPageRoute() {
                 <TabsTrigger value="students">Students</TabsTrigger>
                 <TabsTrigger value="student-groups">Groups</TabsTrigger>
                 <TabsTrigger value="projects">Projects</TabsTrigger>
-                <TabsTrigger value="discussions">Discussions</TabsTrigger>
+                {/* <TabsTrigger value="discussions">Discussions</TabsTrigger> */}
+                <TabsTrigger value="grades">Grades</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
-                <ClassroomOverview classroom={classroom} />
+                <ClassroomOverview
+                  classroom={classroom}
+                  submissions={submissions}
+                  labs={labs}
+                />
               </TabsContent>
 
               <TabsContent value="students">
                 <StudentsList
+                  currentUser={user.data}
                   students={classroom.students}
                   onViewStudent={handleViewStudent}
                   onMessageStudent={handleMessageStudent}
@@ -122,7 +179,7 @@ export default function ClassroomPageRoute() {
                 />
               </TabsContent>
 
-              <TabsContent value="discussions" className="space-y-6">
+              {/* <TabsContent value="discussions" className="space-y-6">
                 <Card className="">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -156,11 +213,36 @@ export default function ClassroomPageRoute() {
                     </p>
                   </CardContent>
                 </Card>
+              </TabsContent> */}
+
+              <TabsContent value="grades" className="space-y-6">
+                <LabSubmissionsOverview
+                  currentUser={user.data}
+                  submissions={submissions}
+                  projects={classroom.projects}
+                  labs={labs}
+                  students={classroom.students}
+                  onViewSubmission={handleViewLabSubmission}
+                  onGradeSubmission={handleGradeLabSubmission}
+                  onDownloadSubmission={handleDownloadLabSubmission}
+                />
               </TabsContent>
             </Tabs>
           </div>
         </>
       )}
+
+      <LabSubmissionGradingModal
+        currentUser={user.data}
+        lab={selectedLab}
+        submission={selectedLabSubmission}
+        isOpen={isLabGradingModalOpen}
+        onClose={() => {
+          setIsLabGradingModalOpen(false);
+          setSelectedLabSubmission(null);
+        }}
+        onSaveGrade={handleSaveLabGrade}
+      />
     </div>
   );
 }

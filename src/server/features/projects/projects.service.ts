@@ -41,7 +41,7 @@ export class ProjectService {
             select: {
               id: true,
               student: true,
-              group: true,
+              //group: true,
               grade: true,
               feedback: true,
               files: true,
@@ -104,7 +104,11 @@ export class ProjectService {
       };
     }
     if (labs) {
-      include.lab = true;
+      include.lab = {
+        include: {
+          settings: true,
+        },
+      };
     }
 
     const where = { where: { id } };
@@ -158,11 +162,11 @@ export class ProjectService {
         classrooms: {
           connect: (props.classroomIds ?? []).map((id) => ({ id })),
         },
-        submissions: {
+        /* submissions: {
           create: {
             status: "idle",
           },
-        },
+        }, */
         labId: props.labId,
       },
     });

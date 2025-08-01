@@ -34,12 +34,20 @@ const LabsPlaygroundContent = lazy(
   () => import("@clnt/components/contents/labs-playground-content"),
 );
 
+const LabInstancesContent = lazy(
+  () => import("@clnt/components/contents/lab-instances-content"),
+);
+
 const CalendarContent = lazy(
   () => import("@clnt/components/contents/calendar-content"),
 );
 
 const SystemHealthContent = lazy(
   () => import("@clnt/components/contents/system-health-content"),
+);
+
+const SystemLogsContent = lazy(
+  () => import("@clnt/components/contents/system-logs-content"),
 );
 
 const AccountContent = lazy(
@@ -67,6 +75,8 @@ export default function DynamicContent() {
         return <LabsLibraryContent />;
       case "Labs Playground":
         return <LabsPlaygroundContent />;
+      case "Lab Instances":
+        return <LabInstancesContent />;
       case "Completions":
         return <CompletionsContent />;
       case "Calendar":
@@ -83,6 +93,8 @@ export default function DynamicContent() {
       }
       case "System Health":
         return <SystemHealthContent />;
+      case "System Logs":
+        return <SystemLogsContent />;
       case "Account":
         return <AccountContent />;
       default:

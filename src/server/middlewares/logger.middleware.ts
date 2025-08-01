@@ -74,7 +74,7 @@ export default function loggerMiddleware(
     stack: {
       userAgent: req.headers["user-agent"],
     },
-    ip: req.ip?.replace("::ffff:", ""),
+    ip: req.ip?.includes("::ffff:") ? req.ip?.replace("::ffff:", "") : req.ip,
   };
   /* 
   // Log initial request info

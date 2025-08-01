@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
-import { handleLabSubmission } from "./lab-submission.service.ts";
+import { LabSubmissionService } from "./lab-submission.service.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
 } from "@srvr/configs/constants.config.ts";
+import { ValidationInputError } from "@srvr/error/validation-input.error.ts";
+import { MaxAttemptsReachedError } from "@srvr/error/max-attempt-submission.error.ts";
+import { UnauthenticatedRequestError } from "@srvr/error/unauthenticated.error.ts";
 
-export const submitLabController = async (req: Request, res: Response) => {
+export const submitLab = async (req: Request, res: Response) => {
   try {
-    const studentId = req.user?.id;
+    const studentId = req.user!.id;
     const {
       labId,
       classroomId,
@@ -17,14 +20,18 @@ export const submitLabController = async (req: Request, res: Response) => {
       completedSections,
     } = req.body;
     const files = req.files as Express.Multer.File[];
+    console.log("🚀 ~ submitLabController ~ files:", files);
 
-    if (!labId || !studentId || !classroomId || !projectId) {
-      return res
-        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-        .json({ error: "Missing required fields" });
+    const missingFields = [];
+
+    if (!labId) missingFields.push("labId");
+    if (!projectId) missingFields.push("projectId");
+    if (!classroomId) missingFields.push("classroomId");
+    if (missingFields.length > 0) {
+      throw new ValidationInputError(missingFields);
     }
 
-    const result = await handleLabSubmission(
+    const result = await LabSubmissionService.submit(
       {
         studentId,
         classroomId,
@@ -37,8 +44,62 @@ export const submitLabController = async (req: Request, res: Response) => {
       files,
     );
 
-    return res.status(200).json(result);
-  } catch {
-    return res.status(500).json({ error: APP_RESPONSE_MESSAGE.serverError });
+    return res.status(HTTP_RESPONSE_CODE.CREATED).json(result);
+  } catch (error) {
+    if (error instanceof UnauthenticatedRequestError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.UNAUTHORIZED)
+        .json({ error: error.message });
+    }
+
+    if (error instanceof ValidationInputError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: error.message });
+    }
+
+    if (error instanceof MaxAttemptsReachedError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.CONFLICT)
+        .json({ error: error.message });
+    }
+    return res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ error: APP_RESPONSE_MESSAGE.serverError });
+  }
+};
+
+export const getClassroomLabSubmissions = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { classroomId } = req.params;
+    const { studentId } = req.query;
+
+    const missingFields = [];
+    if (!classroomId) missingFields.push("classroomId");
+    if (missingFields.length > 0) {
+      throw new ValidationInputError(missingFields);
+    }
+
+    const result = await LabSubmissionService.classroomLabSubmissions({
+      classroomId,
+      options: {
+        studentId: typeof studentId === "string" ? studentId : undefined,
+      },
+    });
+
+    return res.status(HTTP_RESPONSE_CODE.SUCCESS).json(result);
+  } catch (error) {
+    if (error instanceof ValidationInputError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: error.message });
+    }
+
+    return res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ error: APP_RESPONSE_MESSAGE.serverError });
   }
 };
