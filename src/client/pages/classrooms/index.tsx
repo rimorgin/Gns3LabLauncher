@@ -21,10 +21,12 @@ import { useUser } from "@clnt/lib/auth";
 import PageMeta from "@clnt/components/common/page-meta";
 import { LabSubmissionsOverview } from "@clnt/components/pages/classrooms/submissions-overview";
 import { useState } from "react";
-import { LabSubmissionGradingModal } from "@clnt/components/pages/classrooms/submissions-grading-modal";
+import { LabSubmissionGradingDrawer } from "@clnt/components/pages/classrooms/submissions-grading-drawer";
 import type { LabSubmission, LabSubmissionFile } from "@clnt/types/submission";
 import type { Lab } from "@clnt/types/lab";
 import { useLabSubmissionsQuery } from "@clnt/lib/queries/lab-submission-query";
+import { useGradeLab } from "@clnt/lib/mutations/lab/lab-submission-update-mutation";
+import { toast } from "sonner";
 
 export default function ClassroomPageRoute() {
   const location = useLocation();
@@ -32,8 +34,7 @@ export default function ClassroomPageRoute() {
   const [selectedLabSubmission, setSelectedLabSubmission] =
     useState<LabSubmission | null>(null);
   const [selectedLab, setSelectedLab] = useState<Lab | null>(null);
-  const [isLabGradingModalOpen, setIsLabGradingModalOpen] = useState(false);
-
+  const [isLabGradingDrawerOpen, setIsLabGradingDrawerOpen] = useState(false);
   const isBaseClassroomPage =
     location.pathname === `/classrooms/${classroomId}`;
   const user = useUser();
@@ -54,6 +55,8 @@ export default function ClassroomPageRoute() {
     classroomId,
     studentId: user.data?.role === "student" ? user.data.id : undefined,
   });
+
+  const { mutateAsync } = useGradeLab();
 
   const [classroom] = classroomQry ?? [];
   const submissions = labSubmissionsQry?.submissions ?? [];
@@ -88,13 +91,13 @@ export default function ClassroomPageRoute() {
   const handleViewLabSubmission = (submission: LabSubmission) => {
     setSelectedLabSubmission(submission);
     setSelectedLab(labs.find((lab) => submission.labId === lab.id) || null);
-    setIsLabGradingModalOpen(true);
+    setIsLabGradingDrawerOpen(true);
   };
 
   const handleGradeLabSubmission = (submission: LabSubmission) => {
     setSelectedLabSubmission(submission);
     setSelectedLab(labs.find((lab) => submission.labId === lab.id) || null);
-    setIsLabGradingModalOpen(true);
+    setIsLabGradingDrawerOpen(true);
   };
 
   const handleDownloadLabSubmission = (submission: LabSubmission) => {
@@ -110,16 +113,18 @@ export default function ClassroomPageRoute() {
     grade: number,
     feedback: string,
   ) => {
-    console.log("Save lab grade:", { submissionId, grade, feedback });
-    alert(
-      `Lab submission ${submissionId} graded: ${grade}/100 with feedback: "${feedback}"`,
+    toast.promise(
+      mutateAsync({ submissionId, formData: { grade, feedback } }),
+      {
+        loading: "Grading lab submission",
+        success: "Graded lab submission",
+        error: "Error grading lab submission",
+      },
     );
   };
-
   const handleExitClassroom = () => {
     router.navigate("/");
   };
-
   return (
     <div className="min-h-screen bg-background">
       {/* RENDER CHILD PATHS USING OUTLET */}
@@ -232,13 +237,13 @@ export default function ClassroomPageRoute() {
         </>
       )}
 
-      <LabSubmissionGradingModal
+      <LabSubmissionGradingDrawer
         currentUser={user.data}
         lab={selectedLab}
         submission={selectedLabSubmission}
-        isOpen={isLabGradingModalOpen}
+        isOpen={isLabGradingDrawerOpen}
         onClose={() => {
-          setIsLabGradingModalOpen(false);
+          setIsLabGradingDrawerOpen(false);
           setSelectedLabSubmission(null);
         }}
         onSaveGrade={handleSaveLabGrade}

@@ -10,7 +10,7 @@ import {
   useStartContainerInstance,
   useStopContainerInstance,
 } from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
-import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submit-mutation";
+import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submission-submit-mutation";
 import { toast } from "sonner";
 
 import { LabEnvironmentComponent } from "@clnt/components/pages/lab/lab-environment";

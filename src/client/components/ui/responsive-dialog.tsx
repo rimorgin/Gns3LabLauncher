@@ -46,7 +46,7 @@ export function ResponsiveDrawerDialog(props: DrawerDialogProps) {
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-        <DialogContent className="sm:max-w-[425px] md:min-w-[525px] md:max-w-fit sm:animate-fade-in-scale">
+        <DialogContent className="sm:max-w-[425px] md:min-w-[525px] md:max-w-fit h-fit sm:animate-fade-in-scale">
           <DialogHeader>
             <DialogTitle>{props.title}</DialogTitle>
             {props.renderHeaderContent}

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import docker from "@srvr/configs/docker.config.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import {
@@ -117,6 +116,7 @@ export class Gns3DockerService {
         err !== null &&
         "statusCode" in err &&
         "message" in err &&
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         typeof (err as any).message === "string"
       ) {
         const e = err as { statusCode: number; message: string };

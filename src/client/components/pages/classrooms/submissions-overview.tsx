@@ -451,13 +451,14 @@ export function LabSubmissionsOverview({
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => onViewSubmission(submission)}
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Submission
-                              </DropdownMenuItem>
-                              {!isStudent && (
+                              {isStudent ? (
+                                <DropdownMenuItem
+                                  onClick={() => onViewSubmission(submission)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Submission
+                                </DropdownMenuItem>
+                              ) : (
                                 <>
                                   <DropdownMenuItem
                                     onClick={() =>
@@ -556,8 +557,9 @@ export function LabSubmissionsOverview({
                                       <span className="text-muted-foreground">
                                         Grade:
                                       </span>{" "}
-                                      {submission.grade}/
-                                      {submission.lab.maxGrade}
+                                      {submission.grade}
+                                      {/* /
+                                      {submission.lab.maxGrade} */}
                                     </div>
                                   )}
                                 </div>

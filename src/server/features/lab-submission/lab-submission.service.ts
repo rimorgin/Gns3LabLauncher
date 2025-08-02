@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { MaxAttemptsReachedError } from "@srvr/error/max-attempt-submission.error.ts";
 
-type HandleLabSubmissionInput = {
+type LabSubmissionInput = {
   studentId: string;
   classroomId: string;
   labId: string;
@@ -12,9 +12,16 @@ type HandleLabSubmissionInput = {
   completedVerifications?: string[];
   completedSections?: number[];
 };
+
+type GradeLabSubmissionInput = {
+  submissionId: string;
+  grade: number;
+  feedback: string;
+};
+
 export class LabSubmissionService {
   static async submit(
-    props: HandleLabSubmissionInput,
+    props: LabSubmissionInput,
     fileProps: Express.Multer.File[] = [],
   ) {
     const {
@@ -154,6 +161,17 @@ export class LabSubmissionService {
     });
 
     return submission;
+  }
+  static async gradeById(props: GradeLabSubmissionInput) {
+    const gradeSubmission = await prisma.labSubmission.update({
+      where: { id: props.submissionId },
+      data: {
+        status: "graded",
+        grade: props.grade,
+        feedback: props.feedback,
+      },
+    });
+    return gradeSubmission;
   }
   static async classroomLabSubmissions(props: {
     classroomId: string;

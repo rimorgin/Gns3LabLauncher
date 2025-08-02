@@ -21,7 +21,6 @@ export const useCreateLab = () => {
         ...newLab,
         id: "temp-id-" + Date.now(),
         createdAt: new Date(),
-        updatedAt: new Date(),
       };
 
       queryClient.setQueryData<Lab[]>(["labs"], (old) =>

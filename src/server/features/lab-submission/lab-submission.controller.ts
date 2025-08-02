@@ -69,6 +69,44 @@ export const submitLab = async (req: Request, res: Response) => {
   }
 };
 
+export const gradeLab = async (req: Request, res: Response) => {
+  try {
+    const { submissionId } = req.params;
+    const { grade, feedback } = req.body;
+
+    const missingFields = [];
+
+    if (!submissionId) missingFields.push("submissionId");
+    if (missingFields.length > 0) {
+      throw new ValidationInputError(missingFields);
+    }
+
+    const result = await LabSubmissionService.gradeById({
+      submissionId: submissionId,
+      grade,
+      feedback,
+    });
+
+    return res.status(HTTP_RESPONSE_CODE.SUCCESS).json(result);
+  } catch (error) {
+    if (error instanceof UnauthenticatedRequestError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.UNAUTHORIZED)
+        .json({ error: error.message });
+    }
+
+    if (error instanceof ValidationInputError) {
+      return res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: error.message });
+    }
+
+    return res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ error: APP_RESPONSE_MESSAGE.serverError });
+  }
+};
+
 export const getClassroomLabSubmissions = async (
   req: Request,
   res: Response,

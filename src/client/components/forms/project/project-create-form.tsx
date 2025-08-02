@@ -35,7 +35,7 @@ import { useState } from "react";
 import { useQuickDialogStore } from "@clnt/lib/store/quick-create-dialog-store";
 import { Textarea } from "@clnt/components/ui/textarea";
 import { useLabsQuery } from "@clnt/lib/queries/lab-query";
-import router from "@clnt/pages/route-layout";
+import { Navigate } from "react-router";
 
 export function ProjectCreateForm() {
   const toggleQuickDialog = useQuickDialogStore(
@@ -95,7 +95,7 @@ export function ProjectCreateForm() {
         <Skeleton className="w-full h-8" />
       </>
     );
-  if (errorOnClassrooms || errorOnLabs) return router.navigate("/error");
+  if (errorOnClassrooms || errorOnLabs) return <Navigate to={"/errorPage"} />;
 
   const classroomOptions = classroomsQry?.map(
     (cls: {

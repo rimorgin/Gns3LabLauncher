@@ -31,6 +31,7 @@ import {
   Monitor,
   Server,
   BrickWallFire,
+  X,
 } from "lucide-react";
 import { LabSubmission, LabSubmissionFile } from "@clnt/types/submission";
 import { IUser } from "@clnt/types/auth-types";
@@ -40,8 +41,21 @@ import {
   LabContent,
   LabTask,
   VerificationStep,
+  TopologyNode,
 } from "@clnt/types/lab";
 import { IconCloud } from "@tabler/icons-react";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@clnt/components/ui/tabs";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTrigger,
+} from "@clnt/components/ui/dialog";
 
 interface LabSubmissionGradingModalProps {
   currentUser: IUser;
@@ -52,7 +66,7 @@ interface LabSubmissionGradingModalProps {
   onSaveGrade: (submissionId: string, grade: number, feedback: string) => void;
 }
 
-export function LabSubmissionGradingModal({
+export function LabSubmissionGradingDrawer({
   currentUser,
   lab,
   submission,
@@ -65,7 +79,15 @@ export function LabSubmissionGradingModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isStudent = currentUser.role === "student";
 
-  if (!submission) return null;
+  if (!submission || !lab) return null;
+
+  const grouped = lab.environment.topology.nodes.reduce<
+    Record<string, TopologyNode[]>
+  >((acc, device) => {
+    if (!acc[device.type]) acc[device.type] = [];
+    acc[device.type].push(device);
+    return acc;
+  }, {});
 
   const handleSave = async () => {
     setIsSubmitting(true);
@@ -292,14 +314,6 @@ export function LabSubmissionGradingModal({
   };
 
   const renderLabForGrading = () => {
-    if (!lab) {
-      return (
-        <div className="text-center text-muted-foreground py-8">
-          Lab details not available for grading.
-        </div>
-      );
-    }
-
     return (
       <div className="space-y-6">
         <h4 className="font-medium flex items-center gap-2">
@@ -308,136 +322,229 @@ export function LabSubmissionGradingModal({
         </h4>
         <div>
           <h6 className="font-medium mb-3">Lab Topology Overview</h6>
-          <div className="w-full max-w-4xl">{renderTopology()}</div>
+          <div className="mt-4 grid grid-cols-2 gap-10">
+            <div className="col-span-1">
+              <h4 className="font-medium mb-2">Network Topology</h4>
+              {renderTopology()}
+            </div>
+            <div className="col-span-1">
+              <h4 className="font-medium mb-2">Devices Overview</h4>
+              <div className="space-y-4">
+                {Object.entries(grouped).map(([type, devices]) => (
+                  <div key={type}>
+                    <h4 className="text-sm font-semibold capitalize mb-1">
+                      {type}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {devices.slice(0, 6).map((device) => (
+                        <Card
+                          key={device.id}
+                          className="flex flex-row items-center justify-center gap-5 p-2 rounded text-sm"
+                        >
+                          <div>{getDevicesIcon(device.type)}</div>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{device.name}</span>
+                            {device.applianceName && (
+                              <span className="text-muted-foreground">
+                                {device.applianceName}
+                              </span>
+                            )}
+                          </div>
+                        </Card>
+                      ))}
+                      {devices.length > 6 && (
+                        <div className="text-sm text-muted-foreground p-2">
+                          +{devices.length - 6} more {type}…
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         {lab.guide?.sections && lab.guide.sections.length > 0 ? (
           lab.guide.sections.map((section: LabSection) => (
             <Card key={section.id} className="p-4">
               <h5 className="font-semibold text-lg mb-3">{section.title}</h5>
-              {section.type === "verification" &&
-                section.verifications &&
-                section.verifications.length > 0 && (
-                  <div className="space-y-4">
-                    <h6 className="font-medium text-md">Verification Steps:</h6>
-                    {section.verifications.map(
-                      (verification: VerificationStep) => {
-                        const submittedFile = submission.files.find(
-                          (file: LabSubmissionFile) =>
-                            file.name === verification.id,
-                        );
-                        return (
-                          <div
-                            key={verification.id}
-                            className="border rounded-md p-3 space-y-2"
-                          >
-                            <p className="text-sm font-medium">
-                              {verification.description}
-                            </p>
-                            <div className="text-xs text-muted-foreground">
-                              <strong>Device:</strong> {verification.device}
+
+              <Tabs defaultValue="content" className="w-full">
+                <TabsList className="mb-4">
+                  <TabsTrigger value="content">Content</TabsTrigger>
+                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                  <TabsTrigger value="verification">Verification</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="content">
+                  {section.content && section.content.length > 0 ? (
+                    <div className="space-y-2">
+                      {section.content.map((contentItem: LabContent) => (
+                        <div
+                          key={contentItem.id}
+                          className="text-sm text-muted-foreground"
+                        >
+                          {contentItem.type === "text" && (
+                            <p>{contentItem.content}</p>
+                          )}
+                          {contentItem.type === "code" && (
+                            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                              <pre>{contentItem.content}</pre>
                             </div>
-                            {verification.commands &&
-                              verification.commands.length > 0 && (
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No content available.
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="tasks">
+                  {section.tasks && section.tasks.length > 0 ? (
+                    <div className="space-y-2">
+                      {section.tasks.map((task: LabTask) => (
+                        <div
+                          key={task.id}
+                          className="text-sm text-muted-foreground"
+                        >
+                          <p>{task.description}</p>
+                          {task.commands && task.commands.length > 0 && (
+                            <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                              <pre>{task.commands.join("\n")}</pre>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No tasks available.
+                    </p>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="verification">
+                  {section.verifications && section.verifications.length > 0 ? (
+                    <div className="space-y-4">
+                      {section.verifications.map(
+                        (verification: VerificationStep) => {
+                          const submittedFile = submission.files.find(
+                            (file: LabSubmissionFile) =>
+                              file.name?.replace(".png", "") ===
+                              verification.id,
+                          );
+                          return (
+                            <div
+                              key={verification.id}
+                              className="border rounded-md p-3 space-y-2"
+                            >
+                              <p className="text-sm font-medium">
+                                {verification.description}
+                              </p>
+                              <div className="text-xs text-muted-foreground">
+                                <strong>Device:</strong> {verification.device}
+                              </div>
+                              {verification.commands?.length > 0 && (
                                 <div className="text-xs text-muted-foreground">
-                                  <strong>Commands:</strong>{" "}
-                                  <pre className="bg-gray-100 p-2 rounded-md mt-1 overflow-x-auto text-xs">
-                                    {verification.commands.join("\n")}
-                                  </pre>
-                                </div>
-                              )}
-                            {verification.expectedOutput &&
-                              verification.expectedOutput.length > 0 && (
-                                <div className="text-xs text-muted-foreground">
-                                  <strong>Expected Output:</strong>{" "}
-                                  <pre className="bg-gray-100 p-2 rounded-md mt-1 overflow-x-auto text-xs">
-                                    {verification.expectedOutput.join("\n")}
-                                  </pre>
-                                </div>
-                              )}
-                            {verification.requiresScreenshot && (
-                              <Badge variant="outline" className="mt-2">
-                                Requires Screenshot
-                              </Badge>
-                            )}
-                            {submittedFile ? (
-                              <div className="flex items-center justify-between mt-3 p-2 bg-green-50 rounded-md">
-                                <div className="flex items-center space-x-2">
-                                  <FileText className="h-4 w-4 text-green-600" />
-                                  <div>
-                                    <div className="text-sm font-medium text-green-800">
-                                      Submitted File:{" "}
-                                      {submittedFile.name || "Unnamed File"}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground">
-                                      Uploaded:{" "}
-                                      {new Date(
-                                        submittedFile.uploadedAt,
-                                      ).toLocaleString()}
-                                    </div>
+                                  <strong>Commands:</strong>
+                                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                                    <pre>
+                                      {verification.commands.join("\n")}
+                                    </pre>
                                   </div>
                                 </div>
-                                <Button variant="ghost" size="sm" asChild>
-                                  <a
-                                    href={submittedFile.url}
-                                    download
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                  >
-                                    <Download className="h-4 w-4 text-green-600" />
-                                  </a>
-                                </Button>
-                              </div>
-                            ) : (
-                              <div className="text-sm text-red-600 mt-3">
-                                No matching file submitted for this verification
-                                step.
-                              </div>
-                            )}
-                          </div>
-                        );
-                      },
-                    )}
-                  </div>
-                )}
-              {section.content && section.content.length > 0 && (
-                <div className="space-y-2 mt-4">
-                  <h6 className="font-medium text-md">Content:</h6>
-                  {section.content.map((contentItem: LabContent) => (
-                    <div
-                      key={contentItem.id}
-                      className="text-sm text-muted-foreground"
-                    >
-                      {contentItem.type === "text" && (
-                        <p>{contentItem.content}</p>
-                      )}
-                      {contentItem.type === "code" && (
-                        <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto text-xs">
-                          <code>{contentItem.content}</code>
-                        </pre>
+                              )}
+                              {verification.expectedOutput?.length > 0 && (
+                                <div className="text-xs text-muted-foreground">
+                                  <strong>Expected Output:</strong>
+                                  <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+                                    <pre>
+                                      {verification.expectedOutput.join("\n")}
+                                    </pre>
+                                  </div>
+                                </div>
+                              )}
+                              {verification.requiresScreenshot && (
+                                <div>
+                                  <Badge variant="outline" className="mt-2">
+                                    Requires Screenshot
+                                  </Badge>
+                                  {submittedFile ? (
+                                    <div className="flex items-center justify-between mt-3 p-2 bg-green-50 rounded-md">
+                                      <div>
+                                        <div className="flex items-center space-x-2">
+                                          <FileText className="h-4 w-4 text-green-600" />
+                                          <div>
+                                            <div className="text-sm font-medium text-green-800">
+                                              Submitted File:{" "}
+                                              {submittedFile.name ||
+                                                "Unnamed File"}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                              Uploaded:{" "}
+                                              {new Date(
+                                                submittedFile.uploadedAt,
+                                              ).toLocaleString()}
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <Dialog>
+                                          <DialogTrigger asChild>
+                                            <img
+                                              src={submittedFile.url}
+                                              alt={`Screenshot for ${verification.id}`}
+                                              className="w-full max-w-sm rounded-md border shadow cursor-pointer"
+                                            />
+                                          </DialogTrigger>
+                                          <DialogContent className="p-0 w-fit h-fit bg-black border-none shadow-lg">
+                                            <DialogClose className="absolute top-4 right-4 text-white hover:text-red-500 z-50">
+                                              <X className="h-6 w-6" />
+                                            </DialogClose>
+                                            <div className="flex justify-center items-center p-4">
+                                              <img
+                                                src={submittedFile.url}
+                                                alt={`Fullscreen Screenshot for ${verification.id}`}
+                                                className="max-h-[90vh] w-auto rounded-md"
+                                              />
+                                            </div>
+                                          </DialogContent>
+                                        </Dialog>
+                                      </div>
+                                      <Button variant="ghost" size="sm" asChild>
+                                        <a
+                                          href={submittedFile.url}
+                                          download
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          <Download className="h-4 w-4 text-green-600" />
+                                        </a>
+                                      </Button>
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-red-600 mt-3">
+                                      No matching file submitted for this
+                                      verification step.
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        },
                       )}
                     </div>
-                  ))}
-                </div>
-              )}
-              {section.tasks && section.tasks.length > 0 && (
-                <div className="space-y-2 mt-4">
-                  <h6 className="font-medium text-md">Tasks:</h6>
-                  {section.tasks.map((task: LabTask) => (
-                    <div
-                      key={task.id}
-                      className="text-sm text-muted-foreground"
-                    >
-                      <p>{task.description}</p>
-                      {task.commands && task.commands.length > 0 && (
-                        <pre className="bg-gray-100 p-2 rounded-md mt-1 overflow-x-auto text-xs">
-                          {task.commands.join("\n")}
-                        </pre>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      No verification steps available.
+                    </p>
+                  )}
+                </TabsContent>
+              </Tabs>
             </Card>
           ))
         ) : (
@@ -631,7 +738,7 @@ export function LabSubmissionGradingModal({
           <div className="space-y-3">
             <h4 className="font-medium flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Submitted Files
+              Download Submitted Files
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {submission.files?.length > 0 ? (
@@ -687,7 +794,7 @@ export function LabSubmissionGradingModal({
                   min="0"
                   max={submission.lab.maxGrade}
                   step="0.1"
-                  value={grade}
+                  value={submission.grade ?? grade}
                   onChange={(e) => setGrade(e.target.value)}
                   placeholder={
                     isStudent
@@ -710,7 +817,7 @@ export function LabSubmissionGradingModal({
               <Label htmlFor="feedback">Feedback</Label>
               <Textarea
                 id="feedback"
-                value={feedback}
+                value={submission.feedback ?? feedback}
                 onChange={(e) => setFeedback(e.target.value)}
                 placeholder={
                   isStudent
