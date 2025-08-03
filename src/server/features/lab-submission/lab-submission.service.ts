@@ -144,6 +144,9 @@ export class LabSubmissionService {
       update: {
         status: "COMPLETED",
         percentComplete: 100,
+        completedSections,
+        completedTasks,
+        completedVerifications,
         completedAt: new Date(),
       },
       create: {
@@ -157,6 +160,43 @@ export class LabSubmissionService {
         percentComplete: 100,
         startedAt: new Date(),
         completedAt: new Date(),
+      },
+    });
+
+    // Recalculate overall progress percentComplete
+    const totalLabs = await prisma.lab.count({
+      where: {
+        project: {
+          some: {
+            id: projectId,
+          },
+        },
+      },
+    });
+
+    const completedLabs = await prisma.labProgress.count({
+      where: {
+        progressId: progress.id,
+        status: "COMPLETED",
+      },
+    });
+
+    const overallPercentComplete = totalLabs
+      ? Math.round((completedLabs / totalLabs) * 100)
+      : 0;
+
+    await prisma.progress.upsert({
+      where: { id: progress?.id }, // fallback ID to force create if `progress` is undefined
+      update: {
+        percentComplete: overallPercentComplete,
+        status: overallPercentComplete === 100 ? "COMPLETED" : "IN_PROGRESS",
+      },
+      create: {
+        percentComplete: overallPercentComplete,
+        status: overallPercentComplete === 100 ? "COMPLETED" : "IN_PROGRESS",
+        projectId,
+        classroomId,
+        studentId, // or groupId if applicable
       },
     });
 

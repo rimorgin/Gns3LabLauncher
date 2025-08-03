@@ -58,6 +58,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 // Interface based on your Prisma model
@@ -89,6 +91,8 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
   const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [dateRange, setDateRange] = useState("all");
+  const [sortKey, setSortKey] = useState<keyof LogEntry | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -168,9 +172,47 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
       );
     }
 
+    // Sort logs
+    if (sortKey) {
+      filtered = [...filtered].sort((a, b) => {
+        const valA = a[sortKey];
+        const valB = b[sortKey];
+
+        if (valA == null) return 1;
+        if (valB == null) return -1;
+
+        if (typeof valA === "number" && typeof valB === "number") {
+          return sortDirection === "asc" ? valA - valB : valB - valA;
+        }
+
+        if (typeof valA === "string" && typeof valB === "string") {
+          return sortDirection === "asc"
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
+        }
+
+        if (valA instanceof Date && valB instanceof Date) {
+          return sortDirection === "asc"
+            ? valA.getTime() - valB.getTime()
+            : valB.getTime() - valA.getTime();
+        }
+
+        return 0;
+      });
+    }
+
     setFilteredLogs(filtered);
     setCurrentPage(1); // Reset to first page when filters change
-  }, [logs, searchTerm, levelFilter, statusFilter, contextFilter, dateRange]);
+  }, [
+    logs,
+    searchTerm,
+    levelFilter,
+    statusFilter,
+    contextFilter,
+    dateRange,
+    sortKey,
+    sortDirection,
+  ]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
@@ -245,6 +287,15 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
     setCurrentPage(1);
   };
 
+  const handleSort = (key: keyof LogEntry) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
   // Stats calculations
   const stats = {
     total: filteredLogs.length,
@@ -262,6 +313,47 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
           )
         : 0,
   };
+
+  const headers: {
+    key: keyof LogEntry | "actions";
+    label: string;
+    className?: string;
+    sortable?: boolean;
+  }[] = [
+    { key: "level", label: "Level", className: "w-[100px]", sortable: true },
+    {
+      key: "timestamp",
+      label: "Timestamp",
+      className: "w-[180px]",
+      sortable: true,
+    },
+    { key: "message", label: "Message", sortable: false },
+    {
+      key: "context",
+      label: "Context",
+      className: "w-[120px]",
+      sortable: true,
+    },
+    {
+      key: "statusCode",
+      label: "Status",
+      className: "w-[100px]",
+      sortable: true,
+    },
+    {
+      key: "durationMs",
+      label: "Duration",
+      className: "w-[100px]",
+      sortable: true,
+    },
+    { key: "ip", label: "IP", className: "w-[120px]", sortable: true },
+    {
+      key: "actions",
+      label: "Actions",
+      className: "w-[80px]",
+      sortable: false,
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -347,19 +439,19 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
-            <div className="relative w-50">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+            <div className="relative w-[200%]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 placeholder="Search logs by message, context, or IP..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-50"
+                className="pl-10"
               />
             </div>
 
             <Select value={levelFilter} onValueChange={setLevelFilter}>
-              <SelectTrigger className="w-full lg:w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Level" />
               </SelectTrigger>
               <SelectContent>
@@ -373,7 +465,7 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
             </Select>
 
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full lg:w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -385,7 +477,7 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
             </Select>
 
             <Select value={contextFilter} onValueChange={setContextFilter}>
-              <SelectTrigger className="w-full lg:w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Context" />
               </SelectTrigger>
               <SelectContent>
@@ -399,7 +491,7 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
             </Select>
 
             <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger className="w-full lg:w-[140px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Time Range" />
               </SelectTrigger>
               <SelectContent>
@@ -443,14 +535,26 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">Level</TableHead>
-                  <TableHead className="w-[180px]">Timestamp</TableHead>
-                  <TableHead>Message</TableHead>
-                  <TableHead className="w-[120px]">Context</TableHead>
-                  <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[100px]">Duration</TableHead>
-                  <TableHead className="w-[120px]">IP</TableHead>
-                  <TableHead className="w-[80px]">Actions</TableHead>
+                  {headers.map((col) => (
+                    <TableHead
+                      key={col.key}
+                      className={`whitespace-nowrap ${col.sortable ? "cursor-pointer select-none" : ""} ${col.className ?? ""}`}
+                      onClick={() =>
+                        col.sortable && handleSort(col.key as keyof LogEntry)
+                      }
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>{col.label}</span>
+                        {col.sortable &&
+                          sortKey === col.key &&
+                          (sortDirection === "asc" ? (
+                            <ChevronUp className="w-5 h-5" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5" />
+                          ))}
+                      </div>
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -12,47 +12,6 @@ import prisma from "@srvr/utils/db/prisma.ts";
 import { Prisma, UserRolesEnum } from "@prisma/client";
 
 export class UserService {
-  static async getMe(id?: string) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: {
-        student: {
-          include: {
-            classrooms: {
-              include: {
-                course: {
-                  select: {
-                    courseCode: true,
-                    courseName: true,
-                  },
-                },
-              },
-            },
-            userGroups: true,
-            progress: true,
-            labProgress: true,
-            submissions: true,
-          },
-        },
-        instructor: {
-          include: {
-            classrooms: {
-              include: {
-                course: {
-                  select: {
-                    courseCode: true,
-                    courseName: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      omit: { password: true },
-    });
-    return user;
-  }
   /**
    * Fetches a list of users from the database, supporting flexible query (options) parameters:
    *

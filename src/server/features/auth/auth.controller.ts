@@ -4,11 +4,8 @@ import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
 import { UserService } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
-import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
-import roles from "@srvr/configs/roles.config.ts";
 import {
   APP_RESPONSE_MESSAGE,
-  HTTP_RESPONSE_CODE,
   HttpStatusCode,
 } from "@srvr/configs/constants.config.ts";
 import { logger } from "@srvr/middlewares/logger.middleware.ts";
@@ -30,64 +27,6 @@ export const checkSession = (req: Request, res: Response): void => {
   }
 
   res.status(200).json({ session: true });
-};
-
-/**
- * Fetches the permissions associated with the currently authenticated user's role.
- *
- * @function getUserPermissions
- *
- * @param {Request} req - Express request object containing authenticated user data.
- * @param {Response} res - Express response object to send permission data or error messages.
- *
- * @returns {void} Sends:
- *  - 200 JSON with list of permissions if successful
- *  - 401 Unauthorized if user is not authenticated or has no role
- *  - 403 Forbidden if role is unrecognized or has no permissions
- */
-export const getUserPermissions = (req: Request, res: Response): void => {
-  const userRole = req.user?.role;
-
-  if (!userRole) {
-    res
-      .status(HttpStatusCode.UNAUTHORIZED)
-      .json({ message: "Unauthorized or role missing" });
-    return;
-  }
-
-  const permissions = getRolePermissions(roles, userRole);
-  if (!permissions.length) {
-    res
-      .status(403)
-      .json({ message: "Role not recognized or has no permissions" });
-    return;
-  }
-
-  res.json({ permissions });
-};
-
-/**
- * Fetches the currently authenticated user from the database using their session ID.
- *
- * @param {Request} req - Express request object containing session data.
- * @param {Response} res - Express response object to send back the user data or error message.
- *
- * @returns {Promise<void>} Sends:
- *  - 200 with user and session expiry if found
- *  - 401 if not logged in
- *  - 404 if user is not found in the database
- */
-export const getMe = async (req: Request, res: Response): Promise<void> => {
-  const userSessionId = req.session?.passport?.user;
-  const user = await UserService.getMe(userSessionId);
-  if (!user) {
-    res
-      .status(HTTP_RESPONSE_CODE.NOT_FOUND)
-      .json({ message: APP_RESPONSE_MESSAGE.user.userDoesntExist });
-    return;
-  }
-
-  res.json({ user });
 };
 
 /**

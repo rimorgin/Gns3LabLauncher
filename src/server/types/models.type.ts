@@ -1,5 +1,7 @@
 import {
   ClassroomStatusEnum,
+  LabProgress,
+  ProgressStatus,
   ProjectTagsEnum,
   UserRolesEnum,
 } from "@prisma/client";

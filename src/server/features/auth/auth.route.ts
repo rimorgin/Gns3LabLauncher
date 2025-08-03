@@ -1,35 +1,12 @@
 import express from "express";
 import {
-  getMe,
   postLogout,
   postSignup,
   postLoginLocal,
   checkSession,
-  getUserPermissions,
 } from "@srvr/features/auth/auth.controller.ts";
-import { checkAuthentication } from "@srvr/middlewares/auth.middleware.ts";
-import { redisCache } from "@srvr/middlewares/redis-cache.middleware.ts";
 
 const router = express.Router();
-
-/**
- * @route   GET /permissions
- * @desc    Get current authenticated user's permissions based on their role.
- * @access  Authenticated users
- */
-router.get(
-  "/permissions",
-  checkAuthentication,
-  redisCache({ withUserId: true }),
-  getUserPermissions,
-);
-
-/**
- * @route   GET /me
- * @desc    Fetches the currently authenticated user's data from the session
- * @access  Private (User must be logged in)
- */
-router.get("/me", checkAuthentication, getMe);
 
 /**
  * @route   GET /session/check

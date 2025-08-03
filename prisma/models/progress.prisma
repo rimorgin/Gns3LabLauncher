@@ -8,9 +8,6 @@ model Progress {
   projectId   String // the project being tracked
   classroomId String? // optionally, to scope it to a classroom
 
-  currentStep Int? @default(0)
-  totalSteps  Int? @default(0)
-
   percentComplete Float           @default(0) // 0–100
   status          ProgressStatus? @default(NOT_STARTED)
 

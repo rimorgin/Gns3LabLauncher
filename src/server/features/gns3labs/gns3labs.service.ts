@@ -14,7 +14,7 @@ interface ContainerOptions {
 
 export class Gns3DockerService {
   static readonly DEFAULT_IMAGE = "rimorgin/gns3server";
-  static readonly DEFAULT_NETWORK = "gns3vlan"; //gns3vlan or host
+  static readonly DEFAULT_NETWORK = "host"; //gns3vlan or host
   static readonly DATA_PATH = "/var/opt/gns3lablauncher/gns3:/data";
 
   /**

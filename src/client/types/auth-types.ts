@@ -1,4 +1,6 @@
+import { LabProgress, Progress } from "./progress";
 import { Permission } from "./roles-permissions-types";
+import { LabSubmission } from "./submission";
 
 type User = {
   name: string | null;
@@ -6,6 +8,7 @@ type User = {
   username: string;
   email: string;
   role: "administrator" | "instructor" | "student";
+  bio?: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -31,6 +34,9 @@ export interface IUser extends User {
     userGroups?: Groups[];
     lastActiveAt?: Date;
     isOnline?: boolean;
+    progress: Progress[];
+    labProgress: LabProgress[];
+    submissions: LabSubmission[];
   };
 }
 
