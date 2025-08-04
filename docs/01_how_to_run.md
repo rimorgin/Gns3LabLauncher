@@ -189,7 +189,7 @@ Make sure:
 
 ## 📚 Further Reading
 
-* [`/docs/`](./docs) folder for advanced configuration
+* Read [next chapter](02_react_ui_components.md) for more tutorials
 * [Docker MacVLAN Documentation](https://docs.docker.com/network/macvlan/)
 * [GNS3 Official Docs](https://docs.gns3.com/)
 

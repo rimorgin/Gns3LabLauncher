@@ -27,8 +27,8 @@ This project addresses the gap by automating the deployment of GNS3 labs and ena
 
 # 🐳 Docker Repositories
 
-- 📦 `rimorgin/docker-gns3-server`
-- 📦 `rimorgin/openvpn`
+- 📦 [rimorgin/docker-gns3server](https://github.com/rimorgin/docker-gns3server)
+- 📦 [rimorgin/openvpn](https://github.com/rimorgin/openvpn)
 
 ---
 
@@ -36,3 +36,6 @@ This project addresses the gap by automating the deployment of GNS3 labs and ena
 
 - 🔑 `openvpn`
 - 🌐 `gns3client` application/web GUI
+
+
+# 📄 LEARN MORE AT THE [DOCS HERE](./docs/index.md)
