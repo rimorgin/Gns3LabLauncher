@@ -150,7 +150,7 @@ Now, let's look at some key code snippets.
 
 In this chapter, you've learned about GNS3 Server Docker Container Management and how it allows you to easily start, stop, and inspect GNS3 server instances within Docker containers. You've seen how to use the `startGns3Container` and `stopGns3Container` functions to manage containers.
 
-In the [next chapter: Docker Compose](10_docker_compose.md), we'll explore how to use Docker Compose to define and manage multi-container Docker applications.
+In the [next chapter: Docker Compose](11_docker_compose.md), we'll explore how to use Docker Compose to define and manage multi-container Docker applications.
 
 
 ---

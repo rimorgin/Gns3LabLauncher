@@ -144,9 +144,9 @@ Explanation:
 
 Prisma Client is a central component that integrates with many other parts of the `Gns3LabLauncher` project:
 
-*   **Express Feature Modules ([Chapter 6: Express Feature Modules](06_express_feature_modules.md)):** Prisma Client is used within feature modules to access and modify data.
-*   **User Authentication and Authorization ([Chapter 5: User Authentication and Authorization](05_user_authentication_and_authorization.md)):** User roles and permissions are stored in the database and accessed using Prisma Client.
-*   **React Query ([Chapter 3: React Query](03_react_query.md)):** The data displayed by React Query is ultimately fetched from the database using Prisma Client.
+*   **Express Feature Modules ([Chapter 7: Express Feature Modules](07_express_feature_modules.md)):** Prisma Client is used within feature modules to access and modify data.
+*   **User Authentication and Authorization ([Chapter 6: User Authentication and Authorization](06_user_authentication_and_authorization.md)):** User roles and permissions are stored in the database and accessed using Prisma Client.
+*   **React Query ([Chapter 4: React Query](04_react_query.md)):** The data displayed by React Query is ultimately fetched from the database using Prisma Client.
 
 **Conclusion**
 

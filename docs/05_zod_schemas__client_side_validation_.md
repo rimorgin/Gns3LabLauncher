@@ -158,14 +158,14 @@ Explanation:
 
 Zod schemas are frequently used in conjunction with other core abstractions in the `Gns3LabLauncher` project. For example:
 
-*   **React Query ([Chapter 3: React Query](03_react_query.md)):** You can use Zod to validate the data that you receive from the server using React Query. This ensures that the data is valid before you display it to the user.
-*   **Lab Builder Store (Zustand) ([Chapter 2: Lab Builder Store (Zustand)](02_lab_builder_store__zustand_.md)):** You can use Zod to validate the data that you store in the [Lab Builder Store (Zustand)](02_lab_builder_store__zustand_.md). This ensures that the data is valid before you save it to the store.
+*   **React Query ([Chapter 4: React Query](04_react_query.md)):** You can use Zod to validate the data that you receive from the server using React Query. This ensures that the data is valid before you display it to the user.
+*   **Lab Builder Store (Zustand) ([Chapter 3: Lab Builder Store (Zustand)](03_lab_builder_store__zustand_.md)):** You can use Zod to validate the data that you store in the [Lab Builder Store (Zustand)](03_lab_builder_store__zustand_.md). This ensures that the data is valid before you save it to the store.
 
 **Conclusion**
 
 In this chapter, you've learned about Zod and how it simplifies data validation in React applications. You've seen how to define schemas, validate data, and handle validation errors. Using Zod, you can ensure that your data is valid and consistent, preventing errors and improving the overall quality of your application.
 
-In the [next chapter: User Authentication and Authorization](05_user_authentication_and_authorization.md), we'll explore how to implement user authentication and authorization in our application.
+In the [next chapter: User Authentication and Authorization](06_user_authentication_and_authorization.md), we'll explore how to implement user authentication and authorization in our application.
 
 
 ---

@@ -165,13 +165,13 @@ Explanation:
 
 **Integration with Other Abstractions**
 
-Docker Compose simplifies the deployment and management of the entire `Gns3LabLauncher` application, including the GNS3 server containers managed in [Chapter 9: GNS3 Server Docker Container Management](09_gns3_server_docker_container_management.md).
+Docker Compose simplifies the deployment and management of the entire `Gns3LabLauncher` application, including the GNS3 server containers managed in [Chapter 10: GNS3 Server Docker Container Management](10_gns3_server_docker_container_management.md).
 
 **Conclusion**
 
 In this chapter, you've learned about Docker Compose and how it simplifies the management of multi-container Docker applications. You've seen how to define services, networks, and volumes in a `docker-compose.yml` file and how to use the `docker-compose up` and `docker-compose down` commands to manage your application.
 
-In the [next chapter: Prisma Client](11_prisma_client.md), we'll explore how to use Prisma Client to interact with our database.
+In the [next chapter: Prisma Client](12_prisma_client.md), we'll explore how to use Prisma Client to interact with our database.
 
 
 ---

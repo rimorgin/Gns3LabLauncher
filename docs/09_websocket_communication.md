@@ -207,7 +207,7 @@ io.engine.use(wrapExpressMiddlewareForSocket(passport.session()));
 
 In this chapter, you've learned about WebSocket communication and how to use it to enable real-time communication between the client and server. You've seen how to set up a WebSocket server, define WebSocket event handlers, and connect to the WebSocket server from the client-side.
 
-In the [next chapter: GNS3 Server Docker Container Management](09_gns3_server_docker_container_management.md), we'll explore how to manage GNS3 server Docker containers using our application.
+In the [next chapter: GNS3 Server Docker Container Management](10_gns3_server_docker_container_management.md), we'll explore how to manage GNS3 server Docker containers using our application.
 
 
 ---

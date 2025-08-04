@@ -184,7 +184,7 @@ Explanation:
 
 **How Authentication and Authorization are Used with Feature Modules**
 
-As you can see in the code snippets from [Chapter 5: User Authentication and Authorization](05_user_authentication_and_authorization.md), authentication and authorization middlewares are often applied to specific routes within a feature module. For example, in `src/server/features/classrooms/classrooms.route.ts`:
+As you can see in the code snippets from [Chapter 6: User Authentication and Authorization](06_user_authentication_and_authorization.md), authentication and authorization middlewares are often applied to specific routes within a feature module. For example, in `src/server/features/classrooms/classrooms.route.ts`:
 
 ```typescript
 import { checkAuthentication, checkPermission } from "@srvr/middlewares/auth.middleware.ts";
@@ -208,7 +208,7 @@ Explanation:
 
 In this chapter, you've learned about Express Feature Modules and how they help organize your code into smaller, more manageable pieces. You've seen how to create a feature module, define routes and controllers, and register the module in your main application. You've also learned how authentication and authorization middlewares can be used to protect routes within a feature module.
 
-In the [next chapter: Express Middleware](07_express_middleware.md), we'll explore how to use Express middleware to add common functionality to our application, such as logging, error handling, and authentication.
+In the [next chapter: Express Middleware](08_express_middleware.md), we'll explore how to use Express middleware to add common functionality to our application, such as logging, error handling, and authentication.
 
 
 ---

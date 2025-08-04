@@ -137,7 +137,7 @@ As you can see in the Avatar implementation, we are using Radix UI. Radix UI pro
 
 In this chapter, you've learned about React UI components, their benefits, and how they're used in the `Gns3LabLauncher` project. You've also seen an example of how to use and implement a simple component.
 
-In the [next chapter: Lab Builder Store (Zustand)](02_lab_builder_store__zustand_.md), we'll dive into the concept of state management using Zustand.
+In the [next chapter: Lab Builder Store (Zustand)](03_lab_builder_store__zustand_.md), we'll dive into the concept of state management using Zustand.
 
 
 ---

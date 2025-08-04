@@ -134,7 +134,7 @@ This diagram shows how the Express app receives a request and then calls each mi
 
 Now, let's look at some other example middleware in our `Gns3LabLauncher` project:
 
-*   **`src/server/middlewares/auth.middleware.ts`:** This file contains middleware for authentication and authorization, as discussed in [Chapter 5: User Authentication and Authorization](05_user_authentication_and_authorization.md).
+*   **`src/server/middlewares/auth.middleware.ts`:** This file contains middleware for authentication and authorization, as discussed in [Chapter 6: User Authentication and Authorization](06_user_authentication_and_authorization.md).
 
     ```typescript
     export const checkAuthentication = (
@@ -193,7 +193,7 @@ Now, let's look at some other example middleware in our `Gns3LabLauncher` projec
 
 In this chapter, you've learned about Express middleware and how to use them to add common functionality to your application. You've seen how to create middleware functions, register them in your application, and use them for tasks such as authentication, logging, and error handling. Using middleware can make your code more modular, reusable, and maintainable.
 
-In the [next chapter: WebSocket Communication](08_websocket_communication.md), we'll explore how to use WebSockets to enable real-time communication between the client and server.
+In the [next chapter: WebSocket Communication](09_websocket_communication.md), we'll explore how to use WebSockets to enable real-time communication between the client and server.
 
 
 ---

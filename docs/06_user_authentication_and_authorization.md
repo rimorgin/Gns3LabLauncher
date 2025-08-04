@@ -204,14 +204,14 @@ Explanation:
 
 Authentication and authorization are fundamental to many other parts of the `Gns3LabLauncher` project:
 
-*   **Express Feature Modules ([Chapter 6: Express Feature Modules](06_express_feature_modules.md)):** Authentication and authorization are applied to different feature modules to protect their routes.
-*   **Prisma Client ([Chapter 11: Prisma Client](11_prisma_client.md)):** User information (roles, permissions) is stored in the database using Prisma Client.
+*   **Express Feature Modules ([Chapter 7: Express Feature Modules](07_express_feature_modules.md)):** Authentication and authorization are applied to different feature modules to protect their routes.
+*   **Prisma Client ([Chapter 12: Prisma Client](12_prisma_client.md)):** User information (roles, permissions) is stored in the database using Prisma Client.
 
 **Conclusion**
 
 In this chapter, you've learned about user authentication and authorization and how they're implemented in the `Gns3LabLauncher` project. You've seen how authentication verifies a user's identity and how authorization controls what resources a user can access. You've also learned about the benefits of authentication and authorization and how they help protect our application.
 
-In the [next chapter: Express Feature Modules](06_express_feature_modules.md), we'll explore how to structure our Express application into modular features.
+In the [next chapter: Express Feature Modules](07_express_feature_modules.md), we'll explore how to structure our Express application into modular features.
 
 
 ---

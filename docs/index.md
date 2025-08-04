@@ -2,7 +2,19 @@
 
 The Gns3LabLauncher is a system for managing and deploying GNS3 network labs. It uses **Docker Compose** to set up the necessary services, a *Prisma Client* to interact with the database, and a React-based UI with *React Query* for efficient data fetching and state management, allowing users to easily create and run network simulations.
 
-<img src="./images/docs_flowChart.png" width="350"/>
+```mermaid
+flowchart TB;
+    A2["Docker Compose"] -- Database service --> A0["Prisma Client"];
+    A0 -- Data persistence --> A8["Express Feature Modules"];
+    A8 -- Uses --> A1["Express Middleware"];
+    A1 -- Handles requests --> A7["User Authentication and Authorization"];
+    A7 -- Authorizes actions --> A5["GNS3 Server Docker Container Management"];
+    A5 -- Streams logs --> A6["WebSocket Communication"];
+    A6 -- Displays data --> A9["React UI Components"];
+    A9 -- Fetches data --> A3["React Query"];
+    A3 -- Validates data --> A4["Zod Schemas (Client-Side Validation)"];
+    A9 -- Manages Lab State --> A10["Lab Builder Store (Zustand)"];
+```
 
 ## Chapters
 

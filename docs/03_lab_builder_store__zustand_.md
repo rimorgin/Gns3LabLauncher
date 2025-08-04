@@ -185,7 +185,7 @@ The `LabEditor` component uses the `useLabBuilderStore` hook to access the entir
 
 In this chapter, you've learned about the Lab Builder Store and how it uses Zustand to manage the state of a lab as it's being created or edited. You've seen how to access and update the state using actions and selectors, and you've learned about the benefits of using Zustand for state management.
 
-In the [next chapter: React Query](03_react_query.md), we'll explore how to fetch and manage data from the server using React Query.
+In the [next chapter: React Query](04_react_query.md), we'll explore how to fetch and manage data from the server using React Query.
 
 
 ---

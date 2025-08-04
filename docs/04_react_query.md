@@ -211,7 +211,7 @@ The `queryClient.invalidateQueries({ queryKey: ["progress"] });` ensures that th
 
 In this chapter, you've learned about React Query and how it simplifies data fetching, caching, and updating in React applications. You've seen how to use the `useQuery` hook to fetch data, handle loading and error states, and automatically update the data in the background. React Query can make your applications more efficient and responsive.
 
-In the [next chapter: Zod Schemas (Client-Side Validation)](04_zod_schemas__client_side_validation_.md), we'll explore how to use Zod to validate data on the client-side.
+In the [next chapter: Zod Schemas (Client-Side Validation)](05_zod_schemas__client_side_validation_.md), we'll explore how to use Zod to validate data on the client-side.
 
 
 ---
