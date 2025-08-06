@@ -3,15 +3,26 @@ import { LabBuilder } from "@clnt/components/pages/lab-builder/lab-builder";
 import { Button } from "@clnt/components/ui/button";
 import { useLabBuilderStore } from "@clnt/lib/store/lab-builder-store";
 import { ChevronLeft } from "lucide-react";
-import { NavLink } from "react-router";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+} from "@clnt/components/ui/alert-dialog";
+import { startTransition } from "react";
+import router from "../route-layout";
 
 export default function LabBuilderPageRoute() {
-  const resetLab = useLabBuilderStore((s) => s.resetLab);
-  const setHasEdited = useLabBuilderStore((s) => s.setHasEdited);
-
+  const exitBuilderPage = useLabBuilderStore((s) => s.exitBuilderPage);
   const handleExit = () => {
-    setHasEdited(false);
-    resetLab();
+    exitBuilderPage();
+    startTransition(() => {
+      router.navigate("/");
+    });
   };
   return (
     <div className="container mx-auto py-8">
@@ -22,12 +33,35 @@ export default function LabBuilderPageRoute() {
             Create comprehensive hands-on labs with step-by-step guidance
           </p>
         </div>
-        <NavLink to="/" onClick={handleExit}>
-          <Button variant="outline" className="flex items-center">
-            <ChevronLeft />
-            Go back to homepage
-          </Button>
-        </NavLink>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline" className="flex items-center">
+              <ChevronLeft />
+              Go back to homepage
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Any unsaved changes will be lost. Do you want to go back to the
+                homepage?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button onClick={handleExit} variant="destructive">
+                Yes, go back
+              </Button>
+              {/* <AlertDialogAction
+                onClick={handleExit}
+                className="bg-red-800 hover:bg-red-500  text-white"
+              >
+                Yes, go back
+              </AlertDialogAction> */}
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
       <LabBuilder />
       <PageMeta title="Lab Builder" description="Lab building page" />

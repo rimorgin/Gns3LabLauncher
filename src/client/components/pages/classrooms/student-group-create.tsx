@@ -14,7 +14,6 @@ import {
 } from "@clnt/components/ui/form";
 import { toast } from "sonner";
 import { useUserGroupPost } from "@clnt/lib/mutations/usergroup/user-group-create-mutation";
-import { getRandomImage } from "@clnt/lib/utils";
 import {
   UserGroupFormData,
   userGroupFormSchema,
@@ -87,13 +86,6 @@ export function StudentGroupCreate({
               </FormItem>
             )}
           />
-
-          <input
-            type="hidden"
-            {...form.register("imageUrl")}
-            value={getRandomImage("userGroups")}
-          />
-
           <Button type="submit" className="w-full">
             {status === "pending" ? "Creating..." : "Create Group"}
           </Button>

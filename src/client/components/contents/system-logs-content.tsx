@@ -4,12 +4,17 @@ import Loader from "../common/loader";
 import { Navigate } from "react-router";
 
 export default function SystemLogsContent() {
-  const { data: logs, isLoading, isError } = useLogsQuery();
+  const {
+    data: logs,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+    isRefetchError,
+  } = useLogsQuery();
 
   const handleRefresh = () => {
-    console.log("Refreshing logs...");
-    // In a real app, you would fetch fresh logs from your API
-    alert("Logs refreshed!");
+    refetch();
   };
 
   const handleExport = () => {
@@ -24,8 +29,8 @@ export default function SystemLogsContent() {
     link.click();
   };
 
-  if (isLoading) return <Loader />;
-  if (isError || !logs) return <Navigate to={"/errorPage"} />;
+  if (isLoading || isRefetching) return <Loader />;
+  if (isError || isRefetchError || !logs) return <Navigate to={"/errorPage"} />;
 
   return (
     <LogsViewer logs={logs} onRefresh={handleRefresh} onExport={handleExport} />

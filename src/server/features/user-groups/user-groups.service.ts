@@ -18,8 +18,9 @@ export class UserGroupService {
     student?: string;
     classroom?: string;
     ids?: string | string[];
+    by_classroom_only_id?: string;
   }): Promise<Partial<IUserGroup>[]> {
-    const { student, classroom, ids } = query;
+    const { student, classroom, ids, by_classroom_only_id } = query;
 
     const include: Prisma.UserGroupsInclude = {};
 
@@ -60,7 +61,9 @@ export class UserGroupService {
 
     const userGroups = await prisma.userGroups.findMany({
       where: {
-        ...(idArray.length > 0 ? { id: { in: idArray } } : {}),
+        ...(idArray.length > 0
+          ? { id: { in: idArray } }
+          : { classroomId: by_classroom_only_id }),
       },
       ...(Object.keys(include).length > 0 ? { include } : {}),
     });

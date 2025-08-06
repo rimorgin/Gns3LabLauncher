@@ -18,7 +18,7 @@ import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
 import csrfTokenMiddleware from "@srvr/middlewares/csrf.middleware.ts";
 
 import rateLimiterMiddleware from "@srvr/middlewares/rate-limiter.middleware.ts";
-import vpnOnlyMiddleware from "@srvr/middlewares/vpn.middleware.ts";
+//import vpnOnlyMiddleware from "@srvr/middlewares/vpn.middleware.ts";
 import errorMiddleware from "@srvr/middlewares/error.middleware.ts";
 
 import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
@@ -47,29 +47,34 @@ app.use(sessionMiddleware);
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Serve static files from the 'public' directory
-app.use("/static", express.static(path.join(__dirname, "/public")));
-app.use("/submissions", express.static(path.join(__dirname, "/submissions")));
-console.log(
-  "Serving static files from:",
-  path.join(__dirname, "/public /submissions"),
-);
-
 // SECURITY
-
 app.use(helmetMiddleware());
 app.use(csrfTokenMiddleware);
 app.use(csrfSynchronisedProtection);
 // Reduce fingerprinting
 app.disable("x-powered-by");
+
 // prevent DDos or Brute Force
-//app.use(rateLimiterMiddleware); //disable in development
-// enforce single session only
-//app.use(enforceSingleSessionOnly)
-// enforce validation of session every client mounts
+app.use("/api/v1/", rateLimiterMiddleware); //disable in development
+// Serve static files from the 'public' directory
+app.use(
+  "/static",
+  rateLimiterMiddleware,
+  express.static(path.join(__dirname, "/public")),
+);
+app.use(
+  "/submissions",
+  rateLimiterMiddleware,
+  express.static(path.join(__dirname, "/submissions")),
+);
+console.log(
+  "Serving static files from:",
+  path.join(__dirname, "/public /submissions"),
+);
 
 // LOGGING
 app.use(loggerMiddleware);
+
 // ERROR HANDLING
 app.use(errorMiddleware);
 if (MODE !== "development") {

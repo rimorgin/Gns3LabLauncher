@@ -27,9 +27,9 @@ cert
 var
 .env*
 
+*.ovpn
+
 uploads/
 submissions/
-
-src/server/var/**/*
 
 prisma/migrations

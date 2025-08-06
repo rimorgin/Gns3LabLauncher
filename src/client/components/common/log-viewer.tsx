@@ -320,6 +320,7 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
     className?: string;
     sortable?: boolean;
   }[] = [
+    { key: "id", label: "id", className: "w-[50px]", sortable: true },
     { key: "level", label: "Level", className: "w-[100px]", sortable: true },
     {
       key: "timestamp",
@@ -560,6 +561,9 @@ export function LogsViewer({ logs, onRefresh, onExport }: LogsViewerProps) {
               <TableBody>
                 {currentLogs.map((log) => (
                   <TableRow key={log.id} className="hover:bg-muted/50">
+                    <TableCell className="font-mono text-xs">
+                      {log.id}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         {getLevelIcon(log.level)}

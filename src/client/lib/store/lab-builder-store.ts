@@ -9,6 +9,18 @@ import type {
   LabSettings,
 } from "@clnt/types/lab";
 
+export const initialLabData = {
+  lab: {
+    basicInfo: {},
+    environment: {},
+    guide: {},
+    resources: [],
+    settings: {},
+  },
+  hasEdited: false,
+  hasHydrated: false,
+};
+
 export interface LabBuilderData {
   basicInfo: Partial<Lab>;
   environment: Partial<LabEnvironment>;
@@ -37,23 +49,10 @@ interface LabBuilderState {
 export const useLabBuilderStore = create<LabBuilderState>()(
   persist(
     immer((set, get) => ({
-      lab: {
-        basicInfo: {},
-        environment: {},
-        guide: {},
-        resources: [],
-        settings: {},
-      },
-      hasHydrated: false,
+      ...initialLabData,
       setLab: (lab) => {
         set((state) => {
-          state.lab = lab ?? {
-            basicInfo: {},
-            environment: {},
-            guide: {},
-            resources: [],
-            settings: {},
-          };
+          state.lab = lab ?? initialLabData.lab;
         });
       },
       updateSection: (key, data) => {
@@ -64,19 +63,13 @@ export const useLabBuilderStore = create<LabBuilderState>()(
       },
       resetLab: () => {
         set((state) => {
-          state.lab = {
-            basicInfo: {},
-            environment: {},
-            guide: {},
-            resources: [],
-            settings: {},
-          };
+          state.lab = initialLabData.lab;
         });
       },
       buildLab: (username = "Unknown") => {
         const labData = get().lab;
         return {
-          id: crypto.randomUUID(),
+          id: labData.basicInfo.id ?? crypto.randomUUID(),
           title: labData.basicInfo.title ?? "Untitled",
           description: labData.basicInfo.description ?? "",
           difficulty: labData.basicInfo.difficulty ?? "BEGINNER",
@@ -89,13 +82,12 @@ export const useLabBuilderStore = create<LabBuilderState>()(
           guide: { ...labData.guide } as LabGuide,
           resources: [...(labData.resources ?? ([] as LabResource[]))],
           settings: { ...labData.settings } as LabSettings,
-          createdAt: new Date(),
+          createdAt: labData.basicInfo.createdAt ?? new Date(),
           updatedAt: new Date(),
           createdBy: username,
           status: "PUBLISHED",
         };
       },
-      hasEdited: false,
       setHasEdited: (edited: boolean) =>
         set((state) => {
           state.hasEdited = edited;
@@ -126,13 +118,7 @@ export const useLabBuilderStore = create<LabBuilderState>()(
       },
       exitBuilderPage: () => {
         set((state) => {
-          state.lab = {
-            basicInfo: {},
-            environment: {},
-            guide: {},
-            resources: [],
-            settings: {},
-          };
+          state.lab = initialLabData.lab;
           state.hasEdited = false;
         });
       },
@@ -147,7 +133,11 @@ export const useLabBuilderStore = create<LabBuilderState>()(
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated?.(); // <- set hydrated when done
       },
-      partialize: (state) => ({ lab: state.lab, hasEdited: state.hasEdited }), // persist only `lab` and `has edited, skip methods
+      partialize: (state) => ({
+        lab: state.lab,
+        hasEdited: state.hasEdited,
+        hasHydrated: state.hasHydrated,
+      }), // persist only `lab` and `has edited, skip methods
     },
   ),
 );

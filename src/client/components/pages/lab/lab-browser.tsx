@@ -39,7 +39,6 @@ import {
   IconTrash,
   IconVocabulary,
 } from "@tabler/icons-react";
-import { useLabsQuery } from "@clnt/lib/queries/lab-query";
 import Loader from "@clnt/components/common/loader";
 import {
   DropdownMenu,
@@ -50,8 +49,6 @@ import {
 } from "@clnt/components/ui/dropdown-menu";
 import router from "@clnt/pages/route-layout";
 import { Avatar, AvatarFallback } from "@clnt/components/ui/avatar";
-import { useDeleteLab } from "@clnt/lib/mutations/lab/lab-delete-mutation";
-import { toast } from "sonner";
 import {
   HoverCard,
   HoverCardContent,
@@ -66,7 +63,18 @@ type SortOption =
   | "created"
   | "popularity";
 
-export function LabsBrowser() {
+interface LabsBrowserProps {
+  labs: Lab[] | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  onDelete: (id: string) => void;
+}
+export function LabsBrowser({
+  labs,
+  isLoading,
+  isError,
+  onDelete,
+}: LabsBrowserProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
@@ -75,24 +83,13 @@ export function LabsBrowser() {
   const [previewLab, setPreviewLab] = useState<Lab | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
-  const { data: labsQry, isLoading, isError } = useLabsQuery();
-  const deleteLab = useDeleteLab();
-
-  const handleDeleteLab = (id: string) => {
-    toast.promise(deleteLab.mutateAsync(id), {
-      loading: "Deleting lab",
-      success: "Deleted lab successfully",
-      error: "Error deleting lab",
-    });
-  };
-
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(labsQry?.map((lab) => lab.category)));
+    const cats = Array.from(new Set(labs?.map((lab) => lab.category)));
     return ["all", ...cats];
   }, []);
 
   const filteredAndSortedLabs = useMemo(() => {
-    const filtered = labsQry?.filter((lab) => {
+    const filtered = labs?.filter((lab) => {
       const matchesSearch =
         lab.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         lab.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -178,7 +175,7 @@ export function LabsBrowser() {
   };
 
   if (isLoading) return <Loader />;
-  if (isError || !labsQry)
+  if (isError || !labs)
     return (
       <div className="flex flex-col w-full h-full items-center justify-center py-20 space-y-5">
         <Avatar className="w-30 h-30">
@@ -282,7 +279,7 @@ export function LabsBrowser() {
 
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredAndSortedLabs?.length} of {labsQry.length} labs
+        Showing {filteredAndSortedLabs?.length} of {labs.length} labs
       </div>
 
       {/* Labs Grid/List */}
@@ -382,7 +379,7 @@ export function LabsBrowser() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           variant="destructive"
-                          onClick={() => handleDeleteLab(lab.id)}
+                          onClick={() => onDelete(lab.id)}
                         >
                           <IconTrash /> Delete
                         </DropdownMenuItem>

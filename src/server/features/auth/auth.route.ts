@@ -1,10 +1,12 @@
 import express from "express";
 import {
   postLogout,
-  postSignup,
+  //postSignup,
   postLoginLocal,
   checkSession,
 } from "@srvr/features/auth/auth.controller.ts";
+import { userLoginSchema } from "@srvr/utils/validators/login.schema.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
 
 const router = express.Router();
 
@@ -20,14 +22,14 @@ router.get("/session-check", checkSession);
  * @desc    Authenticates a user using local email/password strategy with CSRF protection
  * @access  Public
  */
-router.post("/login-local", postLoginLocal);
+router.post("/login-local", validateData(userLoginSchema), postLoginLocal);
 
 /**
  * @route   POST /login-microsoft
  * @desc    Initiates Microsoft OAuth login flow with CSRF protection
  * @access  Public
  */
-router.post("/login-microsoft", postLoginLocal);
+// router.post("/login-microsoft", postLoginLocal);
 
 /**
  * @route   POST /logout
@@ -41,6 +43,6 @@ router.post("/logout", postLogout);
  * @desc    Registers a new user and logs them in automatically after successful signup
  * @access  Public
  */
-router.post("/signup", postSignup);
+//router.post("/signup", postSignup);
 
 export default router;

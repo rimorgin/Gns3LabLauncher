@@ -35,6 +35,7 @@ import { DateTimePicker } from "@clnt/components/ui/date-time-picker";
 import { useEffect, useState } from "react";
 import { deepEqual, safeIds } from "@clnt/lib/utils";
 import { useLabsQuery } from "@clnt/lib/queries/lab-query";
+import { Textarea } from "@clnt/components/ui/textarea";
 
 interface ProjectEditProps {
   initialData?: Partial<ProjectDbData>;
@@ -59,6 +60,7 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
       duration: initialData?.duration
         ? new Date(initialData.duration)
         : undefined,
+      labId: initialData?.labId,
     },
   });
   const [isProjectDurationEnabled, setIsProjectDurationEnabled] =
@@ -185,7 +187,7 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
             <FormItem>
               <FormLabel>Project Description</FormLabel>
               <FormControl>
-                <Input
+                <Textarea
                   placeholder="e.g. Learn how to configure OSPF inter-area "
                   {...field}
                 />

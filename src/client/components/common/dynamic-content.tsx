@@ -50,6 +50,14 @@ const SystemLogsContent = lazy(
   () => import("@clnt/components/contents/system-logs-content"),
 );
 
+const TutorialContent = lazy(
+  () => import("@clnt/components/contents/tutorial-content"),
+);
+
+const CronJobsContent = lazy(
+  () => import("@clnt/components/contents/cron-jobs-content"),
+);
+
 const AccountContent = lazy(
   () => import("@clnt/components/contents/account-content"),
 );
@@ -95,6 +103,10 @@ export default function DynamicContent() {
         return <SystemHealthContent />;
       case "System Logs":
         return <SystemLogsContent />;
+      case "Cron Jobs":
+        return <CronJobsContent />;
+      case "Tutorials":
+        return <TutorialContent />;
       case "Account":
         return <AccountContent />;
       default:

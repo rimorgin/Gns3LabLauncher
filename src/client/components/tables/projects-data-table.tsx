@@ -361,7 +361,9 @@ const columns: ColumnDef<ProjectDbData>[] = [
       return (
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{duration || "Not specified"}</span>
+          <span className="text-sm">
+            {moment(duration).format("LLL") || "Not specified"}
+          </span>
         </div>
       );
     },
@@ -660,11 +662,11 @@ function TableCellViewer({
                     </ul>
                   </div>
                 )}
-                {project.submissions && (
+                {/*project.submissions && (
                   <div>
                     <label className="text-sm font-medium">
                       {project.submissions.length > 1
-                        ? `Submissions ${project.submissions.length}`
+                        ? `All Submissions in this project ${project.submissions.length}`
                         : "No Submissions yet"}
                     </label>
                     <ul className="mt-1 space-y-1">
@@ -679,12 +681,12 @@ function TableCellViewer({
                                 {index + 1}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm"></span>
+                            <span className="text-sm">{submission.student.length}</span>
                           </li>
                         ))}
                     </ul>
                   </div>
-                )}
+                ) */}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>

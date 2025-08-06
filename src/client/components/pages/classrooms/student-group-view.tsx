@@ -37,6 +37,7 @@ export function StudentGroupView({
       )}
 
       <StudentGroupList
+        classroomId={classroomId}
         currentUserId={currentUserId}
         onJoinGroup={onJoinGroup}
       />

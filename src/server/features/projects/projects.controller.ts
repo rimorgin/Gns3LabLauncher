@@ -30,6 +30,7 @@ export const getProjects = async (
   const projects = await ProjectService.getAll({
     classrooms: req.query.classrooms === "true",
     submissions: req.query.submissions === "true",
+    labId: req.query.labId === "true",
     only_ids: req.query.only_ids === "true",
     partial: req.query.partial === "true",
   });

@@ -11,6 +11,11 @@ import {
   patchUserGroup,
   postUserGroup,
 } from "./user-groups.controller.ts";
+import {
+  userGroupCreateSchema,
+  userGroupUpdateSchema,
+} from "@srvr/utils/validators/user-group-schema.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
 
 const router = Router();
 
@@ -45,6 +50,7 @@ router.get(
  */
 router.post(
   "/",
+  validateData(userGroupCreateSchema),
   checkAuthentication,
   checkPermission(["create_user-groups"]),
   postUserGroup,
@@ -57,6 +63,7 @@ router.post(
  */
 router.patch(
   "/:id",
+  validateData(userGroupUpdateSchema),
   checkAuthentication,
   checkPermission(["update_user-groups"]),
   patchUserGroup,

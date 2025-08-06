@@ -11,6 +11,11 @@ import {
   patchCourse,
   postCourses,
 } from "./courses.controller.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
+import {
+  courseCreateSchema,
+  courseUpdateSchema,
+} from "@srvr/utils/validators/course-schema.ts";
 
 const router = Router();
 
@@ -45,6 +50,7 @@ router.get(
  */
 router.post(
   "/",
+  validateData(courseCreateSchema),
   checkAuthentication,
   checkPermission(["create_courses"]),
   postCourses,
@@ -57,8 +63,9 @@ router.post(
  */
 router.patch(
   "/:id",
+  validateData(courseUpdateSchema),
   checkAuthentication,
-  checkPermission(["create_courses"]),
+  checkPermission(["update_courses"]),
   patchCourse,
 );
 

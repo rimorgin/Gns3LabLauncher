@@ -330,7 +330,7 @@ export function ReviewStep({
         {/* Action Buttons */}
         <div className="flex justify-between pt-6">
           <Button variant="outline" onClick={onPrev} disabled={isLoading}>
-            Previous: Resources
+            Previous: Lab Settings
           </Button>
           <div className="space-x-2">
             <Button

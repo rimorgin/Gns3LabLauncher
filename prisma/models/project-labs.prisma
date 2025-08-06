@@ -185,7 +185,7 @@ model VerificationStep {
   id                 String   @id @default(uuid())
   sectionId          String
   description        String?
-  commands            String[]
+  commands           String[]
   expectedOutput     String[]
   device             String?
   isCompleted        Boolean  @default(false)

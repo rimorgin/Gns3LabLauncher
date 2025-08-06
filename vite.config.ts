@@ -26,7 +26,7 @@ export default defineConfig(() => {
       sourcemap: false,
       minify: "esbuild" as const,
       chunkSizeWarningLimit: 2000,
-      /* rollupOptions: {
+      rollupOptions: {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
@@ -38,7 +38,7 @@ export default defineConfig(() => {
             }
           },
         },
-      }, */
+      },
     },
     esbuild: {
       drop:

@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Card, CardHeader, CardTitle } from "@clnt/components/ui/card";
 import { Progress } from "@clnt/components/ui/progress";
-import { CheckCircle, Circle } from "lucide-react";
+import { AlertCircleIcon, CheckCircle, Circle } from "lucide-react";
 import { BasicInfoStep } from "./basic-info-step";
 import { EnvironmentStep } from "./environment-step";
 import { GuideStep } from "./guide-step";
@@ -17,15 +17,10 @@ import { LabPreview } from "./lab-preview";
 import { steps } from "./lab-builder";
 import { SettingsStep } from "./settings-step";
 import router from "@clnt/pages/route-layout";
-import {
-  LabBuilderData,
-  useLabBuilderStore,
-} from "@clnt/lib/store/lab-builder-store";
-interface LabEditorProps {
-  initialLab: LabBuilderData;
-}
+import { useLabBuilderStore } from "@clnt/lib/store/lab-builder-store";
+import { Alert, AlertDescription, AlertTitle } from "@clnt/components/ui/alert";
 
-export function LabEditor({ initialLab }: LabEditorProps) {
+export function LabEditor() {
   const user = useUser();
   const [currentStep, setCurrentStep] = useState(1); // start at Review by default
 
@@ -37,11 +32,25 @@ export function LabEditor({ initialLab }: LabEditorProps) {
   // Add state for preview
   const [showPreview, setShowPreview] = useState(false);
   const [previewLab, setPreviewLab] = useState<Lab | null>(null);
+  const [validationInputErrors, setValidationInputErrors] = useState<
+    Array<Record<string, string>>
+  >([]);
 
   const updateLab = useUpdateLab();
 
+  const notHydrated = {
+    basicInfo: {},
+    environment: {},
+    guide: {},
+    resources: [],
+    settings: {},
+  };
+
   useEffect(() => {
     if (hasHydrated) {
+      if (labData === notHydrated) {
+        console.log("not hydrated labData", labData);
+      }
       console.log("hydrated labData", labData);
     }
   }, [hasHydrated, labData]);
@@ -72,7 +81,10 @@ export function LabEditor({ initialLab }: LabEditorProps) {
     return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
       loading: "Publishing lab...",
       success: "Lab published successfully",
-      error: "Failed to publish lab",
+      error: (error) => {
+        setValidationInputErrors(error.response.data.details);
+        return "Failed to publish lab";
+      },
     });
   }, [updateLab, user.data?.username]);
 
@@ -86,7 +98,10 @@ export function LabEditor({ initialLab }: LabEditorProps) {
     return toast.promise(updateLab.mutateAsync({ id: lab.id, data: lab }), {
       loading: "Saving draft...",
       success: "Draft saved successfully",
-      error: "Failed to save draft",
+      error: (error) => {
+        setValidationInputErrors(error.response.data.details);
+        return "Failed to save draft lab";
+      },
     });
   }, [updateLab, user.data?.username]);
 
@@ -215,6 +230,21 @@ export function LabEditor({ initialLab }: LabEditorProps) {
           </div>
         </CardHeader>
       </Card>
+      {/* Validation Errors */}
+      {validationInputErrors.length > 0 && (
+        <Alert variant="destructive" className="mb-8">
+          <AlertCircleIcon />
+          <AlertTitle>Unable to continue intent.</AlertTitle>
+          <AlertDescription>
+            <p>Please verify given information and try again.</p>
+            <ul className="list-inside list-disc text-sm">
+              {validationInputErrors.map((error, index) => (
+                <li key={index}>{error.message}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Step Content */}
       {renderStep()}
       {showPreview && previewLab && (

@@ -135,6 +135,7 @@ export function GuideStep({ data, onUpdate, onNext, onPrev }: GuideStepProps) {
       id: crypto.randomUUID(),
       type: "text",
       content: "",
+      metadata: {}, // provide empty object by default
     };
 
     updateFormData((draft) => {

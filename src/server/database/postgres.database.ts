@@ -1,7 +1,6 @@
 import prisma from "@srvr/utils/db/prisma.ts";
 import { exec } from "child_process";
-import { IUserWithRoleInput } from "@srvr/types/models.type.ts";
-import { UserService } from "@srvr/features/users/users.service.ts";
+import { InitAndSeedDb } from "@srvr/utils/db/init-seed-db.ts";
 
 const checkPostgresHealth = () =>
   new Promise<boolean>((resolve) => {
@@ -56,22 +55,5 @@ export default async function Postgres(maxRetries = 10, interval = 2000) {
 
   console.log(`✅ PostgreSQL connected`);
 
-  const isDefaultCredentialsExists = await prisma.user.findUnique({
-    where: {
-      username: "gns3labadmin",
-    },
-  });
-
-  if (!isDefaultCredentialsExists) {
-    const defaultUserCredentials: IUserWithRoleInput = {
-      name: "Gns3 Lab Admin",
-      email: "gns3labadmin@admin.net",
-      username: "gns3labadmin",
-      password: "gns3labadmin",
-      role: "administrator",
-    };
-
-    const admin = await UserService.create(defaultUserCredentials);
-    console.log("🚀 ~ Postgres ~ Gns3AdminCredentials", admin);
-  }
+  await InitAndSeedDb();
 }

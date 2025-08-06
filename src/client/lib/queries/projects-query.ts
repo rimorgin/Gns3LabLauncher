@@ -39,7 +39,9 @@ export const useProjectsQuery = ({
   partial = false,
   by_id,
 }: {
-  includes?: Array<"classrooms" | "submissions" | "projectContent" | "labs">;
+  includes?: Array<
+    "classrooms" | "submissions" | "projectContent" | "labs" | "labId"
+  >;
   only_ids?: boolean;
   partial?: boolean;
   by_id?: string;

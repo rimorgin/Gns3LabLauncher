@@ -8,4 +8,8 @@ model Logs {
   statusCode Int
   durationMs Int
   ip         String?   @db.VarChar
+
+  @@index([timestamp])
+  @@index([level])
+  @@index([context])
 }

@@ -4,8 +4,8 @@ import { LogsService } from "./system-logs.service.ts";
 
 export async function GetLogs(req: Request, res: Response): Promise<void> {
   const logs = await LogsService.get();
-  res
-    .status(HTTP_RESPONSE_CODE.SUCCESS)
-    .json({ message: "fetched logs", logs: logs });
-  return;
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
+    message: "Fetched logs",
+    logs,
+  });
 }

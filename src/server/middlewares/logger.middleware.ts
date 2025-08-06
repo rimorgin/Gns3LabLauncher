@@ -60,6 +60,13 @@ export default function loggerMiddleware(
   res: Response,
   next: NextFunction,
 ) {
+  // ⛔ Skip logging for /assets path
+  if (
+    req.path.startsWith("/assets") ||
+    req.path.startsWith("/api/v1/system-logs")
+  )
+    return next();
+
   const start = Date.now();
 
   const userSessionId = req.session?.passport?.user;

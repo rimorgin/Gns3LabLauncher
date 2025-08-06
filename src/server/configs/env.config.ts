@@ -38,6 +38,15 @@ if (!process.env.POSTGRES_DATABASE_URL) {
   );
 }
 
+export const defaultAdminName =
+  process.env.DEFAULT_ADMIN_NAME || "Gns3 Lab Admin";
+export const defaultAdminUsername =
+  process.env.DEFAULT_ADMIN_USERNAME || "gns3labadmin";
+export const defaultAdminEmailCredential =
+  process.env.DEFAULT_ADMIN_EMAIL_CREDENTIAL || "default@admin.net";
+export const defaultAdminPasswordCredential =
+  process.env.DEFAULT_ADMIN_PASSWORD_CREDENTIAL || "default@password";
+
 export const envProtocol =
   MODE === "production" || MODE === "staging" ? "https" : "http";
 export const envServerHost = process.env.VITE_API_HOST;

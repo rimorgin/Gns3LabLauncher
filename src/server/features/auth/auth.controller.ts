@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction, RequestHandler } from "express";
+import { Request, Response, NextFunction } from "express";
 import passport from "@srvr/configs/passport.config.ts";
 import { IUserBaseInput } from "@srvr/types/models.type.ts";
 import { redisClient } from "@srvr/database/redis.database.ts";
-import { UserService } from "@srvr/features/users/users.service.ts";
+//import { UserService } from "@srvr/features/users/users.service.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import {
   APP_RESPONSE_MESSAGE,
@@ -95,18 +95,19 @@ export const postLoginLocal = (
  *
  * @returns {RequestHandler} Passport authenticate middleware configured for Microsoft OAuth.
  */
-export const postLoginMicrosoft = (): RequestHandler => {
+
+/* export const postLoginMicrosoft = (): RequestHandler => {
   return passport.authenticate("microsoft", {
     prompt: "select_account",
   });
 };
-
+ */
 /**
  * Middleware that handles Microsoft OAuth callback after successful authentication.
  *
  * @returns {RequestHandler} Passport authenticate middleware with success/failure redirects.
  */
-export const postLoginMicrosoftCallback = (): RequestHandler => {
+/* export const postLoginMicrosoftCallback = (): RequestHandler => {
   return passport.authenticate(
     "microsoft",
     { failureRedirect: "/signin" },
@@ -115,7 +116,7 @@ export const postLoginMicrosoftCallback = (): RequestHandler => {
       res.redirect("/");
     },
   );
-};
+}; */
 
 /**
  * Logs out the current user by destroying session and removing active session from Redis.
@@ -178,7 +179,7 @@ export const postLogout = (
  *  - Redirects to home on success
  *  - Passes error to `next()` on failure
  */
-export const postSignup = async (
+/* export const postSignup = async (
   req: Request,
   res: Response,
   next: NextFunction,
@@ -193,3 +194,4 @@ export const postSignup = async (
     return next(error);
   }
 };
+*/

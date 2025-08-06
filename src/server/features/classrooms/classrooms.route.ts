@@ -10,6 +10,11 @@ import {
   patchClassroom,
   postClassroom,
 } from "./classrooms.controller.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
+import {
+  classroomCreateSchema,
+  classroomUpdateSchema,
+} from "@srvr/utils/validators/classroom-schema.ts";
 
 const router = Router();
 
@@ -44,6 +49,7 @@ router.get(
  */
 router.post(
   "/",
+  validateData(classroomCreateSchema),
   checkAuthentication,
   checkPermission(["create_classrooms"]),
   postClassroom,
@@ -56,6 +62,7 @@ router.post(
  */
 router.patch(
   "/:id",
+  validateData(classroomUpdateSchema),
   checkAuthentication,
   checkPermission(["update_classrooms"]),
   patchClassroom,

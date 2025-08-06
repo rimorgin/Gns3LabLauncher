@@ -1,10 +1,8 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Strategy as MicrosoftStrategy } from "passport-microsoft";
+//import { Strategy as MicrosoftStrategy } from "passport-microsoft";
 import bcrypt from "bcrypt";
-import { NextFunction } from "express";
 import prisma from "@srvr/utils/db/prisma.ts";
-import { IUserWithRoleOutput } from "@srvr/types/models.type.ts";
 import { APP_RESPONSE_MESSAGE } from "./constants.config.ts";
 
 passport.serializeUser((user, done) => {
@@ -56,7 +54,7 @@ passport.use(
   ),
 );
 
-passport.use(
+/* passport.use(
   new MicrosoftStrategy(
     {
       // Standard OAuth2 options
@@ -83,9 +81,10 @@ passport.use(
     ) {
       /*User.findById(profile.id)
       return done(err, user);
-    */
+    
     },
   ),
-);
+); 
+*/
 
 export default passport;

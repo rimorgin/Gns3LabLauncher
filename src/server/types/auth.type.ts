@@ -28,6 +28,10 @@ export type Permission =
   | "read_projects"
   | "update_projects"
   | "delete_projects"
+  | "create_project-labs"
+  | "read_project-labs"
+  | "update_project-labs"
+  | "delete_project-labs"
   | "create_users"
   | "read_users"
   | "update_users"
@@ -59,7 +63,11 @@ export type Permission =
   | "update_notifications"
   | "delete_notification"
   | "read_security"
-  | "update_security";
+  | "update_security"
+  | "create_cron-jobs"
+  | "read_cron-jobs"
+  | "update_cron-jobs"
+  | "delete_cron-jobs";
 
 /**
  * Represents a role with a name and a set of permissions.

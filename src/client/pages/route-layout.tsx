@@ -12,7 +12,6 @@ import InstancePageRoute from "./lab/instance";
 const HomePage = lazy(() => import("@clnt/pages/home"));
 const ClassroomPageRoute = lazy(() => import("./classrooms"));
 const LabPageRoute = lazy(() => import("./lab"));
-const LabTemplatesPageRoute = lazy(() => import("./lab-builder/template"));
 const LabBuilderPageRoute = lazy(() => import("./lab-builder"));
 const LabEditorPageRoute = lazy(() => import("./lab-builder/editor"));
 const LabTestEnvironmentPageRoute = lazy(
@@ -116,14 +115,6 @@ const labBuilderChildren = [
       </Suspense>
     ),
   },
-  {
-    path: "templates",
-    element: (
-      <Suspense fallback={<Loader />}>
-        <LabTemplatesPageRoute />
-      </Suspense>
-    ),
-  },
 ];
 
 const router = createBrowserRouter([
@@ -149,20 +140,6 @@ const router = createBrowserRouter([
     path: "lab-builder",
     element: <AuthenticatedLayout />,
     children: labBuilderChildren,
-  },
-  {
-    path: "lab-builder-2",
-    element: <AuthenticatedLayout />,
-    children: [
-      {
-        index: true,
-        element: (
-          <Suspense fallback={<Loader />}>
-            <LabTemplatesPageRoute />
-          </Suspense>
-        ),
-      },
-    ],
   },
   {
     path: "*",

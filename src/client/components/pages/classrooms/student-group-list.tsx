@@ -13,9 +13,11 @@ import { useUserGroupsQuery } from "@clnt/lib/queries/user-groups-query";
 import Loader from "@clnt/components/common/loader";
 
 export function StudentGroupList({
+  classroomId,
   currentUserId,
   onJoinGroup,
 }: {
+  classroomId: string;
   currentUserId: string;
   onJoinGroup: (group: UserGroups) => void;
 }) {
@@ -25,6 +27,7 @@ export function StudentGroupList({
     error,
   } = useUserGroupsQuery({
     includes: ["student"],
+    by_classroom_only_id: classroomId,
   });
   if (isLoading) return <Loader />;
   if (error) return <div>oops something happened</div>;

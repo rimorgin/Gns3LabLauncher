@@ -11,6 +11,11 @@ import {
   patchProject,
   postProjects,
 } from "./projects.controller.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
+import {
+  projectCreateSchema,
+  projectUpdateSchema,
+} from "@srvr/utils/validators/projects-schema.ts";
 
 const router = Router();
 
@@ -45,21 +50,10 @@ router.get(
  */
 router.post(
   "/",
+  validateData(projectCreateSchema),
   checkAuthentication,
   checkPermission(["create_projects"]),
   postProjects,
-);
-
-/**
- * @route   GET /projects/:id
- * @desc    Fetch list of all projects, optionally populated with classroom info.
- * @access  Authenticated users with 'read_projects' permission
- */
-router.get(
-  "/:id",
-  checkAuthentication,
-  checkPermission(["read_projects"]),
-  getProjectsById,
 );
 
 /**
@@ -69,6 +63,7 @@ router.get(
  */
 router.patch(
   "/:id",
+  validateData(projectUpdateSchema),
   checkAuthentication,
   checkPermission(["read_projects"]),
   patchProject,

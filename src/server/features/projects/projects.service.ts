@@ -16,10 +16,11 @@ export class ProjectService {
   static async getAll(options: {
     classrooms?: boolean;
     submissions?: boolean;
+    labId?: boolean;
     only_ids?: boolean;
     partial?: boolean;
   }) {
-    const { classrooms, submissions, only_ids, partial } = options;
+    const { classrooms, submissions, labId, only_ids, partial } = options;
 
     const includeOptions: Prisma.ProjectSelect | undefined = {
       classrooms: classrooms
@@ -48,6 +49,7 @@ export class ProjectService {
             },
           }
         : false,
+      labId: labId,
     };
 
     const projects = only_ids
@@ -68,6 +70,7 @@ export class ProjectService {
         : await prisma.project.findMany({
             select: {
               projectName: true,
+              projectDescription: true,
               duration: true,
               id: true,
               visible: true,

@@ -146,7 +146,7 @@ export function SettingsStep({
 
         <div className="flex justify-between pt-6">
           <Button variant="outline" onClick={handlePrev}>
-            Previous: Lab Guide
+            Previous: Lab Resources
           </Button>
           <Button onClick={handleNext}>Next: Review & Save</Button>
         </div>

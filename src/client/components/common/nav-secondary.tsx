@@ -19,7 +19,6 @@ export default function NavSecondary({
 }: {
   items: {
     title: string;
-    url: string;
     icon: Icon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {

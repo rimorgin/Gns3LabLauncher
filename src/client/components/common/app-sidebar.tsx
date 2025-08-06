@@ -16,9 +16,9 @@ import { RoleName } from "@clnt/types/roles-permissions-types";
 
 const NavMain = React.lazy(() => import("@clnt/components/common/nav-main"));
 const NavUser = React.lazy(() => import("@clnt/components/common/nav-user"));
-/* const NavSecondary = React.lazy(
+const NavSecondary = React.lazy(
   () => import("@clnt/components/common/nav-secondary"),
-); */
+);
 const NavSystem = React.lazy(
   () => import("@clnt/components/common/nav-system"),
 );
@@ -85,7 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <NavSystem items={navItems.system} />
           </RBACWrapper>
 
-          {/* <NavSecondary items={navItems.secondary} className="mt-auto" /> */}
+          <NavSecondary items={navItems.secondary} className="mt-auto" />
         </SidebarContent>
 
         <SidebarFooter>

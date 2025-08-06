@@ -444,7 +444,7 @@ const columns: ColumnDef<ClassroomDbData>[] = [
                 }}
               >
                 <IconEye />
-                View Details
+                View Preview Details
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <NavLink
@@ -633,7 +633,7 @@ function TableCellViewer({
 
                 {classroom.projects && (
                   <div>
-                    {classroom.projects.length > 1 ? (
+                    {classroom.projects.length >= 1 ? (
                       <>
                         <label className="text-sm font-medium">
                           Assigned to Projects

@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle } from "@clnt/components/ui/card";
 import { Progress } from "@clnt/components/ui/progress";
-import { CheckCircle, Circle } from "lucide-react";
+import { AlertCircleIcon, CheckCircle, Circle } from "lucide-react";
 import { BasicInfoStep } from "./basic-info-step";
 import { EnvironmentStep } from "./environment-step";
 import { GuideStep } from "./guide-step";
@@ -17,6 +17,7 @@ import { LabPreview } from "./lab-preview";
 import { SettingsStep } from "./settings-step";
 import router from "@clnt/pages/route-layout";
 import { useLabBuilderStore } from "@clnt/lib/store/lab-builder-store";
+import { Alert, AlertDescription, AlertTitle } from "@clnt/components/ui/alert";
 
 export const steps = [
   {
@@ -49,6 +50,10 @@ export function LabBuilder() {
   const labData = useLabBuilderStore((state) => state.lab);
   const updateLabData = useLabBuilderStore((state) => state.updateSection);
   const buildLab = useLabBuilderStore((s) => s.buildLab);
+
+  const [validationInputErrors, setValidationInputErrors] = useState<
+    Array<Record<string, string>>
+  >([]);
   //const resetLab = useLabBuilderStore((s) => s.resetLab);
   //const storeLabData = useLabBuilderStore((state) => state.setLab);
 
@@ -73,7 +78,25 @@ export function LabBuilder() {
     return toast.promise(createLab.mutateAsync(lab), {
       loading: "Publishing lab...",
       success: "Lab published successfully",
-      error: "Failed to publish lab",
+      error: (error) => {
+        setValidationInputErrors(error.response.data.details);
+        return "Failed to publish lab";
+      },
+    });
+  }, [createLab, user.data?.username]);
+
+  // Handle draft saving
+  const handleSaveDraftLab = useCallback(async () => {
+    const lab = buildLab(user.data?.username);
+    lab.status = "DRAFT";
+
+    return toast.promise(createLab.mutateAsync(lab), {
+      loading: "Saving draft...",
+      success: "Draft saved successfully",
+      error: (error) => {
+        setValidationInputErrors(error.response.data.details);
+        return "Failed to save draft lab";
+      },
     });
   }, [createLab, user.data?.username]);
 
@@ -87,18 +110,6 @@ export function LabBuilder() {
       },
     });
   }, [user.data?.username]);
-
-  // Handle draft saving
-  const handleSaveDraftLab = useCallback(async () => {
-    const lab = buildLab(user.data?.username);
-    lab.status = "DRAFT";
-
-    return toast.promise(createLab.mutateAsync(lab), {
-      loading: "Saving draft...",
-      success: "Draft saved successfully",
-      error: "Failed to save draft",
-    });
-  }, [createLab, user.data?.username]);
 
   const nextStep = useCallback(() => {
     if (currentStep < steps.length) {
@@ -228,6 +239,21 @@ export function LabBuilder() {
           </div>
         </CardHeader>
       </Card>
+      {/* Validation Errors */}
+      {validationInputErrors.length > 0 && (
+        <Alert variant="destructive" className="mb-8">
+          <AlertCircleIcon />
+          <AlertTitle>Unable to continue intent.</AlertTitle>
+          <AlertDescription>
+            <p>Please verify given information and try again.</p>
+            <ul className="list-inside list-disc text-sm">
+              {validationInputErrors.map((error, index) => (
+                <li key={index}>{error.message}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
       {/* Step Content */}
       {renderStep()}
       {showPreview && previewLab && (

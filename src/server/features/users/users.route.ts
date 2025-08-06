@@ -12,6 +12,12 @@ import {
   patchUser,
   postUsers,
 } from "./users.controller.ts";
+import { validateData } from "@srvr/middlewares/validation.middleware.ts";
+import {
+  userCreateSchema,
+  userBulkCreateSchema,
+  userUpdateSchema,
+} from "@srvr/utils/validators/user-schema.ts";
 
 const router = Router();
 
@@ -41,6 +47,7 @@ router.get(
  */
 router.post(
   "/",
+  validateData(userCreateSchema),
   checkAuthentication,
   checkPermission(["create_users"]),
   postUsers,
@@ -51,7 +58,13 @@ router.post(
  * @desc Create multiple users in one request
  * @access  Authenticated users with 'create_users' permission
  */
-router.post("/bulk", bulkPostUsers);
+router.post(
+  "/bulk",
+  validateData(userBulkCreateSchema),
+  checkAuthentication,
+  checkPermission(["create_users"]),
+  bulkPostUsers,
+);
 
 /**
  * @route   PATCH /users/:id
@@ -60,6 +73,7 @@ router.post("/bulk", bulkPostUsers);
  */
 router.patch(
   "/:id",
+  validateData(userUpdateSchema),
   checkAuthentication,
   checkPermission(["update_users"]),
   patchUser,

@@ -1,9 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { data } from "@clnt/constants/data";
 import { ClassroomDbData } from "./validators/classroom-schema";
-import { BrickWallFire, Monitor, Network, Router, Server } from "lucide-react";
-import { IconCloud } from "@tabler/icons-react";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -70,55 +67,4 @@ export function getChangedFields<T extends Record<string, unknown>>(
     }
   }
   return changed;
-}
-
-export const getRandomImage = (
-  imageType: "projects" | "courses" | "classrooms" | "userGroups",
-  tag?: string,
-): string => {
-  let images;
-  if (imageType === "projects") {
-    images = tag
-      ? data.images.projectImages.filter((img) => img.tags === tag)
-      : data.images.projectImages;
-    if (!images.length) images = data.images.projectImages;
-  } else if (imageType === "userGroups") {
-    images = data.images.userGroupImages;
-  } else {
-    images = data.images.courseImages;
-  }
-  const randomIndex = Math.floor(Math.random() * images.length);
-  return images[randomIndex].src;
-};
-
-function mapPrismaLabToFrontend(lab: PrismaLab): Lab {
-  return {
-    ...lab,
-    environment: {
-      ...lab.environment!,
-      topology: {
-        nodes: lab.environment?.topology?.nodes ?? [],
-        links: lab.environment?.topology?.links ?? [],
-        notes: lab.environment?.topology?.notes ?? [],
-        layout: {
-          width: lab.environment?.topology?.width ?? 1500,
-          height: lab.environment?.topology?.height ?? 1200,
-        },
-      },
-      devices: lab.environment?.devices ?? [],
-      connections: lab.environment?.connections ?? [],
-      startupConfig: lab.environment?.startupConfig,
-    },
-    guide: {
-      ...lab.guide!,
-      sections:
-        lab.guide?.sections.map((s) => ({
-          ...s,
-          content: s.content.map((c) => ({
-            ...c,
-            metadata: c.metadata || undefined,
-          })),
-        })) || [],
-    },
-  };
 }

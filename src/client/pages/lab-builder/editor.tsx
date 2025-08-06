@@ -15,7 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-  AlertDialogAction,
 } from "@clnt/components/ui/alert-dialog";
 import router from "../route-layout";
 import { startTransition, useEffect } from "react";
@@ -24,12 +23,13 @@ import { Lab } from "@clnt/types/lab";
 export default function LabEditorPageRoute() {
   const params = useParams();
   const labId = params.labId;
+
   const labData = useLabBuilderStore((s) => s.lab);
-  const exitBuilderPage = useLabBuilderStore((s) => s.exitBuilderPage);
   const hasEdited = useLabBuilderStore((s) => s.hasEdited);
   const initializeLabFromExisting = useLabBuilderStore(
     (s) => s.initializeLabFromExisting,
   );
+  const exitBuilderPage = useLabBuilderStore((s) => s.exitBuilderPage);
 
   if (!labId) return <div>no params given</div>;
 
@@ -38,17 +38,22 @@ export default function LabEditorPageRoute() {
     isLoading,
     isError,
   } = useLabQuery(labId, {
-    enabled: !hasEdited, // 🧠 skip fetching if already edited
+    enabled: !hasEdited,
   });
 
+  // Effect to initialize Zustand once lab is fetched and not already edited
   useEffect(() => {
-    if (!hasEdited && lab) {
+    if (lab && !hasEdited) {
       initializeLabFromExisting(lab as Lab);
     }
   }, [lab, hasEdited, initializeLabFromExisting]);
 
-  if (isLoading && !labData) return <Loader />;
-  if (!lab || isError) return <div>no labs found</div>;
+  // Check whether Zustand store has been initialized
+  const labIsReady =
+    labData.basicInfo && Object.keys(labData.basicInfo).length > 0;
+
+  if (isLoading || !lab || !labIsReady) return <Loader />;
+  if (isError) return <div>no labs found</div>;
 
   const handleExit = () => {
     exitBuilderPage();
@@ -83,17 +88,15 @@ export default function LabEditorPageRoute() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleExit}
-                className="bg-destructive active:bg-red-800 hover:bg-red-800"
-              >
+              <Button onClick={handleExit} variant="destructive">
                 Yes, go back
-              </AlertDialogAction>
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <LabEditor initialLab={labData} />
+
+      <LabEditor />
       <PageMeta title="Lab Editor" description="Lab editing page" />
     </div>
   );

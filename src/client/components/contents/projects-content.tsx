@@ -9,7 +9,7 @@ export default function ProjectsContent() {
     data: projectsQry = [],
     isLoading,
     error,
-  } = useProjectsQuery({ includes: ["classrooms", "submissions"] });
+  } = useProjectsQuery({ includes: ["classrooms", "labId"] });
   return isLoading ? (
     <Skeleton className="h-100 w-auto rounded-xl" />
   ) : error ? (
