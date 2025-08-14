@@ -102,13 +102,15 @@ export const getClassrooms = async (req: Request, res: Response) => {
       select,
     });
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: "Classrooms returned successfully",
       classrooms,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal server error" });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: "Internal server error" });
   }
 };
 
@@ -159,7 +161,7 @@ export const postClassroom = async (
     });
   } catch {
     res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
+      message: APP_RESPONSE_MESSAGE.server.error,
     });
   }
   return;
@@ -201,7 +203,7 @@ export const patchClassroom = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };
@@ -242,7 +244,7 @@ export const deleteClassroom = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };

@@ -35,7 +35,7 @@ export const getProjects = async (
     partial: req.query.partial === "true",
   });
 
-  res.status(200).json({
+  res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
     message: APP_RESPONSE_MESSAGE.project.projectsReturned,
     projects,
   });
@@ -113,7 +113,7 @@ export const postProjects = async (
     });
   } catch {
     res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
+      message: APP_RESPONSE_MESSAGE.server.error,
     });
     return;
   }
@@ -155,7 +155,7 @@ export const patchProject = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };
@@ -196,7 +196,7 @@ export const deleteProject = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };
@@ -237,7 +237,7 @@ export const deleteManyProjects = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };

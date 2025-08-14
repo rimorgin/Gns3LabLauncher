@@ -7,9 +7,10 @@ import socket from "@clnt/lib/socket";
 import { useUser } from "@clnt/lib/auth";
 import { useLabQuery } from "@clnt/lib/queries/lab-query";
 import {
+  useRestartContainerInstance,
   useStartContainerInstance,
   useStopContainerInstance,
-} from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
+} from "@clnt/lib/mutations/lab/lab-start-or-stop-or-restart-mutation";
 import { useSubmitLab } from "@clnt/lib/mutations/lab/lab-submission-submit-mutation";
 import { toast } from "sonner";
 
@@ -52,6 +53,7 @@ import {
   Users,
 } from "lucide-react";
 import { IconDirectionArrowsFilled } from "@tabler/icons-react";
+import { useLabStore } from "@clnt/lib/store/lab-store";
 
 export default function LabPageRoute() {
   const { classroomId, projectId, labId } = useParams();
@@ -60,11 +62,18 @@ export default function LabPageRoute() {
 
   const startContainer = useStartContainerInstance();
   const stopContainer = useStopContainerInstance();
+  const restartContainer = useRestartContainerInstance();
   const { mutateAsync } = useSubmitLab();
   const { data: lab, isLoading, isError } = useLabQuery(labId ?? "");
-  const [labInstanceAddress, setLabInstanceAddress] = useState("");
-  const [isLabRunning, setIsLabRunning] = useState(false);
-  const [isLabLoading, setIsLabLoading] = useState(false);
+  const {
+    isLabLoading,
+    isLabRunning,
+    instanceIpAddress,
+    setIsLabLoading,
+    setIsLabRunning,
+    setInstanceIpAddress,
+    clearLabState,
+  } = useLabStore();
 
   const [progress, setProgress] = useState<LabProgress>({
     labId: labId ?? "",
@@ -136,7 +145,7 @@ export default function LabPageRoute() {
   };
 
   const handleOpenLabInstance = () => {
-    window.open(`https://${labInstanceAddress}:3080`, "_blank");
+    window.open(`https://${instanceIpAddress}:3080`, "_blank");
   };
 
   const handleLaunchLab = async () => {
@@ -150,7 +159,7 @@ export default function LabPageRoute() {
           startedAt: new Date(),
         }));
         socket.emit("start-container-logs", { containerName });
-        setLabInstanceAddress(response.data.tunIp);
+        setInstanceIpAddress(response.data.tunIp);
         setIsLabRunning(true);
         return response.data.message;
       },
@@ -170,8 +179,25 @@ export default function LabPageRoute() {
         return "Stopped lab instance";
       },
       error: "Error stopping lab instance",
-      finally: () => {
-        setIsLabRunning(false);
+      finally() {
+        setIsLabLoading(false);
+        clearLabState();
+      },
+    });
+  };
+
+  const handleRestartLab = async () => {
+    setIsLabLoading(true);
+    clearLabState();
+    socket.emit("stop-container-logs", { containerName });
+    await toast.promise(restartContainer.mutateAsync(containerName), {
+      loading: "Restarting lab instance...",
+      success: () => {
+        socket.emit("start-container-logs", { containerName });
+        return "Restarted lab instance";
+      },
+      error: "Error stopping lab instance",
+      finally() {
         setIsLabLoading(false);
       },
     });
@@ -367,6 +393,7 @@ export default function LabPageRoute() {
                   environment={lab.environment}
                   onLaunch={handleLaunchLab}
                   onStop={handleStopLab}
+                  onRestart={handleRestartLab}
                   onOpenLabInstance={handleOpenLabInstance}
                   isRunning={isLabRunning}
                   isLoading={isLabLoading}

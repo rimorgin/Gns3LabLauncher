@@ -21,7 +21,7 @@ export const getDashboardSummary = async (
   } catch (error) {
     console.error("Error fetching dashboard metrics:", error);
     res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
+      message: APP_RESPONSE_MESSAGE.server.error,
     });
   }
 };
@@ -39,7 +39,7 @@ export const getDashboardSeries = async (
   } catch (error) {
     console.error("Error fetching dashboard series:", error);
     res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
+      message: APP_RESPONSE_MESSAGE.server.error,
     });
   }
 };

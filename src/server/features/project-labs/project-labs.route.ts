@@ -4,7 +4,7 @@ import {
   checkAuthentication,
   checkPermission,
 } from "@srvr/middlewares/auth.middleware.ts";
-import { labSchema } from "@srvr/utils/validators/lab.schema.ts";
+import { labSchema } from "@srvr/utils/validators/lab-schema.ts";
 import { validateData } from "@srvr/middlewares/validation.middleware.ts";
 
 const router = Router();

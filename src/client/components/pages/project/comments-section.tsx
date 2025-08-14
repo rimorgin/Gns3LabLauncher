@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useState } from "react";
 import {
   Avatar,
@@ -16,53 +14,78 @@ import {
   CardHeader,
   CardTitle,
 } from "@clnt/components/ui/card";
-import { Input } from "@clnt/components/ui/input";
 import { cn } from "@clnt/lib/utils";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Trash2 } from "lucide-react";
+import { useProjectCommentsQuery } from "@clnt/lib/queries/project-comments-query";
+import { useProjectCommentsAddComment } from "@clnt/lib/mutations/project-comments/add-comment-mutation";
+import { useProjectCommentsAddReply } from "@clnt/lib/mutations/project-comments/add-reply-mutation";
+import { useProjectCommentsDeleteComment } from "@clnt/lib/mutations/project-comments/delete-comment-mutation";
+import { useUser } from "@clnt/lib/auth";
 
-interface Comment {
+export interface ProjectComment {
   id: string;
   userName: string;
   commentText: string;
-  timestamp: Date;
-  replies?: Comment[]; // Nested replies
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string;
+  };
+  userId: string;
+  replies?: ProjectComment[];
 }
 
-interface CommentItemProps {
-  comment: Comment;
-  onAddReply: (parentId: string, userName: string, commentText: string) => void;
-  depth?: number; // To control indentation for replies
+interface ProjectCommentItemProps {
+  projectId: string;
+  comment: ProjectComment;
+  onAddReply: (parentId: string, commentText: string) => void;
+  depth?: number;
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({
+const CommentItem: React.FC<ProjectCommentItemProps> = ({
+  projectId,
   comment,
   onAddReply,
   depth = 0,
 }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyText, setReplyText] = useState("");
-  const [replyUserName, setReplyUserName] = useState("");
+  const user = useUser();
+  const deleteComment = useProjectCommentsDeleteComment(projectId);
 
-  const handleReplySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (replyText.trim() && replyUserName.trim()) {
-      onAddReply(comment.id, replyUserName.trim(), replyText.trim());
-      setReplyText("");
-      setReplyUserName("");
-      setShowReplyForm(false); // Hide form after submission
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete this comment?")) {
+      deleteComment.mutate({ commentId: comment.id });
     }
   };
 
+  const handleReplySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (replyText.trim()) {
+      onAddReply(comment.id, replyText.trim());
+      setReplyText("");
+      setShowReplyForm(false);
+    }
+  };
+
+  // Limit indentation to a max of ml-16 for aesthetics
   const indentationClass =
-    depth > 0 ? `ml-${Math.min(depth * 4, 16)} border-l pl-4` : ""; // Max indentation 16 (4*4)
+    depth > 0 ? `ml-${Math.min(depth * 4, 16)} border-l pl-4` : "";
+
+  // Delete permission logic
+  const canDelete =
+    (user.data?.role === "student" && user.data?.id === comment.userId) ||
+    user.data?.role === "administrator" ||
+    user.data?.role === "instructor";
 
   return (
     <div
       className={cn(
-        "flex items-start space-x-4 p-4 rounded-md",
+        "flex items-start space-x-4 p-4 pr-0 rounded-md",
         indentationClass,
       )}
     >
+      {/* Avatar */}
       <Avatar>
         <AvatarImage
           src={`https://api.dicebear.com/7.x/initials/svg?seed=${comment.userName}`}
@@ -70,41 +93,49 @@ const CommentItem: React.FC<CommentItemProps> = ({
         />
         <AvatarFallback>{comment.userName.charAt(0)}</AvatarFallback>
       </Avatar>
+
+      {/* Comment Content */}
       <div className="flex-1">
         <div className="flex items-center justify-between">
           <p className="font-semibold">{comment.userName}</p>
-          <span className="text-xs text-muted-foreground">
-            {new Date(comment.timestamp).toLocaleString()}
-          </span>
+          <div className="flex items-center gap-5">
+            <span className="text-xs text-muted-foreground">
+              {new Date(comment.createdAt).toLocaleString()}
+            </span>
+            {canDelete && (
+              <button
+                onClick={handleDelete}
+                className="text-red-500 hover:text-red-700"
+                title="Delete comment"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+          </div>
         </div>
-        <p className="text-sm text-foreground mt-1">{comment.commentText}</p>
+
+        <p className="text-sm mt-1">{comment.commentText}</p>
+
+        {/* Reply Button */}
         <Button
           variant={showReplyForm ? "destructive" : "ghost"}
           size="sm"
           onClick={() => setShowReplyForm(!showReplyForm)}
-          className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+          className="mt-2 text-xs"
         >
-          <MessageSquare className="h-3 w-3 mr-1" />{" "}
+          <MessageSquare className="h-3 w-3 mr-1" />
           {showReplyForm ? "Discard Reply" : "Reply"}
         </Button>
 
+        {/* Reply Form */}
         {showReplyForm && (
           <form onSubmit={handleReplySubmit} className="mt-4 space-y-2">
-            <Input
-              placeholder="Your Name"
-              value={replyUserName}
-              onChange={(e) => setReplyUserName(e.target.value)}
-              required
-              aria-label="Your Name for reply"
-              className="text-sm"
-            />
             <Textarea
               placeholder="Write your reply here..."
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               rows={2}
               required
-              aria-label="Your reply"
               className="text-sm"
             />
             <Button type="submit" size="sm">
@@ -113,11 +144,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
           </form>
         )}
 
+        {/* Recursive Replies */}
         {comment.replies && comment.replies.length > 0 && (
           <div className="mt-4 space-y-4">
             {comment.replies.map((reply) => (
               <CommentItem
                 key={reply.id}
+                projectId={projectId}
                 comment={reply}
                 onAddReply={onAddReply}
                 depth={depth + 1}
@@ -130,80 +163,29 @@ const CommentItem: React.FC<CommentItemProps> = ({
   );
 };
 
-export default function CommentsSection() {
-  const [comments, setComments] = useState<Comment[]>([
-    {
-      id: "1",
-      userName: "Alice Johnson",
-      commentText:
-        "This is a fascinating project! I'm excited to see the progress.",
-      timestamp: new Date("2024-07-20T15:00:00Z"),
-      replies: [
-        {
-          id: "1-1",
-          userName: "Charlie Brown",
-          commentText:
-            "I agree, you can follow easily because of network topology and easy to follow lab guide.",
-          timestamp: new Date("2024-07-20T15:30:00Z"),
-        },
-      ],
-    },
-  ]);
+export default function CommentsSection({ projectId }: { projectId: string }) {
+  const { data: comments = [], isLoading } = useProjectCommentsQuery(projectId);
+  const addComment = useProjectCommentsAddComment(projectId);
+  const addReply = useProjectCommentsAddReply(projectId);
+
   const [newCommentText, setNewCommentText] = useState("");
-  const [newCommentUserName, setNewCommentUserName] = useState("");
 
-  const addComment = (userName: string, commentText: string) => {
-    const newComment: Comment = {
-      id: String(Date.now()), // Unique ID for new comments
-      userName: userName,
-      commentText: commentText,
-      timestamp: new Date(),
-      replies: [],
-    };
-    setComments((prevComments) => [...prevComments, newComment]);
-  };
-
-  const addReply = (
-    parentId: string,
-    userName: string,
-    commentText: string,
-  ) => {
-    const updateComments = (commentsArray: Comment[]): Comment[] => {
-      return commentsArray.map((comment) => {
-        if (comment.id === parentId) {
-          const newReply: Comment = {
-            id: `${parentId}-${Date.now()}`, // Unique ID for replies
-            userName: userName,
-            commentText: commentText,
-            timestamp: new Date(),
-            replies: [],
-          };
-          return {
-            ...comment,
-            replies: comment.replies
-              ? [...comment.replies, newReply]
-              : [newReply],
-          };
-        }
-        if (comment.replies && comment.replies.length > 0) {
-          return {
-            ...comment,
-            replies: updateComments(comment.replies),
-          };
-        }
-        return comment;
-      });
-    };
-    setComments(updateComments);
-  };
+  if (isLoading) return <p>Loading comments...</p>;
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newCommentText.trim() && newCommentUserName.trim()) {
-      addComment(newCommentUserName.trim(), newCommentText.trim());
-      setNewCommentText("");
-      setNewCommentUserName("");
-    }
+    if (!newCommentText.trim()) return;
+
+    addComment.mutate(
+      { commentText: newCommentText.trim() },
+      {
+        onSuccess: () => setNewCommentText(""),
+      },
+    );
+  };
+
+  const handleAddReply = (parentId: string, commentText: string) => {
+    addReply.mutate({ parentId, commentText });
   };
 
   return (
@@ -212,29 +194,23 @@ export default function CommentsSection() {
         <CardTitle>Discussions & Comments</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Comment Submission Form */}
         <form onSubmit={handleSubmitComment} className="space-y-4">
-          <Input
-            placeholder="Your Name"
-            value={newCommentUserName}
-            onChange={(e) => setNewCommentUserName(e.target.value)}
-            required
-            aria-label="Your Name"
-          />
           <Textarea
             placeholder="Write your comment here..."
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
             rows={4}
             required
-            aria-label="Your Comment"
           />
-          <Button type="submit" className="w-full">
-            Post Comment
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={addComment.isPending}
+          >
+            {addComment.isPending ? "Posting..." : "Post Comment"}
           </Button>
         </form>
 
-        {/* Existing Comments */}
         <div className="space-y-4">
           {comments.length === 0 ? (
             <p className="text-muted-foreground text-center">
@@ -244,8 +220,9 @@ export default function CommentsSection() {
             comments.map((comment) => (
               <CommentItem
                 key={comment.id}
+                projectId={projectId}
                 comment={comment}
-                onAddReply={addReply}
+                onAddReply={handleAddReply}
               />
             ))
           )}

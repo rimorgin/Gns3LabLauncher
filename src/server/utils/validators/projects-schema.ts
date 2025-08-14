@@ -18,7 +18,7 @@ export const projectUpdateSchema = z.object({
   visible: z.boolean().optional(),
   classroomIds: z.array(z.string()).optional(),
   tags: z.enum(["networking", "cybersecurity"]).optional(),
-  duration: z.date().nullable().optional(),
+  duration: z.union([z.date(), z.string()]).nullable().optional(),
   imageUrl: z.string().optional(),
   labId: z.string().optional(),
   byGroupSubmissions: z.boolean().optional(),

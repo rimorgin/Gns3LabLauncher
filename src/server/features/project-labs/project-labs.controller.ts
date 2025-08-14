@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
 import { LabService } from "./project-labs.service.ts";
+import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
 
 export class LabController {
   static async createLab(req: Request, res: Response) {
     try {
       const lab = await LabService.createLab(req.body);
-      res.status(201).json(lab);
+      res.status(HTTP_RESPONSE_CODE.CREATED).json(lab);
     } catch (err) {
       console.error(err);
-      res.status(400).json({ error: "Failed to create lab" });
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: "Failed to create lab" });
     }
   }
 
@@ -35,7 +38,9 @@ export class LabController {
       res.json(lab);
     } catch (err) {
       console.error(err);
-      res.status(400).json({ error: "Failed to update lab" });
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: "Failed to update lab" });
     }
   }
 
@@ -46,7 +51,9 @@ export class LabController {
       res.status(204).send();
     } catch (err) {
       console.error(err);
-      res.status(400).json({ error: "Failed to delete lab" });
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ error: "Failed to delete lab" });
     }
   }
 }

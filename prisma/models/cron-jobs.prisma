@@ -1,7 +1,8 @@
 model CronJob {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   key       String   @unique // e.g., 'toggleProjectVisibility'
   name      String // Human-friendly name
+  description String?  // Optional: Explain the purpose of this job
   enabled   Boolean  @default(true)
   schedule  String // e.g., '0 0 * * *'
   updatedAt DateTime @updatedAt

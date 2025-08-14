@@ -2,7 +2,6 @@ import { NextFunction, Response, Request } from "express";
 import roles from "@srvr/configs/roles.config.ts";
 import { Permission } from "@srvr/types/auth.type.ts";
 import { getRolePermissions } from "@srvr/utils/db/helpers.ts";
-import { redisClient, redisStore } from "@srvr/database/redis.database.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HttpStatusCode,
@@ -35,48 +34,7 @@ export const checkPermission = (requiredPermissions: Permission[]) => {
       });
       return;
     }
-    console.log("authorized");
+    //console.log("authorized");
     next();
   };
 };
-
-export async function enforceSingleSessionOnly(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const userId = req.session?.passport?.user;
-  if (!userId) return next();
-
-  console.log("🚀 ~ userId:", userId);
-  const userKey = `gns3labuser:session:${userId}`;
-
-  const currentSessionId = req.sessionID;
-  //console.log("🚀 ~ userKey:", userKey);
-  const oldSessionId = await redisClient.get(userKey);
-
-  // No existing session → just set current
-  if (!oldSessionId) {
-    await redisClient.set(userKey, currentSessionId);
-    return next();
-  }
-
-  // Existing session is different → destroy it
-  if (oldSessionId !== currentSessionId) {
-    console.log(
-      "🚀 ~ oldSessionId !== currentSessionId:",
-      oldSessionId !== currentSessionId,
-    );
-    await new Promise<void>((resolve) => {
-      redisStore.destroy(oldSessionId, (err) => {
-        if (err) console.error("❌ Failed to destroy old session:", err);
-        else console.log(`✅ Old session (${oldSessionId}) destroyed`);
-        resolve();
-      });
-    });
-
-    await redisClient.set(userKey, currentSessionId);
-  }
-
-  return next();
-}

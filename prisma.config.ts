@@ -15,12 +15,7 @@ console.log(
   "[PRISMA CONFIG] DATABASE_URL defined:",
   !!process.env.POSTGRES_DATABASE_URL,
 );
-console.log(
-  "[PRISMA CONFIG] DIRECT_URL defined:",
-  !!process.env.POSTGRES_DIRECT_URL,
-);
 
 export default {
-  earlyAccess: true,
   schema: path.join(process.cwd(), "prisma"),
 } satisfies PrismaConfig;

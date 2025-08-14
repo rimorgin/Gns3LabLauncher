@@ -30,6 +30,7 @@ import {
   BrickWallFire,
   MonitorCogIcon,
   AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 import type { LabEnvironment, TopologyNode } from "@clnt/types/lab";
 import socket from "@clnt/lib/socket";
@@ -42,6 +43,7 @@ interface LabEnvironmentProps {
   environment: LabEnvironment;
   onLaunch: () => void;
   onStop: () => void;
+  onRestart: () => void;
   onOpenLabInstance: () => void;
   isRunning: boolean;
   isLoading: boolean;
@@ -51,6 +53,7 @@ export function LabEnvironmentComponent({
   environment,
   onLaunch,
   onStop,
+  onRestart,
   onOpenLabInstance,
   isRunning,
   isLoading,
@@ -324,10 +327,10 @@ export function LabEnvironmentComponent({
                     <MonitorCogIcon className="h-4 w-4 mr-2" />
                     View web console
                   </Button>
-                  {/* <Button variant="outline" onClick={onReset}>
+                  <Button variant="outline" onClick={onRestart}>
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
-                  </Button> */}
+                  </Button>
                   <Button
                     variant="destructive"
                     onClick={onStop}

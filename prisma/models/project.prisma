@@ -17,4 +17,5 @@ model Project {
   classrooms  Classroom[]         @relation("ClassroomProjects")
   submissions LabSubmission[]     @relation("ProjectLabSubmissions")
   discussions ProjectDiscussion[]
+  Comment     Comment[]
 }

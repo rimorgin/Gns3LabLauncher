@@ -1,64 +1,10 @@
 import { exec, spawn } from "child_process";
-import { promisify } from "util";
-import fs from "fs";
-import path from "path";
-import {
-  envServerHost,
-  MODE,
-  runComposeFile,
-  runScript,
-} from "@srvr/configs/env.config.ts";
+import { MODE, runComposeFile, runScript } from "@srvr/configs/env.config.ts";
 import { downAll, upAll } from "docker-compose";
 import { onProcessShutdownStopGns3Containers } from "@srvr/utils/docker-run.utils.ts";
 
 console.log("Environment mode:", MODE);
 console.log("MAP HOST: ", process.env.OPENVPN_STATIC_HOST_MAPPINGS);
-
-const execAsync = promisify(exec);
-
-/**
- * Creates self-signed certificates if the application is running in staging mode.
- * DONT USE SELF-SIGNED CERTS IN PRODUCTION
- */
-async function createCertsIfNeeded(): Promise<void> {
-  if (MODE !== "staging") return;
-
-  const certDir = path.resolve(process.cwd(), "cert");
-  const services = ["vite-express"];
-
-  try {
-    if (!fs.existsSync(certDir)) {
-      fs.mkdirSync(certDir, { recursive: true });
-    }
-
-    for (const service of services) {
-      const keyPath = path.join(certDir, `${service}.key.pem`);
-      const certPath = path.join(certDir, `${service}.cert.pem`);
-
-      const keyExists = fs.existsSync(keyPath);
-      const certExists = fs.existsSync(certPath);
-
-      if (!keyExists || !certExists) {
-        console.log(`🔐 Generating self-signed HTTPS certs for ${service}...`);
-
-        await execAsync(
-          `mkcert -key-file ${keyPath} -cert-file ${certPath} ${envServerHost} localhost 127.0.0.1 ::1`,
-        );
-        console.log("🚀 ~ createCertsIfNeeded ~ envServerHost:", envServerHost);
-
-        console.log(`✅ HTTPS certs generated for ${service}`);
-      }
-    }
-  } catch (error: unknown) {
-    console.error(
-      "❌ Failed to generate certificates:",
-      (error as { message: string }).message,
-    );
-    throw new Error(
-      "Please ensure mkcert is installed and configured correctly.",
-    );
-  }
-}
 
 /**
  * Starts the Docker containers defined in the docker-compose file.
@@ -98,16 +44,6 @@ async function startPrismaStudio(): Promise<void> {
  * Starts the Vite Express application, including certificate generation and Docker container management.
  */
 async function startViteExpress(): Promise<void> {
-  try {
-    await createCertsIfNeeded();
-  } catch (error: unknown) {
-    console.error(
-      "🚨 Certificate generation failed. Aborting startup.",
-      (error as { message: string }).message,
-    );
-    process.exit(0);
-  }
-
   await startContainers();
   await startPrismaStudio();
 

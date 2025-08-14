@@ -30,7 +30,7 @@ export default function CronJobsContent() {
               <CardHeader>
                 <CardTitle>{job.name}</CardTitle>
                 <CardDescription>
-                  {job.key} – Runs at {job.schedule}
+                  {job.description && job.description}
                 </CardDescription>
               </CardHeader>
 

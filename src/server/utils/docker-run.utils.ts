@@ -29,19 +29,18 @@ export async function isContainerRunning(
     const data = await container.inspect();
     return data.State.Running;
   } catch {
-    return false; // Container doesn't exist or inaccessible
+    return false;
   }
 }
 
-export async function checkContainerHealth(containerId: string) {
-  const startPeriod = 10 * 1000; // ms
+export async function checkContainerHealth(
+  containerId: string,
+): Promise<boolean> {
   const interval = 10 * 1000; // ms
   const retries = 5;
 
-  console.log(`🔍 Starting health check for container: ${containerId}`);
-  console.log(`Waiting ${startPeriod / 1000}s for container to start...`);
-
-  await new Promise((resolve) => setTimeout(resolve, startPeriod));
+  //console.log(`🔍 Starting health check for container: ${containerId}`);
+  //console.log(`Waiting ${startPeriod / 1000}s for container to start...`);
 
   for (let i = 0; i < retries; i++) {
     try {
@@ -94,10 +93,11 @@ export async function checkContainerHealth(containerId: string) {
         console.log(`⚠️ Port 3080 not found in output (attempt ${i + 1})`);
       }
     } catch (error) {
-      console.warn(
-        `⚠️ Port 3080 check failed (attempt ${i + 1}):`,
-        error.message,
-      );
+      const message =
+        typeof error === "object" && error !== null && "message" in error
+          ? (error as { message: string }).message
+          : String(error);
+      console.warn(`⚠️ Port 3080 check failed (attempt ${i + 1}):`, message);
     }
 
     if (i < retries - 1) {

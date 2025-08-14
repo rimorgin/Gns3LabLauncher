@@ -21,7 +21,7 @@ import {
 import { useGns3Containers } from "@clnt/lib/queries/lab-instances-query";
 import Loader from "../common/loader";
 import { Navigate } from "react-router";
-import { useStopContainerInstance } from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
+import { useStopContainerInstance } from "@clnt/lib/mutations/lab/lab-start-or-stop-or-restart-mutation";
 import { toast } from "sonner";
 
 interface ContainerInfo {
@@ -181,7 +181,7 @@ export default function LabInstances() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto">
+      <div className="container">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             Gns3 Instances

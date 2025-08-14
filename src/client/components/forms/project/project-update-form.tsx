@@ -97,6 +97,14 @@ export function ProjectUpdateForm({ initialData }: ProjectEditProps) {
       const payload: ProjectFormData = Object.fromEntries(
         Object.entries(data).filter(([key, value]) => {
           const prev = (defaultData as Record<string, unknown>)[key];
+
+          if (value instanceof Date && prev instanceof Date) {
+            return value.getTime() !== prev.getTime();
+          }
+
+          // Allow null if it’s a real change
+          if (value === null && prev !== null) return true;
+
           return !deepEqual(prev, value) && value !== undefined && value !== "";
         }),
       ) as ProjectFormData;

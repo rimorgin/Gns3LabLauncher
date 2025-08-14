@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import passport from "@srvr/configs/passport.config.ts";
 import { IUserBaseInput } from "@srvr/types/models.type.ts";
-import { redisClient } from "@srvr/database/redis.database.ts";
+//import { redisClient } from "@srvr/database/redis.database.ts";
 //import { UserService } from "@srvr/features/users/users.service.ts";
-import prisma from "@srvr/utils/db/prisma.ts";
+//import prisma from "@srvr/utils/db/prisma.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HttpStatusCode,
@@ -26,7 +26,7 @@ export const checkSession = (req: Request, res: Response): void => {
     return;
   }
 
-  res.status(200).json({ session: true });
+  res.status(HttpStatusCode.SUCCESS).json({ session: true });
 };
 
 /**
@@ -135,32 +135,12 @@ export const postLogout = (
   next: NextFunction,
 ): void => {
   const userSessionId = req.session?.passport?.user;
-  const userRole = req.user?.role;
 
   req.logout(function (err: Error | null) {
     if (err) return next(err);
-    req.session.destroy(async () => {
-      if (userSessionId)
-        await redisClient.del(`gns3labuser:session:${userSessionId}`);
-      //console.log("req.logout session destroyed");
-      if (userRole === "instructor") {
-        await prisma.instructor.update({
-          where: { userId: userSessionId },
-          data: {
-            isOnline: false,
-          },
-        });
-      } else if (userRole === "student") {
-        await prisma.student.update({
-          where: { userId: userSessionId },
-          data: {
-            isOnline: false,
-          },
-        });
-      }
 
+    req.session.destroy(async () => {
       console.log("🚀 ~ req.logout ~ userId:", userSessionId);
-      console.log("🚀 ~ req.session.destroy ~ userRole:", userRole);
       res.json({
         message: APP_RESPONSE_MESSAGE.user.userLoggedOut,
       });

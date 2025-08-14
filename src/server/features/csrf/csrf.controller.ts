@@ -7,6 +7,7 @@
  * @module csrf.controller
  */
 
+import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
 import { getTokenFromState } from "@srvr/configs/csrf.config.ts";
 import { Request, Response } from "express";
 
@@ -30,7 +31,7 @@ export const getCsrf = (req: Request, res: Response) => {
     const csrfToken = getTokenFromState(req);
 
     if (!csrfToken) {
-      return res.status(500).json({
+      return res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
         error: "Failed to generate CSRF token. Session may not be initialized.",
       });
     }
@@ -38,7 +39,7 @@ export const getCsrf = (req: Request, res: Response) => {
     res.json({ csrfToken });
   } catch (error) {
     console.error("CSRF token generation error:", error);
-    res.status(500).json({
+    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
       error: "Internal server error while generating CSRF token",
     });
   }

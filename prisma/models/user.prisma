@@ -11,4 +11,5 @@ model User {
   administrator Administrator?
   instructor    Instructor?
   student       Student?
+  Comment       Comment[]
 }

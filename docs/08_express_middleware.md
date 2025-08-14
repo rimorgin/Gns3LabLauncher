@@ -181,7 +181,7 @@ Now, let's look at some other example middleware in our `Gns3LabLauncher` projec
       // Log the error
       console.error(error);
       // Send an error response
-      res.status(500).json({ message: "Something went wrong" });
+      res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({ message: "Something went wrong" });
     }
     ```
 

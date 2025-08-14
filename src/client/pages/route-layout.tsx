@@ -6,7 +6,6 @@ import Loader from "@clnt/components/common/loader";
 import { AuthLoader } from "@clnt/lib/auth";
 import LoginPage from "@clnt/pages/login";
 import ErrorPage from "@clnt/pages/error";
-import InstancePageRoute from "./lab/instance";
 
 // 👇 Lazy-loaded pages
 const HomePage = lazy(() => import("@clnt/pages/home"));
@@ -59,14 +58,6 @@ const projectChildren = [
     element: (
       <Suspense fallback={<Loader />}>
         <LabPageRoute />
-      </Suspense>
-    ),
-  },
-  {
-    path: ":projectId/labs/:labId/instance",
-    element: (
-      <Suspense fallback={<Loader />}>
-        <InstancePageRoute />
       </Suspense>
     ),
   },

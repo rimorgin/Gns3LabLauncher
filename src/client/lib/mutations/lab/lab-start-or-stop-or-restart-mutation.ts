@@ -34,3 +34,19 @@ export const useStopContainerInstance = () => {
     },
   });
 };
+
+// Stop Container Mutation
+export const useRestartContainerInstance = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (containerName: string) =>
+      axios.post(`/gns3labs/restart/${containerName}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["containers"] });
+    },
+    onError: (err) => {
+      console.error("❌ Failed to stop container", err);
+    },
+  });
+};

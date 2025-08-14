@@ -135,8 +135,8 @@ export function prismaErrorCode(
         status: HTTP_RESPONSE_CODE.CONFLICT,
         message: isValidKey
           ? (getMessage(modelKey, "DoesExist") ??
-            APP_RESPONSE_MESSAGE.serverError)
-          : APP_RESPONSE_MESSAGE.serverError,
+            APP_RESPONSE_MESSAGE.server.error)
+          : APP_RESPONSE_MESSAGE.server.error,
       };
 
     case "P2025":
@@ -144,8 +144,8 @@ export function prismaErrorCode(
         status: HTTP_RESPONSE_CODE.NOT_FOUND,
         message: isValidKey
           ? (getMessage(modelKey, "DoesntExist") ??
-            APP_RESPONSE_MESSAGE.serverError)
-          : APP_RESPONSE_MESSAGE.serverError,
+            APP_RESPONSE_MESSAGE.server.error)
+          : APP_RESPONSE_MESSAGE.server.error,
       };
     case "P2003":
       return {
@@ -156,7 +156,7 @@ export function prismaErrorCode(
     default:
       return {
         status: HTTP_RESPONSE_CODE.SERVER_ERROR,
-        message: APP_RESPONSE_MESSAGE.serverError,
+        message: APP_RESPONSE_MESSAGE.server.error,
       };
   }
 }

@@ -77,9 +77,9 @@ export const onSocketConnection = async (socket: Socket) => {
   // Join a room specific to this user for targeted messaging
   socket.join(`container:${user.username}`);
 
-  console.log(socket.rooms);
+  //console.log(socket.rooms);
 
-  console.log("🚀 ~ onSocketConnection ~ user:", user);
+  //console.log("🚀 ~ onSocketConnection ~ user:", user);
 
   if (user?.role === "instructor") {
     await prisma.instructor.update({
@@ -134,4 +134,41 @@ export const onSocketConnection = async (socket: Socket) => {
       });
     });
   });
+};
+
+export const onSocketDisconnection = async (socket: Socket) => {
+  const user = socket.request.user;
+  const currentSocketId = socket.id;
+  const currentSessionId = socket.request.sessionID;
+
+  if (!user) return; // No user in session, nothing to do
+
+  const redisKey = `gns3labuser:session:${user.id}`;
+  const sessionRecord = await redisClient.hGetAll(redisKey);
+
+  // Only mark offline if this socket/session matches what's in Redis
+  if (
+    sessionRecord.sessionID === currentSessionId &&
+    sessionRecord.socketID === currentSocketId
+  ) {
+    await redisClient.del(redisKey);
+
+    if (user.role === "instructor") {
+      await prisma.instructor.update({
+        where: { userId: user.id },
+        data: { isOnline: false },
+      });
+    } else if (user.role === "student") {
+      await prisma.student.update({
+        where: { userId: user.id },
+        data: { isOnline: false },
+      });
+    }
+
+    console.log(`❌ User ${user.id} is now offline`);
+  } else {
+    console.log(
+      `ℹ️ User ${user.id} disconnected but still has another active session/socket`,
+    );
+  }
 };

@@ -5,6 +5,7 @@ import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
 } from "@srvr/configs/constants.config.ts";
+import { ValidationInputError } from "@srvr/error/validation-input.error.ts";
 /**
  * Retrieves all user groups from the database.
  *
@@ -22,8 +23,7 @@ export const getUserGroups = async (req: Request, res: Response) => {
       message: APP_RESPONSE_MESSAGE.userGroup.userGroupsReturned,
       user_groups: userGroups,
     });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
       .json({ error: "Internal Server Error" });
@@ -47,8 +47,7 @@ export const getUserGroupById = async (req: Request, res: Response) => {
       message: APP_RESPONSE_MESSAGE.userGroup.userGroupReturned,
       user_groups: userGroup,
     });
-  } catch (err) {
-    console.error(err);
+  } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
       .json({ error: "Internal Server Error" });
@@ -74,10 +73,7 @@ export const postUserGroup = async (
   const { groupName, classroomId } = req.body;
 
   if (!classroomId) {
-    res
-      .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-      .json({ message: "classroomId is required" });
-    return;
+    throw new ValidationInputError([classroomId]);
   }
 
   if (groupName && groupName.trim() !== "") {
@@ -106,7 +102,7 @@ export const postUserGroup = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
   }
 };
 

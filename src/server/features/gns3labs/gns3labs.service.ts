@@ -1,9 +1,11 @@
 import docker from "@srvr/configs/docker.config.ts";
 import prisma from "@srvr/utils/db/prisma.ts";
 import {
+  checkContainerHealth,
   ensureImageExists,
   isContainerRunning,
 } from "@srvr/utils/docker-run.utils.ts";
+import type { Container } from "dockerode";
 import { Readable } from "stream";
 
 interface ContainerOptions {
@@ -21,13 +23,12 @@ export class Gns3DockerService {
    * Runs a GNS3 Docker container.
    */
 
-  static async runContainer({
+  static async run({
     containerName,
     imageName = Gns3DockerService.DEFAULT_IMAGE,
     networkMode = Gns3DockerService.DEFAULT_NETWORK,
   }: ContainerOptions): Promise<{
     id: string;
-    ip: string | undefined;
     tunIp: string | null;
   }> {
     const isValidName = /^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,63}$/.test(containerName);
@@ -35,81 +36,97 @@ export class Gns3DockerService {
 
     await ensureImageExists(imageName);
 
-    const alreadyRunning = await isContainerRunning(containerName);
-    if (alreadyRunning)
-      throw new Error(`Container "${containerName}" is already running`);
+    const isRunning = await isContainerRunning(containerName);
+    let container: Container;
+    let tunIp: string | null = null;
 
-    const container = await docker.createContainer({
-      Image: imageName,
-      name: containerName,
-      Hostname: "gns3vm",
-      Env: [`GNS3_USERNAME=${containerName}`, "SSL=true", "OPENVPN=true"],
-      HostConfig: {
-        NetworkMode: networkMode,
-        Privileged: true,
-        CapAdd: ["NET_ADMIN"],
-        Binds: [Gns3DockerService.DATA_PATH],
-        AutoRemove: true,
-      },
-      StopSignal: "SIGTERM",
-    });
-
-    await container.start();
-
-    // ✅ Start following logs and resolve when tun IP appears
-    const tunIp = await new Promise<string | null>((resolve, reject) => {
-      container.logs(
-        {
-          stdout: true,
-          stderr: true,
-          follow: true,
-          timestamps: false,
+    if (!isRunning) {
+      container = await docker.createContainer({
+        Image: imageName,
+        name: containerName,
+        Hostname: "gns3vm",
+        Env: [`GNS3_USERNAME=${containerName}`, "SSL=true", "OPENVPN=true"],
+        HostConfig: {
+          NetworkMode: networkMode,
+          Privileged: true,
+          CapAdd: ["NET_ADMIN"],
+          Binds: [Gns3DockerService.DATA_PATH],
+          //AutoRemove: true,
         },
-        (err, stream) => {
-          if (err || !stream)
-            return reject(err || new Error("Failed to get logs"));
+        StopSignal: "SIGTERM",
+      });
 
-          const readable = stream as Readable;
-          let buffer = "";
+      await container.start();
 
-          readable.on("data", (chunk) => {
-            buffer += chunk.toString("utf8");
+      // Extract tun IP from logs after startup
+      tunIp = await new Promise<string | null>((resolve) => {
+        container.logs(
+          {
+            stdout: true,
+            stderr: true,
+            follow: true,
+            timestamps: false,
+            tail: 100,
+          },
+          (err, stream) => {
+            if (err || !stream) return resolve(null);
 
-            const match = buffer.match(
-              /\[INFO\] Tunnel IP: (\d+\.\d+\.\d+\.\d+)/,
-            );
-            if (match?.[1]) {
-              readable.destroy(); // Stop reading logs
-              resolve(match[1]); // Resolve with the tun IP
-            }
-          });
+            const readable = stream as Readable;
+            let buffer = "";
 
-          readable.on("error", reject);
-          // Timeout or safety fallback after 15s
-          setTimeout(() => {
-            readable.destroy();
-            resolve(null); // fallback if no tun IP found
-          }, 15000);
-        },
-      );
-    });
+            readable.on("data", (chunk) => {
+              buffer += chunk.toString("utf8");
+              const match = buffer.match(
+                /\[INFO\] Tunnel IP: (\d+\.\d+\.\d+\.\d+)/,
+              );
+              //console.log("🚀 ~ Gns3DockerService ~ run ~ match:", match);
+              if (match?.[1]) {
+                readable.destroy();
+                resolve(match[1]);
+              }
+            });
 
-    const data = await container.inspect();
-    const ip =
-      networkMode && data.NetworkSettings.Networks?.[networkMode]?.IPAddress;
+            readable.on("error", () => resolve(null));
+            setTimeout(() => {
+              readable.destroy();
+              resolve(null);
+            }, 5000);
+          },
+        );
+      });
+    } else {
+      container = docker.getContainer(containerName);
 
-    console.log("🚀 ~ Gns3DockerService ~ runContainer ~ tunIp:", tunIp);
-    return { id: data.Id, ip, tunIp };
+      // 🔍 Extract tun IP from logs even if running
+      const logsOutput = await container.logs({
+        stdout: true,
+        stderr: true,
+        timestamps: false,
+      });
+
+      const logStr = logsOutput.toString("utf8");
+      const match = logStr.match(/\[INFO\] Tunnel IP: (\d+\.\d+\.\d+\.\d+)/);
+      tunIp = match?.[1] || null; // 🛠 fixed: assign to the outer variable
+    }
+
+    /* const healthy = await checkContainerHealth(container.id);
+
+    if (!healthy) {
+      throw new Error("Container started but failed health checks");
+    } */
+    return { id: container.id, tunIp };
   }
 
   /**
    * Stops a running GNS3 Docker container.
    */
-  static async stopContainer(containerName: string): Promise<void> {
+  static async stop(containerName: string): Promise<void> {
     const container = docker.getContainer(containerName);
 
     try {
       await container.stop();
+      await container.wait();
+      await container.remove();
     } catch (err: unknown) {
       if (
         typeof err === "object" &&
@@ -129,7 +146,64 @@ export class Gns3DockerService {
       throw err;
     }
   }
-  static async listContainers(): Promise<
+
+  /**
+   * Resets a GNS3 Docker container by restarting it and extracting the new tun IP.
+   */
+  static async restart(
+    containerName: string,
+  ): Promise<{ id: string; tunIp: string | null }> {
+    const container = docker.getContainer(containerName);
+    try {
+      await container.restart();
+      const healthy = await checkContainerHealth(container.id);
+
+      if (!healthy) {
+        throw new Error("Container started but failed health checks");
+      }
+      const tunIp = await new Promise<string | null>((resolve) => {
+        container.logs(
+          {
+            stdout: true,
+            stderr: true,
+            follow: true,
+            timestamps: false,
+            tail: 100,
+          },
+          (err, stream) => {
+            if (err || !stream) return resolve(null);
+
+            const readable = stream as Readable;
+            let buffer = "";
+
+            readable.on("data", (chunk) => {
+              buffer += chunk.toString("utf8");
+              const match = buffer.match(
+                /\[INFO\] Tunnel IP: (\d+\.\d+\.\d+\.\d+)/,
+              );
+              if (match?.[1]) {
+                readable.destroy();
+                resolve(match[1]);
+              }
+            });
+
+            readable.on("error", () => resolve(null));
+            setTimeout(() => {
+              readable.destroy();
+              resolve(null);
+            }, 5000);
+          },
+        );
+      });
+
+      return { id: container.id, tunIp };
+    } catch (err) {
+      console.error(`Failed to reset container "${containerName}":`, err);
+      throw err;
+    }
+  }
+
+  static async list(): Promise<
     Array<{ name: string; status: string; state: string }>
   > {
     try {
@@ -147,7 +221,7 @@ export class Gns3DockerService {
     }
   }
   static async listContainersWithUserInfo() {
-    const instances = await this.listContainers();
+    const instances = await this.list();
 
     const users = await prisma.$transaction(
       instances.map((instance) =>

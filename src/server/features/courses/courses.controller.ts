@@ -125,7 +125,7 @@ export const postCourses = async (
     return;
   } catch {
     res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
+      message: APP_RESPONSE_MESSAGE.server.error,
     });
     return;
   }
@@ -167,7 +167,7 @@ export const patchCourse = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };
@@ -208,7 +208,7 @@ export const deleteCourse = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };
@@ -249,7 +249,7 @@ export const deleteManyCourse = async (
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
     return;
   }
 };

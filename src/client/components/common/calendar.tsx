@@ -178,7 +178,7 @@ const FullCalendar = () => {
   };
 
   return (
-    <div className="w-full h-full mx-auto p-4">
+    <div className="w-full h-full">
       <div className="h-full bg-card text-card-foreground rounded-lg border shadow-sm">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">

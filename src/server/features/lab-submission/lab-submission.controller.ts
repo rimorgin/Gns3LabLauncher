@@ -1,14 +1,13 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { LabSubmissionService } from "./lab-submission.service.ts";
-import {
-  APP_RESPONSE_MESSAGE,
-  HTTP_RESPONSE_CODE,
-} from "@srvr/configs/constants.config.ts";
+import { HTTP_RESPONSE_CODE } from "@srvr/configs/constants.config.ts";
 import { ValidationInputError } from "@srvr/error/validation-input.error.ts";
-import { MaxAttemptsReachedError } from "@srvr/error/max-attempt-submission.error.ts";
-import { UnauthenticatedRequestError } from "@srvr/error/unauthenticated.error.ts";
 
-export const submitLab = async (req: Request, res: Response) => {
+export const submitLab = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const studentId = req.user!.id;
     const {
@@ -46,30 +45,15 @@ export const submitLab = async (req: Request, res: Response) => {
 
     return res.status(HTTP_RESPONSE_CODE.CREATED).json(result);
   } catch (error) {
-    if (error instanceof UnauthenticatedRequestError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.UNAUTHORIZED)
-        .json({ error: error.message });
-    }
-
-    if (error instanceof ValidationInputError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-        .json({ error: error.message });
-    }
-
-    if (error instanceof MaxAttemptsReachedError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.CONFLICT)
-        .json({ error: error.message });
-    }
-    return res
-      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ error: APP_RESPONSE_MESSAGE.serverError });
+    return next(error);
   }
 };
 
-export const gradeLab = async (req: Request, res: Response) => {
+export const gradeLab = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { submissionId } = req.params;
     const { grade, feedback } = req.body;
@@ -89,27 +73,14 @@ export const gradeLab = async (req: Request, res: Response) => {
 
     return res.status(HTTP_RESPONSE_CODE.SUCCESS).json(result);
   } catch (error) {
-    if (error instanceof UnauthenticatedRequestError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.UNAUTHORIZED)
-        .json({ error: error.message });
-    }
-
-    if (error instanceof ValidationInputError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-        .json({ error: error.message });
-    }
-
-    return res
-      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ error: APP_RESPONSE_MESSAGE.serverError });
+    next(error);
   }
 };
 
 export const getClassroomLabSubmissions = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   try {
     const { classroomId } = req.params;
@@ -130,14 +101,6 @@ export const getClassroomLabSubmissions = async (
 
     return res.status(HTTP_RESPONSE_CODE.SUCCESS).json(result);
   } catch (error) {
-    if (error instanceof ValidationInputError) {
-      return res
-        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-        .json({ error: error.message });
-    }
-
-    return res
-      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ error: APP_RESPONSE_MESSAGE.serverError });
+    return next(error);
   }
 };

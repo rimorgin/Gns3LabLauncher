@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   listAllGns3Containers,
   listAllGns3ContainersWithUsersInfo,
+  restartGns3Container,
   startGns3Container,
   stopGns3Container,
 } from "@srvr/features/gns3labs/gns3labs.controller.ts";
@@ -18,8 +19,21 @@ router.post("/start/:containerName", checkAuthentication, startGns3Container);
 
 /**
  * @route POST /gns3labs/stop/:containerName
+ * @desc Stops a GNS3 Docker container with the given name
+ * @params { containerName: string }
  */
 router.post("/stop/:containerName", checkAuthentication, stopGns3Container);
+
+/**
+ * @route POST /gns3labs/stop/:containerName
+ * @desc Restarts a GNS3 Docker container with the given name and checks health
+ * @params { containerName: string }
+ */
+router.post(
+  "/restart/:containerName",
+  checkAuthentication,
+  restartGns3Container,
+);
 
 /*
  * @route GET /gns3labs/list

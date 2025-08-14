@@ -15,15 +15,16 @@ import {
   RotateCcw,
   Square,
 } from "lucide-react";
-import { NavLink } from "react-router";
+import { Navigate, NavLink } from "react-router";
 import { IconBuildingCommunity, IconBuildingStore } from "@tabler/icons-react";
 import {
+  useRestartContainerInstance,
   useStartContainerInstance,
   useStopContainerInstance,
-} from "@clnt/lib/mutations/lab/lab-start-or-stop-mutation";
+} from "@clnt/lib/mutations/lab/lab-start-or-stop-or-restart-mutation";
 import { toast } from "sonner";
 import { useUser } from "@clnt/lib/auth";
-import { useState } from "react";
+import { useLabStore } from "@clnt/lib/store/lab-store";
 
 const links = [
   {
@@ -45,43 +46,79 @@ const links = [
 
 export default function LabsPlaygroundContent() {
   const user = useUser();
+  const {
+    isLabLoading,
+    isLabRunning,
+    instanceIpAddress,
+    setIsLabLoading,
+    setIsLabRunning,
+    setInstanceIpAddress,
+    clearLabState,
+  } = useLabStore();
+
   const containerName = user.data?.username;
   const startContainer = useStartContainerInstance();
   const stopContainer = useStopContainerInstance();
-  const [isLabRunning, setIsLabRunning] = useState(false);
+  const restartContainer = useRestartContainerInstance();
 
-  if (!containerName) return <div>Forbidden</div>;
+  if (!containerName)
+    return (
+      <Navigate
+        to={"/errorPage"}
+        state={"Action forbidden: no container name is specified"}
+      />
+    );
 
   const handleLaunchLab = async () => {
-    await toast.promise(startContainer.mutateAsync(containerName), {
+    setIsLabLoading(true);
+    toast.promise(startContainer.mutateAsync(containerName), {
       loading: "Starting lab instance...",
       success: (response) => {
         setIsLabRunning(true);
+        setInstanceIpAddress(response.data?.tunIp ?? "");
+
         return response.data.message;
       },
       error: () => {
         return "Error starting lab instance";
       },
+      finally: () => setIsLabLoading(false),
     });
   };
 
   const handleStopLab = async () => {
-    await toast.promise(stopContainer.mutateAsync(containerName), {
+    setIsLabLoading(true);
+    toast.promise(stopContainer.mutateAsync(containerName), {
       loading: "Stopping lab instance...",
       success: () => {
-        setIsLabRunning(false);
+        clearLabState();
         return "Stopped lab instance";
       },
       error: "Error stopping lab instance",
+      finally: () => setIsLabLoading(false),
     });
   };
 
-  const handleResetLab = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+  const handleRestartLab = async () => {
+    setIsLabLoading(true);
+    clearLabState();
+    toast.promise(restartContainer.mutateAsync(containerName), {
+      loading: "Restarting lab instance...",
+      success: () => {
+        return "Restarted lab instance";
+      },
+      error: "Error stopping lab instance",
+      finally: () => setIsLabLoading(false),
+    });
+  };
+
+  const handleViewWebConsole = () => {
+    const url = `https://${instanceIpAddress}:3080`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="container">
       <div className="grid lg:grid-cols-4 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-8">
@@ -192,7 +229,7 @@ export default function LabsPlaygroundContent() {
                 <Button
                   variant={"outline"}
                   onClick={handleLaunchLab}
-                  disabled={startContainer.status === "pending"}
+                  disabled={isLabLoading}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   {startContainer.status === "pending"
@@ -201,18 +238,28 @@ export default function LabsPlaygroundContent() {
                 </Button>
               ) : (
                 <>
-                  <Button variant="default" onClick={handleResetLab}>
+                  <Button
+                    variant="default"
+                    onClick={handleViewWebConsole}
+                    disabled={!instanceIpAddress || isLabLoading}
+                  >
                     <MonitorCogIcon className="h-4 w-4 mr-2" />
                     View web console
                   </Button>
-                  <Button variant="outline" onClick={handleResetLab}>
+                  <Button
+                    variant="outline"
+                    onClick={handleRestartLab}
+                    disabled={isLabLoading}
+                  >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
                   </Button>
                   <Button
                     variant="destructive"
                     onClick={handleStopLab}
-                    disabled={stopContainer.status === "pending"}
+                    disabled={
+                      stopContainer.status === "pending" || isLabLoading
+                    }
                   >
                     <Square className="h-4 w-4 mr-2" />
                     {stopContainer.status === "pending"

@@ -49,6 +49,7 @@ export default function NavUser({
       loading: "Logging out...",
       success: () => {
         queryClient.clear();
+        localStorage.clear();
         return "Logged out successfully!";
       },
       error: "Failed to log out.",

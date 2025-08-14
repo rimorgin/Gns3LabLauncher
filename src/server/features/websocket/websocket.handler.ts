@@ -11,7 +11,10 @@
  * @module webSocketHandlers
  */
 
-import { onSocketConnection } from "@srvr/features/websocket/websocket.controller.ts";
+import {
+  onSocketConnection,
+  onSocketDisconnection,
+} from "@srvr/features/websocket/websocket.controller.ts";
 import { io } from "@srvr/main.ts";
 import sessionMiddleware from "@srvr/middlewares/session.middleware.ts";
 import { wrapExpressMiddlewareForSocket } from "@srvr/utils/session-ws.utils.ts";
@@ -35,5 +38,11 @@ export default function webSocketListener(): void {
   io.engine.use(wrapExpressMiddlewareForSocket(passport.session()));
 
   // Register the main connection handler for each new WebSocket client
-  io.on("connection", onSocketConnection);
+  io.on("connection", (socket) => {
+    onSocketConnection(socket);
+
+    socket.on("disconnect", () => {
+      onSocketDisconnection(socket);
+    });
+  });
 }

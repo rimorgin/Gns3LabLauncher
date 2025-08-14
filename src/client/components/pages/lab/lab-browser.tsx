@@ -131,8 +131,6 @@ export function LabsBrowser({
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
-        case "popularity":
-          return b.objectives.length - a.objectives.length;
         default:
           return 0;
       }
@@ -171,7 +169,7 @@ export function LabsBrowser({
 
   const handleLaunchLab = (lab: Lab) => {
     // Navigate to lab page
-    window.location.href = `/lab/${lab.id}`;
+    router.navigate(`/lab/${lab.id}`);
   };
 
   if (isLoading) return <Loader />;

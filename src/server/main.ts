@@ -19,7 +19,9 @@ import csrfTokenMiddleware from "@srvr/middlewares/csrf.middleware.ts";
 
 import rateLimiterMiddleware from "@srvr/middlewares/rate-limiter.middleware.ts";
 //import vpnOnlyMiddleware from "@srvr/middlewares/vpn.middleware.ts";
-import errorMiddleware from "@srvr/middlewares/error.middleware.ts";
+import errorMiddleware, {
+  notFoundHandler,
+} from "@srvr/middlewares/error.middleware.ts";
 
 import { csrfSynchronisedProtection } from "@srvr/configs/csrf.config.ts";
 import { envServerPort, MODE } from "@srvr/configs/env.config.ts";
@@ -56,7 +58,7 @@ app.disable("x-powered-by");
 
 // prevent DDos or Brute Force
 app.use("/api/v1/", rateLimiterMiddleware); //disable in development
-// Serve static files from the 'public' directory
+// Serve static files from the 'public' directory with rate limiting
 app.use(
   "/static",
   rateLimiterMiddleware,
@@ -72,11 +74,16 @@ console.log(
   path.join(__dirname, "/public /submissions"),
 );
 
+// Routes
+await registerFeatures(app);
+
 // LOGGING
 app.use(loggerMiddleware);
 
 // ERROR HANDLING
-app.use(errorMiddleware);
+app.use("/api/v1/", notFoundHandler);
+app.use("/api/v1/", errorMiddleware);
+
 if (MODE !== "development") {
   app.set("trust proxy", true);
   app.use((req, res, next) => {
@@ -85,9 +92,6 @@ if (MODE !== "development") {
     next();
   });
 }
-
-// Routes
-await registerFeatures(app);
 
 /* app.use("*", (req, res) => {
   res.sendFile(path.resolve("index.html"));
@@ -105,6 +109,6 @@ server.listen(envServerPort, () => {
 // initialize websocket connection handlers
 webSocketListener();
 
-//@ts-expect-error staging mode is not allowed
+//@ts-expect-error staging mode is not allowed on vite-express
 ViteExpress.config({ mode: MODE });
 ViteExpress.bind(app, server);

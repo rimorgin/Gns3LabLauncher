@@ -138,6 +138,7 @@ const roles: RolesCollection = {
         "create_comments",
         "read_comments",
         "update_comments",
+        "delete_comments",
       ],
     },
   ],

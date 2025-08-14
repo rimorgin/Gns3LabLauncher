@@ -1,10 +1,12 @@
 import prisma from "@srvr/utils/db/prisma.ts";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { UserService } from "./users.service.ts";
 import {
   APP_RESPONSE_MESSAGE,
   HTTP_RESPONSE_CODE,
 } from "@srvr/configs/constants.config.ts";
+import { DuplicateUserError } from "@srvr/error/duplicate-entity.error.ts";
+import { ValidationInputError } from "@srvr/error/validation-input.error.ts";
 
 /**
  * Fetches a list of users filtered by role (excluding administrators by default).
@@ -26,12 +28,14 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await UserService.getAll(req.query);
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.usersReturned,
       users,
     });
   } catch {
-    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
   }
 };
 
@@ -56,12 +60,14 @@ export const getUserById = async (
   try {
     const users = await UserService.getById(id, req.query);
 
-    res.status(200).json({
+    res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.usersReturned,
       users,
     });
   } catch {
-    res.status(500).json({ message: APP_RESPONSE_MESSAGE.serverError });
+    res
+      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
   }
 };
 
@@ -81,67 +87,62 @@ export const getUserById = async (
  *  - 409 Conflict if user with given username or email already exists
  *  - 500 Internal Server Error if an exception occurs during creation
  */
-export const postUsers = async (req: Request, res: Response): Promise<void> => {
+export const postUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
   const { username, email } = req.body;
-
-  const [emailExists, usernameExists] = await prisma.$transaction([
-    prisma.user.findUnique({ where: { email } }),
-    prisma.user.findUnique({ where: { username } }),
-  ]);
-
-  if (emailExists || usernameExists) {
-    const msg = [
-      emailExists ? `Email ${email}` : null,
-      usernameExists ? `Username ${username}` : null,
-    ]
-      .filter(Boolean)
-      .join(" and ");
-    res
-      .status(HTTP_RESPONSE_CODE.CONFLICT)
-      .json({ message: `${msg} ${APP_RESPONSE_MESSAGE.user.userDoesExist}` });
-    return;
-  }
   try {
+    const [emailExists, usernameExists] = await prisma.$transaction([
+      prisma.user.findUnique({ where: { email } }),
+      prisma.user.findUnique({ where: { username } }),
+    ]);
+
+    if (emailExists || usernameExists) {
+      throw new DuplicateUserError(
+        emailExists ? email : undefined,
+        usernameExists ? username : undefined,
+      );
+    }
     const newUser = await UserService.create(req.body);
     res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: APP_RESPONSE_MESSAGE.user.userCreated,
       newData: newUser,
     });
-  } catch {
-    res
-      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+  } catch (error) {
+    return next(error);
   }
-  return;
 };
 
-export const bulkPostUsers = async (req: Request, res: Response) => {
+export const bulkPostUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    console.log("🚀 ~ bulkPostUsers ~ req.body:", req.body);
+    //console.log("🚀 ~ bulkPostUsers ~ req.body:", req.body);
 
     // make sure to extract the array
     const { users } = req.body;
-
+    /* 
     if (!Array.isArray(users) || users.length === 0) {
-      res.status(400).json({ message: "No users provided" });
+      res
+        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
+        .json({ message: "No users provided" });
       return;
-    }
+    } */
 
     const createdUsers = await UserService.createBulk(users);
 
-    res.status(201).json({
+    res.status(HTTP_RESPONSE_CODE.CREATED).json({
       message: `${createdUsers.length} users created successfully`,
       data: createdUsers,
     });
     return;
   } catch (err) {
     console.error("bulkPostUsers error:", err);
-    if (!res.headersSent) {
-      res
-        .status(500)
-        .json({ message: "Something went wrong", error: String(err) });
-      return;
-    }
+    next(err);
   }
 };
 
@@ -171,7 +172,7 @@ export const patchUser = async (req: Request, res: Response): Promise<void> => {
   } catch {
     res
       .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: APP_RESPONSE_MESSAGE.serverError });
+      .json({ message: APP_RESPONSE_MESSAGE.server.error });
   }
   return;
 };
@@ -193,18 +194,20 @@ export const patchUser = async (req: Request, res: Response): Promise<void> => {
 export const deleteUser = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   const id = req.params.id;
+  if (id) {
+    throw new ValidationInputError([id]);
+  }
   try {
     const deletedUser = await UserService.deleteById(id);
     res.status(HTTP_RESPONSE_CODE.SUCCESS).json({
       message: APP_RESPONSE_MESSAGE.user.userDeleted,
       newData: deletedUser,
     });
-  } catch {
-    res.status(HTTP_RESPONSE_CODE.SERVER_ERROR).json({
-      message: APP_RESPONSE_MESSAGE.serverError,
-    });
+  } catch (error) {
+    next(error);
   }
   return;
 };
@@ -212,15 +215,13 @@ export const deleteUser = async (
 export const deleteUsersMany = async (
   req: Request,
   res: Response,
+  next: NextFunction,
 ): Promise<void> => {
   try {
     const ids = req.body.ids;
 
     if (!Array.isArray(ids) || !ids.every((id) => typeof id === "string")) {
-      res
-        .status(HTTP_RESPONSE_CODE.BAD_REQUEST)
-        .json({ message: "Invalid 'ids' format. Expected string array." });
-      return;
+      throw new ValidationInputError([ids]);
     }
 
     const deletedUsers = await UserService.deleteManyById(ids);
@@ -229,10 +230,8 @@ export const deleteUsersMany = async (
       message: APP_RESPONSE_MESSAGE.user.userDeleted,
       newData: deletedUsers,
     });
-  } catch {
-    res
-      .status(HTTP_RESPONSE_CODE.SERVER_ERROR)
-      .json({ message: "Failed to delete users." });
+  } catch (error) {
+    next(error);
   }
   return;
 };

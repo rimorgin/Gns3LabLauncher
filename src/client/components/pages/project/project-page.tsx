@@ -105,8 +105,9 @@ export default function ProjectPage({ project }: ProjectPageProps) {
               </div>
             </>
           )}
+          {/*
           <Separator />
-          <div className="space-y-4">
+           <div className="space-y-4">
             <h2 className="text-xl font-semibold">Related Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 border rounded-md">
@@ -122,8 +123,8 @@ export default function ProjectPage({ project }: ProjectPageProps) {
                 </p>
               </div>
             </div>
-          </div>
-          <CommentsSection />
+          </div> */}
+          <CommentsSection projectId={project.id} />
         </CardContent>
       </Card>
     </div>
